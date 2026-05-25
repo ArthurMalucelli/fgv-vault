@@ -1,0 +1,14 @@
+{
+  "templates:insert-template": [
+    {
+      "modifiers": ["Mod", "Shift"],
+      "key": "T"
+    }
+  ],
+  "graph:open": [
+    {
+      "modifiers": ["Mod", "Shift"],
+      "key": "G"
+    }
+  ]
+}

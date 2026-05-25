@@ -1,0 +1,21 @@
+COMPORTAMENTO DO CONSUMIDOR - Lilian Carvalho
+=============================================
+Material todo em Google Drive externo (nao baixavel automaticamente sem login Google).
+
+SYLLABUS
+  https://docs.google.com/document/d/1R4EISP390OA3zjdqzyhxoeKEE0meHbRV/edit
+
+SLIDES & LEITURAS (pasta Drive com tudo da matéria)
+  https://drive.google.com/drive/folders/1b2juJH4GcmO4yB5xlk3HFHz1UPWTl_Bi
+
+DESAFIO - Instrucoes
+  https://drive.google.com/file/d/1SuwYPpiA6YTRftsV8YCNoLbh0SLlAu4j/view
+
+DESAFIO - Apresentacao Luisa Abraham (case)
+  https://docs.google.com/presentation/d/1RlBQGIGq8GE5irPJ9FQRRGnukZvxgwbg/edit
+
+DESAFIO - Apresentacao Devaneios do Sutil (case)
+  https://drive.google.com/file/d/1D5HZMoeCgS8Crvf0Oz20cPR-uoglVGfy/view
+
+NOTA: a pasta "Slides e Leituras" no Drive eh onde fica o material por aula/data.
+Para ver localmente, abrir o link no navegador (logado com conta FGV).

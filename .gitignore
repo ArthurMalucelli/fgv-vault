@@ -1,0 +1,23 @@
+# Obsidian workspace state (per-device, nao sincronizar)
+.obsidian/workspace
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/.last-update
+
+# Trash
+.trash/
+
+# Plaud / gravadores podem deixar arquivos temporarios
+*.tmp
+*.mp3.processing
+*.cache
+
+# macOS
+.DS_Store
+._.DS_Store
+
+# Anexos pesados se quiser ignorar (descomenta se vault tiver muito audio/video)
+# *.mp3
+# *.mp4
+# *.wav

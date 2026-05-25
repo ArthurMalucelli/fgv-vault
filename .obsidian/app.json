@@ -1,0 +1,20 @@
+{
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest",
+  "showFrontmatter": true,
+  "alwaysUpdateLinks": true,
+  "defaultViewMode": "preview",
+  "livePreview": true,
+  "promptDelete": false,
+  "newFileLocation": "current",
+  "attachmentFolderPath": "Vault/Attachments",
+  "showLineNumber": false,
+  "spellcheck": true,
+  "spellcheckLanguages": [
+    "pt",
+    "en"
+  ],
+  "readableLineLength": true,
+  "strictLineBreaks": false,
+  "showInlineTitle": true
+}

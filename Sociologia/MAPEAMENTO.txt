@@ -1,0 +1,31 @@
+MAPEAMENTO SOCIOLOGIA - Silvia Viana (dupla 1h50, 2x/sem, 28 sessoes T6)
+=======================================================================
+
+Cronograma extraido de Geral/programacao_aula_a_aula.docx.
+Hipotese T6 (ter+sex), igual outras dupladas. Todas datas sao inferidas.
+
+  10.02.26 ter  A1   Introducao
+  13.02.26 sex  A2   Fordismo->acum. flexivel (Harvey C7)
+  20.02.26 sex  A3   Acum. flexivel (Harvey C8)
+  24.02.26 ter  A4   Acum. flex (Idem)
+  27.02.26 sex  A5   Acum. flex (Idem)
+  03.03.26 ter  A6   Toyotismo (Bernardo + Harvey C9)
+  06.03.26 sex  A7   Toyotismo (Idem)
+  10.03.26 ter  A8   Neoliberalismo (Dardot/Laval + Foucault)
+  13.03.26 sex  A9   Neoliberal (Idem)
+  17.03.26 ter  A10  Neoliberal + Moacir Contra todos
+  20.03.26 sex  A11  Neoliberal (Idem)
+  24.03.26 ter  A12  INTERREGNO Feedback modulos 1+2
+  27.03.26 sex  A13  Capit. crise (Arantes Nome da crise)
+  31.03.26 ter  A14  Capit. crise (Grupo Krisis)
+  07.04.26 ter  A15  Capit. crise (Fisher Realismo capitalista)
+  10.04.26 sex  A16  Fim capitalismo (Streeck)
+  14.04.26 ter  A17  Fim capitalismo (Idem)
+  17.04.26 sex  A18  Novo regime acum. (Dardot/Laval Nova fase + Fraser)
+  24.04.26 sex  A19  Novo regime (Idem)
+
+PROXIMAS (nao criadas ainda):
+  28.04, 05.05, 08.05, 12.05, 15.05, 19.05, 22.05, 26.05, 29.05 -> A20-A28
+
+Bibliografia/ centralizada (12 PDFs). Cada pasta de data tem _topico.txt apontando pras leituras.
+Geral/ tem Apresentacao_curso (movido pra 10.02.26), Syllabus, programacao_aula_a_aula.
