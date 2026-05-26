@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Pandas Cheatsheet</title>
+<style>
+@page { size: A4 landscape; margin: 8mm 7mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #111; font-size: 7.4pt; line-height: 1.28; }
+.page { column-count: 3; column-gap: 6mm; column-rule: 1px solid #ddd; page-break-after: always; }
+.page:last-child { page-break-after: auto; }
+h1 { font-size: 11pt; margin: 0 0 1mm 0; column-span: all; border-bottom: 2px solid #111; padding-bottom: 1mm; }
+h1 .sub { font-size: 7pt; font-weight: 400; color: #555; float: right; }
+h2 { font-size: 8.4pt; margin: 1.5mm 0 0.8mm 0; padding: 0.6mm 1.2mm; background: #111; color: #fff; break-after: avoid; }
+h3 { font-size: 7.6pt; margin: 1.2mm 0 0.4mm 0; color: #111; font-weight: 700; break-after: avoid; text-transform: uppercase; letter-spacing: 0.2px; }
+p { margin: 0.4mm 0; }
+code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 6.7pt; }
+pre { background: #f3f3f3; border-left: 2px solid #555; padding: 0.8mm 1.2mm; margin: 0.4mm 0 0.8mm 0; white-space: pre-wrap; word-break: break-word; break-inside: avoid; }
+code { background: #f0f0f0; padding: 0 1px; border-radius: 2px; }
+table { width: 100%; border-collapse: collapse; margin: 0.4mm 0 0.8mm 0; font-size: 6.8pt; break-inside: avoid; }
+th, td { border: 1px solid #aaa; padding: 0.4mm 0.8mm; text-align: left; vertical-align: top; }
+th { background: #e8e8e8; font-weight: 700; }
+ul, ol { margin: 0.4mm 0 0.8mm 0; padding-left: 3.5mm; }
+li { margin: 0.2mm 0; break-inside: avoid; }
+.warn { background: #fff7d6; border-left: 2px solid #d4a017; padding: 0.8mm 1.2mm; margin: 0.4mm 0 0.8mm 0; font-size: 6.8pt; }
+.tip { background: #e9f4ff; border-left: 2px solid #2070c8; padding: 0.8mm 1.2mm; margin: 0.4mm 0 0.8mm 0; font-size: 6.8pt; }
+.danger { background: #ffe9e9; border-left: 2px solid #c83030; padding: 0.8mm 1.2mm; margin: 0.4mm 0 0.8mm 0; font-size: 6.8pt; }
+.kbd { display: inline-block; padding: 0 2px; border: 1px solid #999; border-radius: 2px; background: #f6f6f6; font-family: monospace; font-size: 6.4pt; }
+.block { break-inside: avoid; }
+.compact td, .compact th { padding: 0.3mm 0.6mm; }
+.muted { color: #666; }
+.tight pre { margin: 0.2mm 0; }
+</style>
+</head>
+<body>
+
+<div class="page">
+<h1>Pandas Cheatsheet, Avaliação 26.05 <span class="sub">Arthur Malucelli, FGV CGAE6</span></h1>
+
+<div class="block">
+<h2>0. Setup obrigatório (primeira célula)</h2>
+<pre>import pandas as pd
+
+postos = pd.read_csv(
+    "/Users/arthurmalucelli/FGV/Programacao/Aulas/05.26/postos_sp_2025.csv",
+    sep=";", decimal=",",
+)
+distrib = pd.read_csv(
+    "/Users/arthurmalucelli/FGV/Programacao/Aulas/05.26/distribuicao_municipios_sp_2025.csv",
+    sep=";", decimal=",",
+)
+
+postos["CNPJ"] = postos["CNPJ"].str.strip()
+postos["Mes"]  = postos["Data da Coleta"].str[6:10] + "-" + postos["Data da Coleta"].str[3:5]
+
+print(postos.shape, distrib.shape)
+postos.head()</pre>
+<p class="warn"><b>CSV brasileiro</b>: sempre <code>sep=";"</code> e <code>decimal=","</code>. Sem isso, parsing quebra ou número vira string.</p>
+</div>
+
+<div class="block">
+<h2>1. Inspeção rápida</h2>
+<table class="compact">
+<tr><th>Comando</th><th>O que mostra</th></tr>
+<tr><td><code>df.head(n)</code> / <code>tail(n)</code></td><td>n primeiras/últimas linhas (default 5)</td></tr>
+<tr><td><code>df.sample(n)</code></td><td>n linhas aleatórias</td></tr>
+<tr><td><code>df.shape</code></td><td>(linhas, colunas), sem <code>()</code></td></tr>
+<tr><td><code>df.info()</code></td><td>colunas, tipos, não-nulos</td></tr>
+<tr><td><code>df.columns</code> / <code>dtypes</code></td><td>nomes / tipos</td></tr>
+<tr><td><code>df.describe()</code></td><td>count, mean, std, min, quartis, max</td></tr>
+<tr><td><code>df.describe(include="all")</code></td><td>inclui colunas de texto</td></tr>
+<tr><td><code>len(df)</code></td><td>número de linhas (igual <code>shape[0]</code>)</td></tr>
+</table>
+</div>
+
+<div class="block">
+<h2>2. Seleção de coluna</h2>
+<pre>df["c"]              # Series (1D)
+df[["c1", "c2"]]     # DataFrame (várias colunas, ordem da lista)
+df[["c"]]            # DataFrame com 1 coluna (≠ Series)</pre>
+<p class="tip"><b>1 colchete vs 2</b>: um vira Series, dois viram DataFrame. Pra reordenar colunas, usa 2.</p>
+</div>
+
+<div class="block">
+<h2>3. Filtro lógico (linha)</h2>
+<pre># Sempre 2 etapas mentais:
+cond = df["Produto"] == "GASOLINA"  # Series booleana
+df[cond]                             # DataFrame filtrado
+
+# Ou direto:
+df[df["Produto"] == "GASOLINA"]
+df[df["Valor de Venda"] > 6]
+df[df["Bandeira"] != "BRANCA"]
+df[df["Bandeira"].isin(["VIBRA","RAIZEN","IPIRANGA"])]
+len(df[df["Produto"] == "GASOLINA"])</pre>
+<table class="compact">
+<tr><th>Op</th><th>Significado</th></tr>
+<tr><td><code>==</code> <code>!=</code></td><td>igual, diferente</td></tr>
+<tr><td><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code></td><td>comparações numéricas</td></tr>
+<tr><td><code>.isin([...])</code></td><td>está na lista</td></tr>
+</table>
+</div>
+
+<div class="block">
+<h2>4. Combinando condições</h2>
+<pre># NUNCA usar and/or/not em pandas
+df[(df["Produto"]=="GASOLINA") & (df["Valor de Venda"]>6)]   # AND
+df[(df["Bandeira"]=="VIBRA") | (df["Bandeira"]=="RAIZEN")]   # OR
+df[~(df["Bandeira"]=="BRANCA")]                              # NOT
+
+# Versão legível (recomendada na prova):
+c1 = df["Produto"] == "GASOLINA"
+c2 = df["Valor de Venda"] > 6
+c3 = df["Municipio"] == "SAO PAULO"
+df[c1 & c2 & c3]</pre>
+<p class="danger"><b>Pegadinha #1</b>: cada condição entre parênteses. <code>df[df["x"]==1 & df["y"]>2]</code> sem parênteses dá erro silencioso de precedência.</p>
+</div>
+
+<div class="block">
+<h2>5. loc / iloc (filtro + coluna)</h2>
+<pre>df.loc[cond, "Valor de Venda"]                    # linhas onde cond, só Valor
+df.loc[cond, ["Revenda", "Valor de Venda"]]       # várias colunas
+df.loc[df["Produto"]=="GASOLINA", "Valor de Venda"].mean()
+
+df.iloc[0]              # linha 0 (por posição)
+df.iloc[0:5, 0:3]       # 5 linhas, 3 colunas (FIM EXCLUSIVO)
+df.loc[5:10]            # linhas 5..10 (FIM INCLUSIVO)</pre>
+<table class="compact">
+<tr><th></th><th>loc</th><th>iloc</th></tr>
+<tr><td>Usa</td><td>rótulo (nome)</td><td>posição (número)</td></tr>
+<tr><td>Fim slice</td><td>inclusivo</td><td>exclusivo</td></tr>
+</table>
+</div>
+
+<div class="block">
+<h2>6. Strings na coluna (.str)</h2>
+<pre>df["c"].str.upper() / .lower() / .title() / .swapcase()
+df["c"].str.strip()                  # tira espaços das pontas
+df["c"].str.len()                    # tamanho
+df["c"].str.contains("POSTO")        # booleana (filtro!)
+df["c"].str.startswith("AUTO") / .endswith("LTDA")
+df["c"].str.replace("LTDA", "")      # SUBSTRING (≠ replace puro)
+df["c"].str[0]   .str[-3:]   .str[6:10]     # slice por posição
+df["c"].str.split()                  # quebra por espaço, vira lista
+df["c"].str.split(expand=True)       # vira DataFrame
+df["c"].str.split().str[-1]          # último elemento (ex: sobrenome)
+
+# Encadeamento (lê esq→dir):
+df["c"].str.upper().str.replace("LTDA","").str.strip()</pre>
+<p class="warn"><b>Sem <code>.str</code></b>: <code>df["c"].upper()</code> dá <code>AttributeError</code>. Sempre <code>.str</code> antes de função de string.</p>
+</div>
+
+<div class="block">
+<h2>7. replace vs str.replace</h2>
+<table class="compact">
+<tr><th>Forma</th><th>Compara o quê</th></tr>
+<tr><td><code>col.replace("SP","Sao Paulo")</code></td><td>valor inteiro da célula</td></tr>
+<tr><td><code>col.str.replace("SP","BA")</code></td><td>substring dentro do texto</td></tr>
+</table>
+<pre>df["Estado"] = df["Estado"].replace("SP", "Sao Paulo")
+df["Bandeira"] = df["Bandeira"].replace({"BRANCA":"SEM","VIBRA":"BR"})</pre>
+</div>
+
+<div class="block">
+<h2>8. Criar / atualizar coluna</h2>
+<pre>df["nova"]     = df["a"] + df["b"]          # cria à direita
+df["a"]        = df["a"] * 1.1              # substitui valores
+df["Pais"]     = "Brasil"                   # constante
+df["Cidade_U"] = df["Municipio"].str.upper()</pre>
+<p class="danger"><b>Pegadinha #2</b>: <code>df = df["c"].str.lower()</code> DESTRÓI o DataFrame (vira Series). Pra atualizar coluna, esquerda tem que ser <code>df["c"]</code>, não <code>df</code>.</p>
+</div>
+
+<div class="block">
+<h2>9. Conversão de tipo (astype)</h2>
+<pre>df["c"] = df["c"].astype(float)
+df["c"] = df["c"].astype(str)
+df["c"] = df["c"].astype(int)
+
+# Se Valor veio como string (decimal não pegou):
+df["Valor de Venda"] = (
+    df["Valor de Venda"]
+    .str.replace(",", ".")
+    .astype(float)
+)</pre>
+<p class="tip"><b>Concatenar string+número</b>: <code>"C" + df["id"]</code> falha. Converte primeiro: <code>"C" + df["id"].astype(str)</code>.</p>
+</div>
+
+<div class="block">
+<h2>10. Estatísticas numéricas</h2>
+<pre>df["c"].mean()     .median()    .std()    .var()
+df["c"].min()      .max()       .sum()
+df["c"].count()    # não-nulos
+df["c"].quantile(0.25)   .quantile(0.75)
+df["c"].describe()       # tudo de uma vez
+
+# Em DataFrame inteiro:
+df.describe()                  # só numéricas
+df.describe(include="all")     # também texto</pre>
+<p class="warn">Sem <code>()</code>: <code>df["c"].mean</code> retorna <i>bound method</i>, não o número. Erro silencioso clássico.</p>
+</div>
+
+<div class="block">
+<h2>11. value_counts / unique / mode</h2>
+<pre>df["c"].value_counts()                  # contagem decrescente
+df["c"].value_counts(normalize=True)    # proporção (0..1)
+df["c"].value_counts(dropna=False)      # inclui NaN
+df["c"].value_counts().head(3)          # top 3
+df["c"].value_counts()["VIBRA"]         # contagem de 1 valor
+
+df["c"].unique()        # array dos distintos
+df["c"].nunique()       # quantos distintos (1 número)
+df["c"].mode()          # valor(es) mais frequente(s)</pre>
+<table class="compact">
+<tr><th>Pergunta</th><th>Método</th></tr>
+<tr><td>Que valores existem?</td><td><code>unique</code></td></tr>
+<tr><td>Quantos distintos?</td><td><code>nunique</code></td></tr>
+<tr><td>Quantos de cada?</td><td><code>value_counts</code></td></tr>
+<tr><td>Qual mais frequente?</td><td><code>mode</code> ou <code>vc().index[0]</code></td></tr>
+</table>
+</div>
+
+<div class="block">
+<h2>12. Ordenação e duplicatas</h2>
+<pre>df.sort_values("c")                       # crescente, NÃO persiste
+df.sort_values("c", ascending=False)
+df = df.sort_values("c")                  # PERSISTE (reatribui)
+
+df.drop_duplicates()                      # linhas 100% iguais
+df.drop_duplicates(subset=["CNPJ"])       # único por CNPJ</pre>
+</div>
+
+<div class="block">
+<h2>13. Nulos (NaN)</h2>
+<pre>df.isnull().sum()          # quantos nulos por coluna
+df.dropna()                # remove linhas com qualquer nulo
+df.dropna(subset=["c"])    # só pelo critério da coluna c
+df.fillna(0)               # preenche com 0
+df["c"].fillna("nd")       # preenche coluna específica</pre>
+</div>
+
+</div>
+
+<div class="page">
+<h1>Pandas Cheatsheet (cont.) <span class="sub">groupby, merge, pivot, plot, cenários</span></h1>
+
+<div class="block">
+<h2>14. groupby (a operação mais importante)</h2>
+<pre># Estrutura: df.groupby(CRITÉRIO)[COLUNA].FUNÇÃO()
+df.groupby("Bandeira")["Valor de Venda"].mean()
+df.groupby("Produto")["Valor de Venda"].max()
+df.groupby("Municipio")["CNPJ"].nunique()    # postos distintos por cidade
+df.groupby("Bandeira").size()                # qtd linhas por grupo
+
+# Múltiplos critérios (lista):
+df.groupby(["Municipio","Produto"])["Valor de Venda"].mean()
+
+# Critério como coluna em vez de índice:
+df.groupby("Bandeira", as_index=False)["Valor de Venda"].mean()
+
+# Filtro + groupby:
+df[df["Produto"]=="GASOLINA"].groupby("Municipio")["Valor de Venda"].mean()</pre>
+<table class="compact">
+<tr><th>Função</th><th>Faz</th></tr>
+<tr><td><code>.mean()</code></td><td>média</td></tr>
+<tr><td><code>.sum()</code> <code>.median()</code></td><td>soma, mediana</td></tr>
+<tr><td><code>.min()</code> <code>.max()</code> <code>.std()</code></td><td>extremos, dispersão</td></tr>
+<tr><td><code>.size()</code></td><td>qtd linhas no grupo</td></tr>
+<tr><td><code>.count()</code></td><td>não-nulos numa coluna</td></tr>
+<tr><td><code>.nunique()</code></td><td>distintos numa coluna</td></tr>
+<tr><td><code>.first()</code> <code>.last()</code></td><td>primeiro/último valor</td></tr>
+</table>
+</div>
+
+<div class="block">
+<h2>15. agg (várias estatísticas)</h2>
+<pre># Várias funções pra mesma coluna:
+df.groupby("Bandeira")["Valor de Venda"].agg(["mean","min","max","std"])
+
+# Diferentes funções pra diferentes colunas:
+df.groupby("Bandeira").agg({
+    "Valor de Venda": "mean",
+    "CNPJ": "nunique",
+})
+
+# Combinado:
+df.groupby("Bandeira").agg({
+    "Valor de Venda": ["mean","min","max"],
+    "CNPJ": "nunique",
+})</pre>
+</div>
+
+<div class="block">
+<h2>16. Ranking, top N, idxmax</h2>
+<pre>df.groupby("Bandeira")["Valor de Venda"].mean().sort_values(ascending=False)
+df.groupby("Municipio")["Valor de Venda"].mean().sort_values(ascending=False).head(5)
+
+# Rótulo do MAIOR/MENOR (não o valor):
+df.groupby("Municipio")["Valor de Venda"].mean().idxmax()  # nome do município
+df.groupby("Municipio")["Valor de Venda"].mean().max()     # valor da média
+df["Valor de Venda"].idxmax()    # índice da linha com maior valor</pre>
+</div>
+
+<div class="block">
+<h2>17. pivot_table (= tabela dinâmica)</h2>
+<pre>df.pivot_table(
+    index="Municipio",         # rows
+    columns="Produto",         # columns
+    values="Valor de Venda",   # values
+    aggfunc="mean",            # função
+    margins=True,              # linha/col de total
+)</pre>
+<p class="tip">Equivale a <code>groupby(["Municipio","Produto"])["Valor de Venda"].mean().unstack()</code>. Use pivot_table se for mais natural.</p>
+</div>
+
+<div class="block">
+<h2>18. unstack / stack</h2>
+<pre># Resultado de groupby multi-key fica vertical:
+df.groupby(["Bandeira","Produto"])["Valor de Venda"].mean()
+
+# .unstack() joga último nível pra coluna (vira matriz):
+df.groupby(["Bandeira","Produto"])["Valor de Venda"].mean().unstack()
+
+# Escolhe nível:
+.unstack(0)   ou   .unstack("Bandeira")</pre>
+</div>
+
+<div class="block">
+<h2>19. merge (junção, PROCV++)</h2>
+<pre>pd.merge(left, right, on="chave", how="inner")
+pd.merge(L, R, on=["k1","k2","k3"], how="inner")    # chave múltipla
+pd.merge(L, R, left_on="A", right_on="B", how="left")  # nomes diferentes
+
+# Sintaxe método (igual):
+L.merge(R, on="chave", how="inner")</pre>
+<table class="compact">
+<tr><th>how</th><th>Linhas resultantes</th></tr>
+<tr><td><b>inner</b> (default)</td><td>só chaves presentes nos dois</td></tr>
+<tr><td>outer</td><td>união, faltante = NaN</td></tr>
+<tr><td>left</td><td>tudo do left + match do right</td></tr>
+<tr><td>right</td><td>tudo do right + match do left</td></tr>
+</table>
+<p class="danger"><b>Pegadinha #3</b>: chave incompleta → produto cartesiano (DataFrame explode pra milhões). Se shape ficar gigante depois do merge, falta coluna no <code>on</code>.</p>
+</div>
+
+<div class="block">
+<h2>20. Caso da prova: postos + distrib</h2>
+<pre># 1. Cria chave Mes em postos (formato YYYY-MM):
+postos["Mes"] = (postos["Data da Coleta"].str[6:10] + "-"
+                 + postos["Data da Coleta"].str[3:5])
+
+# 2. Junta pela chave tripla:
+juntos = pd.merge(
+    postos, distrib,
+    on=["Municipio","Produto","Mes"],
+    how="inner",
+)
+
+# 3. Calcula margem:
+juntos["margem"] = juntos["Valor de Venda"] - juntos["Preco_Distribuicao"]
+
+# 4. Margem média por bandeira (ranking):
+juntos.groupby("Bandeira")["margem"].mean().sort_values(ascending=False)</pre>
+</div>
+
+<div class="block">
+<h2>21. plot (gráficos rápidos)</h2>
+<pre>df.plot(x="data", y="quantidade", kind="line", marker="o",
+        title="X", xlabel="data", ylabel="qtd")
+
+# kind: "line", "bar", "barh", "pie", "hist", "box"
+# Múltiplas séries: y=["col1","col2"]
+# Resultado de groupby também tem .plot:
+df.groupby("Mes")["Valor de Venda"].mean().plot(kind="line")</pre>
+</div>
+
+<div class="block">
+<h2>22. Cenários típicos (com solução)</h2>
+<h3>Quantos postos distintos em SP capital</h3>
+<pre>df[df["Municipio"]=="SAO PAULO"]["CNPJ"].nunique()</pre>
+
+<h3>Top 5 cidades com gasolina mais cara (média)</h3>
+<pre>(df[df["Produto"]=="GASOLINA"]
+    .groupby("Municipio")["Valor de Venda"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(5))</pre>
+
+<h3>Bandeira mais frequente em SP capital</h3>
+<pre>df[df["Municipio"]=="SAO PAULO"]["Bandeira"].value_counts().head(1)</pre>
+
+<h3>Município com diesel mais caro (nome)</h3>
+<pre>(df[df["Produto"]=="DIESEL S10"]
+    .groupby("Municipio")["Valor de Venda"].mean().idxmax())</pre>
+
+<h3>Preço médio mês a mês de gasolina em SP</h3>
+<pre>sp = df[(df["Produto"]=="GASOLINA") & (df["Municipio"]=="SAO PAULO")].copy()
+sp["Mes"] = sp["Data da Coleta"].str[6:10] + "-" + sp["Data da Coleta"].str[3:5]
+sp.groupby("Mes")["Valor de Venda"].mean()</pre>
+
+<h3>Postos cuja revenda contém "AUTO POSTO" e bandeira VIBRA</h3>
+<pre>c1 = df["Revenda"].str.contains("AUTO POSTO")
+c2 = df["Bandeira"]=="VIBRA"
+df[c1 & c2]</pre>
+
+<h3>Municípios onde gasolina máxima passou de 7</h3>
+<pre>g = df[df["Produto"]=="GASOLINA"]
+m = g.groupby("Municipio")["Valor de Venda"].max()
+m[m > 7]</pre>
+
+<h3>Distribuição completa por produto</h3>
+<pre>df.groupby("Produto")["Valor de Venda"].describe()</pre>
+
+<h3>Quantas bandeiras operam em cada cidade (top 10)</h3>
+<pre>df.groupby("Municipio")["Bandeira"].nunique().sort_values(ascending=False).head(10)</pre>
+</div>
+
+<div class="block">
+<h2>23. Erros típicos e diagnóstico</h2>
+<table class="compact">
+<tr><th>Mensagem</th><th>Causa provável</th></tr>
+<tr><td><code>KeyError: 'X'</code></td><td>coluna não existe (case, espaço, acento), ou df virou Series</td></tr>
+<tr><td><code>TypeError: unsupported operand</code></td><td>operação aritmética em coluna string. Usar <code>astype(float)</code></td></tr>
+<tr><td><code>AttributeError: 'Series' has no 'upper'</code></td><td>esqueceu <code>.str</code></td></tr>
+<tr><td><code>'method' object does not support item assignment</code></td><td>usou <code>[</code> em vez de <code>(</code> em método</td></tr>
+<tr><td><code>'float' object does not support item assignment</code></td><td>atribuição em cadeia <code>a = b = expr</code> com efeito colateral</td></tr>
+<tr><td><code>ParserError tokenizing data, expected N saw M</code></td><td>faltou <code>sep=";"</code> no read_csv</td></tr>
+<tr><td><code>FileNotFoundError</code></td><td>caminho relativo errado; usa absoluto</td></tr>
+<tr><td><code>SettingWithCopyWarning</code></td><td>atribuição em DF filtrado; usa <code>.copy()</code> ao criar subset</td></tr>
+<tr><td>DataFrame explodiu (shape gigante depois de merge)</td><td>chave incompleta no <code>on</code></td></tr>
+<tr><td>Output <code>&lt;bound method ...&gt;</code></td><td>esqueceu <code>()</code> ao chamar função</td></tr>
+</table>
+<p class="tip"><b>Dica do prof</b>: erro grande e vermelho, lê a <b>última linha</b> do traceback. É onde o pandas diz o que houve.</p>
+</div>
+
+<div class="block">
+<h2>24. Mostrar 2 resultados na mesma célula</h2>
+<pre>display(df["a"].mean())
+display(df["b"].mean())   # Jupyter mostra os 2</pre>
+<p class="muted">Sem <code>display</code>, só o último valor da célula aparece.</p>
+</div>
+
+<div class="block">
+<h2>25. Atalhos mentais (regras-mãe)</h2>
+<ul>
+<li><b><code>=</code> vs <code>==</code></b>: um atribui, dois compara. Errar é clássico.</li>
+<li><b>Estatística sempre em coluna</b>: <code>df["c"].mean()</code>, não <code>df.mean()</code>.</li>
+<li><b>Reordenar / atualizar coluna</b>: esquerda é <code>df["c"]</code>, não <code>df</code>.</li>
+<li><b>Booleanos</b>: <code>&amp;</code> <code>|</code> <code>~</code>, cada cond entre parênteses. Nunca <code>and/or/not</code>.</li>
+<li><b>Slice <code>loc</code></b>: fim inclusivo. <b><code>iloc</code></b>: fim exclusivo.</li>
+<li><b>Métodos com <code>()</code></b>, atributos sem. <code>shape</code> sem, <code>head()</code> com.</li>
+<li><b><code>sort_values</code> não persiste</b> sozinho. Reatribui.</li>
+<li><b>Sempre <code>.str</code></b> antes de função de string.</li>
+<li><b>Salva o notebook a cada exercício</b> (<span class="kbd">Cmd</span>+<span class="kbd">S</span>).</li>
+<li><b>Antes de submeter</b>: <span class="kbd">Kernel</span> → <span class="kbd">Restart and Run All</span> pra confirmar que tudo roda em ordem.</li>
+</ul>
+</div>
+
+<div class="block">
+<h2>26. Fluxo dos 100 min</h2>
+<ol>
+<li><b>Min 1–5</b>: lê todas as perguntas antes de tocar em código. Classifica mental (filtro? groupby? merge?).</li>
+<li><b>Min 5–10</b>: roda setup. Confere <code>shape</code> e <code>head</code>. Se Valor veio string, converte (seção 9).</li>
+<li><b>Min 10–50</b>: faz as fáceis (value_counts, mean simples, filtro). Trava pontos.</li>
+<li><b>Min 50–80</b>: combinadas (filtro+groupby, merge, encadeamento).</li>
+<li><b>Min 80–85</b>: Restart and Run All pra garantir consistência.</li>
+<li><b>Min 85–100</b>: eClass abre. Representante sobe o .ipynb e responde questionário. Confere nomes dos 3 do grupo.</li>
+</ol>
+</div>
+
+</div>
+
+</body>
+</html>
