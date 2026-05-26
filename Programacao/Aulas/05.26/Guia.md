@@ -26,8 +26,8 @@ Pandas é uma biblioteca de Python pra mexer em tabela de dados. Pensa nele como
 | Tabela dinâmica | `groupby` ou `pivot_table` |
 | PROCV (`VLOOKUP`) | `merge` |
 | Fórmula numa célula | Operação em coluna inteira |
-| `=AVERAGE(A:A)` | `df["A"].mean()` |
-| `=COUNTIF(...)` | `df["col"].value_counts()` |
+| =`AVERAGE(A:A)` | `df["A"].mean()` |
+| =`COUNTIF(...)` | `df["col"].value_counts()` |
 
 **Diferença mental importante:** no Excel você seleciona células com o mouse e aplica fórmula. No Pandas você **escreve** uma expressão e ela age na coluna inteira de uma vez. Não tem laço/loop manual.
 
