@@ -41,9 +41,12 @@ li { margin: 0.15mm 0; break-inside: avoid; }
 postos = pd.read_csv("postos_sp_2025.csv", sep=";", decimal=",")
 distrib = pd.read_csv("distribuicao_municipios_sp_2025.csv",
                       sep=";", decimal=",")
-postos["CNPJ"] = postos["CNPJ"].str.strip()
-postos["Mes"]  = (postos["Data da Coleta"].str[6:10] + "-"
-                  + postos["Data da Coleta"].str[3:5])
+# Strip espaço fantasma em todas colunas de texto
+for col in postos.select_dtypes(include="object").columns:
+    postos[col] = postos[col].str.strip()
+
+postos["Mes"] = (postos["Data da Coleta"].str[6:10] + "-"
+                 + postos["Data da Coleta"].str[3:5])
 print(postos.shape, distrib.shape); postos.head()</pre>
 <p class="warn"><b>CSV BR</b>: sempre <code>sep=";"</code> + <code>decimal=","</code>. Sem isso, parse quebra ou número vira string.</p>
 </div>
