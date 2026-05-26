@@ -6,25 +6,25 @@
 <style>
 @page { size: A4 landscape; margin: 5mm 5mm; }
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #111; font-size: 7.2pt; line-height: 1.22; }
+html, body { margin: 0; padding: 0; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #111; font-size: 7.8pt; line-height: 1.26; }
 .page { column-count: 3; column-gap: 4mm; column-rule: 0.5px solid #ddd; page-break-after: always; height: 195mm; overflow: hidden; }
 .page:last-child { page-break-after: auto; }
-h1 { font-size: 10pt; margin: 0 0 0.8mm 0; column-span: all; border-bottom: 1.5px solid #111; padding-bottom: 0.5mm; }
-h1 .sub { font-size: 7pt; font-weight: 400; color: #555; float: right; }
-h2 { font-size: 7.6pt; margin: 1mm 0 0.4mm 0; padding: 0.4mm 1mm; background: #111; color: #fff; break-after: avoid; text-transform: uppercase; letter-spacing: 0.2px; }
-h3 { font-size: 7.2pt; margin: 0.6mm 0 0.2mm 0; color: #111; font-weight: 700; break-after: avoid; }
-p { margin: 0.3mm 0; }
-code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 6.4pt; }
-pre { background: #f3f3f3; border-left: 1.5px solid #555; padding: 0.5mm 1mm; margin: 0.3mm 0 0.5mm 0; white-space: pre-wrap; word-break: break-word; break-inside: avoid; line-height: 1.22; }
+h1 { font-size: 10.5pt; margin: 0 0 0.9mm 0; column-span: all; border-bottom: 1.5px solid #111; padding-bottom: 0.5mm; }
+h1 .sub { font-size: 7.4pt; font-weight: 400; color: #555; float: right; }
+h2 { font-size: 8.2pt; margin: 1.2mm 0 0.5mm 0; padding: 0.5mm 1.2mm; background: #111; color: #fff; break-after: avoid; text-transform: uppercase; letter-spacing: 0.2px; }
+h3 { font-size: 7.8pt; margin: 0.7mm 0 0.2mm 0; color: #111; font-weight: 700; break-after: avoid; }
+p { margin: 0.4mm 0; }
+code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 6.9pt; }
+pre { background: #f3f3f3; border-left: 1.5px solid #555; padding: 0.6mm 1.1mm; margin: 0.4mm 0 0.6mm 0; white-space: pre-wrap; word-break: break-word; break-inside: avoid; line-height: 1.26; }
 code { background: #f0f0f0; padding: 0 1.5px; border-radius: 1.5px; }
-table { width: 100%; border-collapse: collapse; margin: 0.3mm 0 0.5mm 0; font-size: 6.6pt; break-inside: avoid; }
-th, td { border: 0.5px solid #aaa; padding: 0.3mm 0.7mm; text-align: left; vertical-align: top; line-height: 1.2; }
+table { width: 100%; border-collapse: collapse; margin: 0.4mm 0 0.6mm 0; font-size: 7.1pt; break-inside: avoid; }
+th, td { border: 0.5px solid #aaa; padding: 0.35mm 0.8mm; text-align: left; vertical-align: top; line-height: 1.22; }
 th { background: #e8e8e8; font-weight: 700; }
-ul, ol { margin: 0.3mm 0 0.5mm 0; padding-left: 3mm; }
-li { margin: 0.15mm 0; break-inside: avoid; }
-.warn { background: #fff7d6; border-left: 1.5px solid #d4a017; padding: 0.5mm 1mm; margin: 0.3mm 0 0.5mm 0; font-size: 6.6pt; }
-.tip { background: #e9f4ff; border-left: 1.5px solid #2070c8; padding: 0.5mm 1mm; margin: 0.3mm 0 0.5mm 0; font-size: 6.6pt; }
-.danger { background: #ffe9e9; border-left: 1.5px solid #c83030; padding: 0.5mm 1mm; margin: 0.3mm 0 0.5mm 0; font-size: 6.6pt; }
+ul, ol { margin: 0.4mm 0 0.6mm 0; padding-left: 3.2mm; }
+li { margin: 0.2mm 0; break-inside: avoid; }
+.warn { background: #fff7d6; border-left: 1.5px solid #d4a017; padding: 0.6mm 1.1mm; margin: 0.4mm 0 0.6mm 0; font-size: 7.1pt; }
+.tip { background: #e9f4ff; border-left: 1.5px solid #2070c8; padding: 0.6mm 1.1mm; margin: 0.4mm 0 0.6mm 0; font-size: 7.1pt; }
+.danger { background: #ffe9e9; border-left: 1.5px solid #c83030; padding: 0.6mm 1.1mm; margin: 0.4mm 0 0.6mm 0; font-size: 7.1pt; }
 .kbd { display: inline-block; padding: 0 2px; border: 0.5px solid #999; border-radius: 2px; background: #f6f6f6; font-family: monospace; font-size: 6pt; }
 .block { break-inside: avoid; margin-bottom: 0.3mm; }
 .muted { color: #666; }
@@ -51,24 +51,6 @@ print(postos.shape, distrib.shape); postos.head()</pre>
 <p class="warn"><b>CSV BR</b>: sempre <code>sep=";"</code> + <code>decimal=","</code>. Sem isso, parse quebra ou número vira string.</p>
 </div>
 
-<div class="block">
-<h2>Modelo mental (lê antes de tudo)</h2>
-<p><b>DataFrame</b> é a tabela inteira (2D, várias colunas e linhas). <b>Series</b> é uma coluna sozinha (1D). Quando tu pega <code>df["c"]</code>, recebe Series. Quando pega <code>df[["c1","c2"]]</code> (lista), recebe DataFrame. Series tem métodos de coluna (mean, str.upper, value_counts); DataFrame tem operações sobre múltiplas colunas.</p>
-
-<p><b>Filtro de linha sempre tem 2 etapas mentais</b>, mesmo numa linha só. Primeiro, cria uma Series booleana com a condição (<code>df["c"] == "X"</code> retorna True/False por linha). Segundo, aplica essa Series dentro do <code>df[...]</code>. O pandas vê uma Series booleana ali dentro e entende: "fica só com as linhas True". Não dá pra "filtrar com string", só com booleana.</p>
-
-<p><b>Atualizar coluna vs destruir DataFrame</b>. <code>df["c"] = ALGO</code> atualiza a coluna c, mantém o resto do DataFrame intacto (esquerda é coluna). <code>df = ALGO</code> sobrescreve o DataFrame inteiro (esquerda é variável). Se tu fizer <code>df = df["c"].str.lower()</code>, o df vira uma Series e as outras colunas somem.</p>
-
-<p><b>Por que existe <code>.str</code></b>. Métodos de string Python (upper, replace, contains) funcionam em uma string só. Coluna do pandas é Series com centenas de strings. <code>.str</code> é a ponte: aplica o método em cada string da coluna, retorna Series nova. Sem <code>.str</code>, dá erro porque Series não tem upper, replace, etc.</p>
-
-<p><b>groupby = split, apply, combine</b>. <code>df.groupby("c")["v"].mean()</code> divide o df em pedaços por valor de c, calcula a média de v em cada pedaço, junta tudo numa Series com c no índice. Equivalente direto da tabela dinâmica do Excel.</p>
-
-<p><b>merge = PROCV de tabela inteira</b>. Junta dois DataFrames por uma chave em comum (coluna que existe nos dois). <code>how="inner"</code> só mantém chaves presentes nos dois lados (descarta o que sobra), mas ADICIONA todas as colunas do segundo DataFrame que enriquecem as linhas. Se a chave real precisa de várias colunas, passa lista (<code>on=["k1","k2","k3"]</code>), senão vira produto cartesiano e explode.</p>
-
-<p><b>Método tem <code>()</code>, atributo não</b>. <code>df.shape</code>, <code>df.columns</code>, <code>df.dtypes</code> são atributos (sem parêntese). <code>df.head()</code>, <code>df.mean()</code>, <code>df["c"].str.upper()</code> são métodos (com parêntese). Esquecer <code>()</code> não dá erro, retorna o objeto-método em vez do valor (saída do tipo <code>&lt;bound method&gt;</code>).</p>
-
-<p><b>Como ler um traceback</b>. Erro vermelho gigante: ignora as 20 linhas do meio. A <b>última linha</b> diz o que houve (<code>KeyError</code>, <code>TypeError</code>, etc) e qual valor causou. A primeira linha do traceback diz qual célula tua causou. Dois pedaços, ignora o resto.</p>
-</div>
 
 <div class="block">
 <h2>1. Inspeção</h2>
