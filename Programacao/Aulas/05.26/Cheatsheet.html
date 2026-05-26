@@ -52,6 +52,25 @@ print(postos.shape, distrib.shape); postos.head()</pre>
 </div>
 
 <div class="block">
+<h2>Modelo mental (lê antes de tudo)</h2>
+<p><b>DataFrame</b> é a tabela inteira (2D, várias colunas e linhas). <b>Series</b> é uma coluna sozinha (1D). Quando tu pega <code>df["c"]</code>, recebe Series. Quando pega <code>df[["c1","c2"]]</code> (lista), recebe DataFrame. Series tem métodos de coluna (mean, str.upper, value_counts); DataFrame tem operações sobre múltiplas colunas.</p>
+
+<p><b>Filtro de linha sempre tem 2 etapas mentais</b>, mesmo numa linha só. Primeiro, cria uma Series booleana com a condição (<code>df["c"] == "X"</code> retorna True/False por linha). Segundo, aplica essa Series dentro do <code>df[...]</code>. O pandas vê uma Series booleana ali dentro e entende: "fica só com as linhas True". Não dá pra "filtrar com string", só com booleana.</p>
+
+<p><b>Atualizar coluna vs destruir DataFrame</b>. <code>df["c"] = ALGO</code> atualiza a coluna c, mantém o resto do DataFrame intacto (esquerda é coluna). <code>df = ALGO</code> sobrescreve o DataFrame inteiro (esquerda é variável). Se tu fizer <code>df = df["c"].str.lower()</code>, o df vira uma Series e as outras colunas somem.</p>
+
+<p><b>Por que existe <code>.str</code></b>. Métodos de string Python (upper, replace, contains) funcionam em uma string só. Coluna do pandas é Series com centenas de strings. <code>.str</code> é a ponte: aplica o método em cada string da coluna, retorna Series nova. Sem <code>.str</code>, dá erro porque Series não tem upper, replace, etc.</p>
+
+<p><b>groupby = split, apply, combine</b>. <code>df.groupby("c")["v"].mean()</code> divide o df em pedaços por valor de c, calcula a média de v em cada pedaço, junta tudo numa Series com c no índice. Equivalente direto da tabela dinâmica do Excel.</p>
+
+<p><b>merge = PROCV de tabela inteira</b>. Junta dois DataFrames por uma chave em comum (coluna que existe nos dois). <code>how="inner"</code> só mantém chaves presentes nos dois lados (descarta o que sobra), mas ADICIONA todas as colunas do segundo DataFrame que enriquecem as linhas. Se a chave real precisa de várias colunas, passa lista (<code>on=["k1","k2","k3"]</code>), senão vira produto cartesiano e explode.</p>
+
+<p><b>Método tem <code>()</code>, atributo não</b>. <code>df.shape</code>, <code>df.columns</code>, <code>df.dtypes</code> são atributos (sem parêntese). <code>df.head()</code>, <code>df.mean()</code>, <code>df["c"].str.upper()</code> são métodos (com parêntese). Esquecer <code>()</code> não dá erro, retorna o objeto-método em vez do valor (saída do tipo <code>&lt;bound method&gt;</code>).</p>
+
+<p><b>Como ler um traceback</b>. Erro vermelho gigante: ignora as 20 linhas do meio. A <b>última linha</b> diz o que houve (<code>KeyError</code>, <code>TypeError</code>, etc) e qual valor causou. A primeira linha do traceback diz qual célula tua causou. Dois pedaços, ignora o resto.</p>
+</div>
+
+<div class="block">
 <h2>1. Inspeção</h2>
 <table>
 <tr><td><code>df.head(n)</code> <code>tail()</code> <code>sample()</code></td><td>linhas</td></tr>
@@ -236,20 +255,7 @@ df.groupby("Municipio")["v"].mean().max()     # valor</pre>
 </div>
 
 <div class="block">
-<h2>16. pivot_table / unstack</h2>
-<pre>df.pivot_table(
-    index="Municipio", columns="Produto",
-    values="Valor de Venda", aggfunc="mean",
-    margins=True,        # linha/col TOTAL
-)
-
-# unstack: joga último nível do índice pra coluna
-df.groupby(["B","P"])["v"].mean().unstack()
-df.groupby(["B","P"])["v"].mean().unstack(0)     # 1º nível</pre>
-</div>
-
-<div class="block">
-<h2>17. merge (PROCV++)</h2>
+<h2>16. merge (PROCV++)</h2>
 <pre>pd.merge(L, R, on="k", how="inner")
 pd.merge(L, R, on=["k1","k2"], how="inner")     # chave múltipla
 pd.merge(L, R, left_on="A", right_on="B", how="left")
@@ -269,7 +275,7 @@ L.merge(R, on="k")                              # método</pre>
 <h1>Cheatsheet (cont.), merge real + cenários + erros <span class="sub">leva sempre na prova</span></h1>
 
 <div class="block">
-<h2>18. Caso real: postos + distrib (margem)</h2>
+<h2>17. Caso real: postos + distrib (margem)</h2>
 <pre># 1. Cria Mes em postos (formato YYYY-MM):
 postos["Mes"] = (postos["Data da Coleta"].str[6:10] + "-"
                  + postos["Data da Coleta"].str[3:5])
@@ -286,7 +292,7 @@ juntos.groupby("Bandeira")["margem"].mean().sort_values(ascending=False)</pre>
 </div>
 
 <div class="block">
-<h2>19. Cenários típicos (cole adaptando)</h2>
+<h2>18. Cenários típicos (cole adaptando)</h2>
 <h3>Postos distintos em SP capital</h3>
 <pre>df[df["Municipio"]=="SAO PAULO"]["CNPJ"].nunique()</pre>
 
@@ -338,16 +344,7 @@ display(df["b"].mean())</pre>
 </div>
 
 <div class="block">
-<h2>20. plot rápido</h2>
-<pre>df.plot(x="data", y="qtd", kind="line", marker="o",
-        title="X", xlabel="data", ylabel="qtd")
-# kind: line, bar, barh, pie, hist, box
-# Múltiplas séries: y=["c1","c2"]
-df.groupby("Mes")["v"].mean().plot(kind="bar")</pre>
-</div>
-
-<div class="block">
-<h2>21. Erros típicos → causa</h2>
+<h2>19. Erros típicos → causa</h2>
 <table>
 <tr><th>Erro</th><th>Causa</th></tr>
 <tr><td><code>KeyError: 'X'</code></td><td>nome de coluna errado, OU df virou Series</td></tr>
@@ -366,7 +363,7 @@ df.groupby("Mes")["v"].mean().plot(kind="bar")</pre>
 </div>
 
 <div class="block">
-<h2>22. Regras-mãe (decora estas)</h2>
+<h2>20. Regras-mãe (decora estas)</h2>
 <ul>
 <li><b><code>=</code> atribui, <code>==</code> compara</b>. Errar é clássico.</li>
 <li><b>Estatística sempre em coluna</b>: <code>df["c"].mean()</code>, não <code>df.mean()</code>.</li>
@@ -384,36 +381,15 @@ df.groupby("Mes")["v"].mean().plot(kind="bar")</pre>
 </div>
 
 <div class="block">
-<h2>23. Fluxo dos 100 min</h2>
+<h2>21. Fluxo dos 100 min (LEPI, sem internet)</h2>
 <ol>
 <li><b>1–5'</b>: lê TODAS as perguntas. Classifica mental: filtro? groupby? merge?</li>
-<li><b>5–10'</b>: setup, confere <code>shape</code> e <code>head</code>. Se Valor virou string, converte.</li>
+<li><b>5–10'</b>: setup, confere <code>shape</code> e <code>head</code>. Se Valor virou string, converte com <code>astype</code>.</li>
 <li><b>10–50'</b>: faz as fáceis primeiro (value_counts, mean, filtro). Trava pontos.</li>
 <li><b>50–80'</b>: combinadas (filtro+groupby, merge, encadeamento).</li>
-<li><b>80–85'</b>: <span class="kbd">Restart and Run All</span> pra confirmar consistência.</li>
-<li><b>85–100'</b>: eClass abre. Representante sobe .ipynb + responde questionário. Confere os 3 nomes.</li>
+<li><b>80–85'</b>: <span class="kbd">Restart and Run All</span> pra confirmar consistência. Confere nomes completos dos 3 do grupo no notebook.</li>
+<li><b>85–100'</b>: eClass abre nos últimos 15 min. Representante sobe <code>.ipynb</code> + preenche questionário com as respostas. Sem internet antes.</li>
 </ol>
-</div>
-
-<div class="block">
-<h2>24. Mini-glossário Excel → Pandas</h2>
-<table>
-<tr><th>Excel</th><th>Pandas</th></tr>
-<tr><td><code>=AVERAGE(A:A)</code></td><td><code>df["a"].mean()</code></td></tr>
-<tr><td><code>=COUNTIF(A:A,x)</code></td><td><code>(df["a"]==x).sum()</code></td></tr>
-<tr><td>Filtro coluna</td><td><code>df[df["c"]==x]</code></td></tr>
-<tr><td>Tabela dinâmica</td><td><code>groupby</code> ou <code>pivot_table</code></td></tr>
-<tr><td>PROCV / VLOOKUP</td><td><code>pd.merge</code></td></tr>
-<tr><td>Ordenar</td><td><code>sort_values</code></td></tr>
-<tr><td>Remover duplicatas</td><td><code>drop_duplicates</code></td></tr>
-<tr><td>Distinct count</td><td><code>nunique()</code></td></tr>
-</table>
-</div>
-
-<div class="block">
-<h2>25. Tipos de gráfico aceitos</h2>
-<p><code>line</code> (linha), <code>bar</code> (barra vertical), <code>barh</code> (horizontal), <code>pie</code> (pizza), <code>hist</code> (histograma), <code>box</code> (boxplot), <code>scatter</code> (dispersão).</p>
-<p>Marcadores: <code>"o"</code> (círculo), <code>"."</code> (ponto), <code>"x"</code> (cruz), <code>"--"</code> (tracejado).</p>
 </div>
 
 </div>
