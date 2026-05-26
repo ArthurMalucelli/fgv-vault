@@ -62,6 +62,7 @@ print(postos.shape, distrib.shape); postos.head()</pre>
 <tr><td><code>describe(include="all")</code></td><td>+ texto</td></tr>
 <tr><td><code>len(df)</code></td><td>nº linhas</td></tr>
 </table>
+<p class="muted">Pra cada DataFrame novo, sempre roda <code>shape</code>+<code>info()</code>+<code>head()</code> ANTES de qualquer análise. Confere tamanho, tipo das colunas, e amostra visual. <code>info()</code> mostra se algum número virou string (problema do decimal).</p>
 </div>
 
 <div class="block">
@@ -70,6 +71,7 @@ print(postos.shape, distrib.shape); postos.head()</pre>
 df[["c1","c2"]]      # DataFrame (várias, ordem da lista)
 df[["c"]]            # DataFrame com 1 col (≠ Series)</pre>
 <p class="tip">1 colchete vira Series, 2 colchetes viram DataFrame. Pra reordenar colunas, usa 2.</p>
+<p class="muted"><b>DataFrame</b> é a tabela inteira (2D, várias colunas). <b>Series</b> é uma coluna sozinha (1D). Series tem métodos de coluna (mean, str, value_counts). DataFrame não. 99% das operações tu quer Series (1 colchete).</p>
 </div>
 
 <div class="block">
@@ -82,7 +84,7 @@ df[df["Valor de Venda"] > 6]
 df[df["Bandeira"] != "BRANCA"]
 df[df["Bandeira"].isin(["VIBRA","RAIZEN"])]
 len(df[df["Produto"]=="GASOLINA"])    # quantas</pre>
-<p class="muted">Ops: <code>== != &gt; &lt; &gt;= &lt;=</code> e <code>.isin([...])</code>.</p>
+<p class="muted">Filtro é sempre 2 etapas: cria Series booleana (True/False por linha) com a condição, aplica dentro do <code>df[...]</code>. Pandas vê booleana ali e fica só com linhas True. Ops: <code>== != &gt; &lt; &gt;= &lt;=</code> e <code>.isin([...])</code> pra "está na lista".</p>
 </div>
 
 <div class="block">
@@ -97,6 +99,7 @@ c1 = df["Produto"]=="GASOLINA"
 c2 = df["Valor de Venda"]>6
 df[c1 & c2]</pre>
 <p class="danger"><b>Cada condição entre parênteses</b>. Esquecer é erro #1.</p>
+<p class="muted">Pandas tem operadores próprios pra booleanas: <code>&amp;</code> (E), <code>|</code> (OU), <code>~</code> (NÃO). NUNCA usa <code>and/or/not</code> de Python puro. Cada condição entre parênteses, ou a precedência quebra silenciosamente.</p>
 </div>
 
 <div class="block">
@@ -110,6 +113,7 @@ df.loc[5:10]          # FIM INCLUSIVO</pre>
 <table><tr><th></th><th>loc</th><th>iloc</th></tr>
 <tr><td>Usa</td><td>rótulo</td><td>posição</td></tr>
 <tr><td>Fim</td><td>inclusivo</td><td>exclusivo</td></tr></table>
+<p class="muted">Pra filtrar linha E selecionar coluna ao mesmo tempo, OBRIGATÓRIO usar <code>loc</code>. Sem ele, dá warning. Vírgula separa: antes é seletor de linha, depois é seletor de coluna.</p>
 </div>
 
 <div class="block">
@@ -126,6 +130,7 @@ df["c"].str.split().str[-1]          # último elemento
 
 df["c"].str.upper().str.replace("LTDA","").str.strip()  # encadeia</pre>
 <p class="warn">Sem <code>.str</code>: <code>'Series' object has no 'upper'</code>. Sempre <code>.str</code> antes.</p>
+<p class="muted"><code>.str</code> é a ponte entre Series e métodos de string Python. Sem ela, <code>df["c"].upper()</code> falha porque Series não tem upper. Com <code>.str</code>, o método é aplicado em cada string da coluna, retorna Series nova.</p>
 </div>
 
 <div class="block">
@@ -137,6 +142,7 @@ df["c"].str.upper().str.replace("LTDA","").str.strip()  # encadeia</pre>
 </table>
 <pre>df["Estado"] = df["Estado"].replace("SP","Sao Paulo")
 df["Bandeira"] = df["Bandeira"].replace({"BRANCA":"SEM","VIBRA":"BR"})</pre>
+<p class="muted"><code>replace</code> compara o valor INTEIRO (célula tem que ser exatamente "SP"). <code>.str.replace</code> troca SUBSTRING dentro do texto (parcial). Dicionário <code>{velho: novo}</code> troca vários valores de uma vez.</p>
 </div>
 
 <div class="block">
@@ -146,6 +152,7 @@ df["a"]       = df["a"] * 1.1          # substitui
 df["Pais"]    = "Brasil"               # constante
 df["Cid_U"]   = df["Municipio"].str.upper()</pre>
 <p class="danger"><b>Pegadinha mortal</b>: <code>df = df["c"].str.lower()</code> DESTRÓI o DF (vira Series). Esquerda tem que ser <code>df["c"]</code>, NUNCA <code>df</code>.</p>
+<p class="muted">Pra criar OU atualizar coluna, esquerda é <code>df["c"]</code>. Se a coluna já existe, substitui; se não, cria à direita da última. Mesma sintaxe pros dois casos.</p>
 </div>
 
 <div class="block">
@@ -156,6 +163,7 @@ df["Cid_U"]   = df["Municipio"].str.upper()</pre>
 df["Valor de Venda"] = (df["Valor de Venda"]
     .str.replace(",",".").astype(float))</pre>
 <p class="tip">String + número falha. Converte: <code>"C" + df["id"].astype(str)</code>.</p>
+<p class="muted">Converte o tipo da coluna inteira. Usa quando pandas leu errado (número virou string) ou quando precisa concatenar/operar tipos diferentes.</p>
 </div>
 
 <div class="block">
@@ -166,6 +174,7 @@ df["c"].quantile(0.25)  .quantile(0.75)
 df["c"].describe()    # tudo de uma vez
 df["c"].idxmax()      # ÍNDICE do maior</pre>
 <p class="warn">Sem <code>()</code>: <code>df["c"].mean</code> retorna <i>bound method</i>, não o número.</p>
+<p class="muted">Toda estatística aplicada em UMA coluna específica, retorna 1 número. <code>df["c"].mean()</code>, não <code>df.mean()</code>. <code>idxmax</code> retorna o ÍNDICE (posição/rótulo) onde tá o máximo, não o valor.</p>
 </div>
 
 <div class="block">
@@ -183,6 +192,7 @@ df["c"].unique()      .nunique()       .mode()</pre>
 <tr><td>Quantos de cada?</td><td><code>value_counts</code></td></tr>
 <tr><td>Mais frequente?</td><td><code>mode</code></td></tr>
 </table>
+<p class="muted">Operação central pra colunas categóricas (bandeira, produto, município). <code>value_counts</code> conta cada valor distinto, ordena decrescente. Total da contagem = nº de linhas (se não tiver NaN).</p>
 </div>
 
 <div class="block">
@@ -194,6 +204,7 @@ df.drop_duplicates(subset=["CNPJ"])
 df.isnull().sum()          # nulos por coluna
 df.dropna(subset=["c"])    # remove linhas com NaN em c
 df.fillna(0)               # preenche</pre>
+<p class="muted"><code>sort_values</code> retorna DataFrame ordenado mas NÃO modifica o original. Reatribui pra persistir. <code>drop_duplicates</code> com <code>subset</code> remove linhas duplicadas considerando só essa(s) coluna(s).</p>
 </div>
 
 <div class="block">
@@ -209,6 +220,7 @@ df.groupby("X", as_index=False)["v"].mean() # crit. vira coluna
 # Filtro + groupby:
 df[df["Produto"]=="GASOLINA"].groupby("Municipio")["Valor de Venda"].mean()</pre>
 <p class="muted"><b>Funções</b>: mean, sum, median, min, max, std, size (linhas), count (não-nulos), nunique, first, last.</p>
+<p class="muted">groupby DIVIDE o DataFrame em pedaços por valor da coluna critério (split), APLICA a função em cada pedaço (apply), JUNTA tudo numa Series (combine). Equivale a tabela dinâmica do Excel. CRITÉRIO entre <code>()</code>, COLUNA DE VALOR entre <code>[]</code>.</p>
 </div>
 
 <div class="block">
@@ -224,6 +236,7 @@ df.groupby("Bandeira").agg({
     "Valor de Venda": ["mean","min","max"],
     "CNPJ": "nunique",
 })</pre>
+<p class="muted">groupby com várias estatísticas de uma vez. Lista pra mesma coluna com múltiplas funções, dicionário pra coluna+função, combinação dos dois pra cenário cheio.</p>
 </div>
 
 <div class="block">
@@ -234,6 +247,7 @@ df.groupby("Municipio")["v"].mean().sort_values(ascending=False).head(5)
 # RÓTULO do maior/menor (não o valor):
 df.groupby("Municipio")["v"].mean().idxmax()  # nome
 df.groupby("Municipio")["v"].mean().max()     # valor</pre>
+<p class="muted">Pra ranking, encadeia <code>.sort_values(ascending=False)</code> depois do groupby. Pra pegar o NOME do município/bandeira com maior média, usa <code>.idxmax()</code> (rótulo). Pra pegar o VALOR da média, usa <code>.max()</code>.</p>
 </div>
 
 <div class="block">
@@ -249,6 +263,7 @@ L.merge(R, on="k")                              # método</pre>
 <tr><td>left / right</td><td>tudo de L ou R</td></tr>
 </table>
 <p class="danger"><b>Chave incompleta → cartesiano</b>. Se shape exploder, falta col no <code>on</code>.</p>
+<p class="muted">Junta dois DataFrames por uma chave em comum (coluna que existe nos dois). <code>inner</code> mantém só chaves presentes nos dois, mas ADICIONA todas as colunas do segundo DataFrame que enriquecem as linhas. Se a chave real precisa de várias colunas, passa lista, senão vira produto cartesiano.</p>
 </div>
 
 </div>
@@ -323,6 +338,67 @@ g.groupby("Mes")["Valor de Venda"].mean().idxmax()</pre>
 <h3>2 resultados na mesma célula</h3>
 <pre>display(df["a"].mean())
 display(df["b"].mean())</pre>
+
+<h3>Qtos produtos distintos vendidos</h3>
+<pre>df["Produto"].nunique()
+df["Produto"].unique()    # lista os nomes</pre>
+
+<h3>Qtos municípios diferentes</h3>
+<pre>df["Municipio"].nunique()</pre>
+
+<h3>Preço médio geral (todos produtos)</h3>
+<pre>df["Valor de Venda"].mean()</pre>
+
+<h3>% de postos sem bandeira (BRANCA)</h3>
+<pre>(df["Bandeira"]=="BRANCA").mean() * 100
+# ou: df["Bandeira"].value_counts(normalize=True)["BRANCA"]*100</pre>
+
+<h3>Diferença média entre revenda e atacado por produto</h3>
+<pre>juntos.groupby("Produto")["margem"].mean()</pre>
+
+<h3>Top 3 bandeiras com mais postos físicos (CNPJs distintos)</h3>
+<pre>df.groupby("Bandeira")["CNPJ"].nunique().sort_values(ascending=False).head(3)</pre>
+
+<h3>Cidade com maior variância de preço da gasolina</h3>
+<pre>(df[df["Produto"]=="GASOLINA"]
+   .groupby("Municipio")["Valor de Venda"].std().idxmax())</pre>
+
+<h3>Bandeira mais comum vendendo DIESEL</h3>
+<pre>df[df["Produto"]=="DIESEL S10"]["Bandeira"].value_counts().head(1)</pre>
+
+<h3>Maior preço já registrado (e onde)</h3>
+<pre>df["Valor de Venda"].max()                       # valor
+df.loc[df["Valor de Venda"].idxmax()]            # linha inteira</pre>
+
+<h3>Postos (CNPJ) que mais aparecem (coletas)</h3>
+<pre>df["CNPJ"].value_counts().head(5)</pre>
+
+<h3>Bandeiras presentes em SP capital</h3>
+<pre>df[df["Municipio"]=="SAO PAULO"]["Bandeira"].unique()</pre>
+
+<h3>Preço médio por bandeira, só gasolina</h3>
+<pre>df[df["Produto"]=="GASOLINA"].groupby("Bandeira")["Valor de Venda"].mean().sort_values()</pre>
+
+<h3>Coletas em janeiro de 2025</h3>
+<pre>postos[postos["Mes"]=="2025-01"]
+# ou: postos[postos["Data da Coleta"].str.contains("/01/2025")]</pre>
+
+<h3>Mediana do preço por produto</h3>
+<pre>df.groupby("Produto")["Valor de Venda"].median()</pre>
+
+<h3>Variação de preço (max − min) por bandeira</h3>
+<pre>g = df.groupby("Bandeira")["Valor de Venda"]
+g.max() - g.min()</pre>
+
+<h3>Posto mais caro de cada município (CNPJ)</h3>
+<pre>df.loc[df.groupby("Municipio")["Valor de Venda"].idxmax(),
+       ["Municipio","CNPJ","Revenda","Valor de Venda"]]</pre>
+
+<h3>Renomear coluna</h3>
+<pre>df = df.rename(columns={"Valor de Venda":"Revenda"})</pre>
+
+<h3>Selecionar/reordenar colunas</h3>
+<pre>df = df[["Mes","Municipio","Produto","Valor de Venda"]]</pre>
 </div>
 
 <div class="block">
