@@ -41,9 +41,12 @@ li { margin: 0.2mm 0; break-inside: avoid; }
 postos = pd.read_csv("postos_sp_2025.csv", sep=";", decimal=",")
 distrib = pd.read_csv("distribuicao_municipios_sp_2025.csv",
                       sep=";", decimal=",")
-# Strip espaço fantasma em todas colunas de texto
-for col in postos.select_dtypes(include="object").columns:
-    postos[col] = postos[col].str.strip()
+# Tira espaço fantasma do começo do CNPJ (defeito do CSV da ANP)
+postos["CNPJ"] = postos["CNPJ"].str.strip()
+
+# Alternativa: strip em todas colunas de texto de uma vez
+# for col in postos.select_dtypes(include="object").columns:
+#     postos[col] = postos[col].str.strip()
 
 postos["Mes"] = (postos["Data da Coleta"].str[6:10] + "-"
                  + postos["Data da Coleta"].str[3:5])
