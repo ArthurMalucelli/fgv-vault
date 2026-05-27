@@ -715,8 +715,8 @@
   /* Conclusao */
   .concl-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 28px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
   }
   .concl-cell {
     display: flex;
@@ -826,6 +826,75 @@
     align-items: center;
     justify-content: space-between;
     gap: 32px;
+  }
+
+  /* Critical lens, recurring analytical sidebar */
+  .critical {
+    border-top: 1px solid var(--accent);
+    padding-top: 10px;
+  }
+  .critical .ct-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .critical .ct-body {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    letter-spacing: -0.005em;
+  }
+  .critical .ct-body strong {
+    font-family: 'Geist', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    color: var(--ink-1);
+  }
+  .critical ul.dash-list li {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+
+  /* Subphase chips for slide 3 */
+  .subphases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .subphase {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 3px 7px;
+    border: 1px solid var(--border-soft);
+    border-radius: 1px;
+  }
+
+  /* Impact pill for slide 8 */
+  .impact-pill {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 4px 8px;
+    background: var(--accent-soft);
+    border-radius: 1px;
+    display: inline-block;
+    margin-top: 6px;
   }
 </style>
 </head>
@@ -983,37 +1052,60 @@
     <span class="eyebrow">Da licitacao ao acervo tecnico</span>
     <h2 class="display display-m" style="margin-top:12px;">Quatro macroetapas, ciclo de 2 a 5 anos por obra.</h2>
 
-    <div class="timeline" style="margin-top:60px;">
+    <div class="timeline" style="margin-top:50px;">
       <div class="phase">
         <span class="num">1</span>
         <div class="name">Mobilizacao</div>
-        <p class="desc">Gerente de contrato e lideres de engenharia. Alugueis, ERP, fluxo de caixa, despesa financeira embutida no custo.</p>
+        <p class="desc">Gerente de contrato e lideres tecnicos. Alugueis, ERP, projecao de caixa, despesa financeira no custo.</p>
+        <div class="subphases">
+          <span class="subphase">Setup</span>
+          <span class="subphase">Kick-off</span>
+          <span class="subphase">Equipamento</span>
+        </div>
       </div>
       <div class="phase">
         <span class="num">2</span>
         <div class="name">Execucao</div>
-        <p class="desc">Topografia, terraplanagem, drenagem, pavimentacao, obras complementares e sinalizacao. Etapa mais sensivel a clima.</p>
+        <p class="desc">Topografia, terraplanagem, drenagem, pavimentacao, obras complementares. Etapa mais sensivel a clima.</p>
+        <div class="subphases">
+          <span class="subphase">Procurement</span>
+          <span class="subphase">Topografia</span>
+          <span class="subphase">Obra fisica</span>
+        </div>
       </div>
       <div class="phase">
         <span class="num">3</span>
         <div class="name">Controle e medicao</div>
-        <p class="desc">Testes de qualidade ISO 9001 por etapa. Medicao mensal para faturamento. Curva ABC reconciliando custo real e proposta.</p>
+        <p class="desc">Testes ISO 9001 por etapa. Medicao mensal para faturamento. Curva ABC reconciliando custo e proposta.</p>
+        <div class="subphases">
+          <span class="subphase">Qualidade</span>
+          <span class="subphase">Medicao</span>
+          <span class="subphase">Cost tracking</span>
+        </div>
       </div>
       <div class="phase">
         <span class="num">4</span>
         <div class="name">Encerramento</div>
-        <p class="desc">Entrega do escopo, fechamento financeiro, recebimento do CRP e formalizacao do acervo tecnico junto ao CREA.</p>
+        <p class="desc">Entrega do escopo, fechamento financeiro, recebimento do CRP, acervo tecnico junto ao CREA.</p>
+        <div class="subphases">
+          <span class="subphase">Handover</span>
+          <span class="subphase">Acervo CREA</span>
+        </div>
       </div>
     </div>
 
-    <div class="process-bar">
-      <div class="quote-block" style="border-left-width:2px;">
-        <p class="quote-text" style="font-size:22px;">&ldquo;Entregamos 100&#37; dos contratos no prazo, descontados os fatores externos.&rdquo;</p>
+    <div class="process-bar" style="align-items:flex-start;">
+      <div class="quote-block" style="border-left-width:2px; flex:1; max-width:480px;">
+        <p class="quote-text" style="font-size:20px;">&ldquo;Entregamos 100&#37; dos contratos no prazo, descontados os fatores externos.&rdquo;</p>
         <div class="quote-source">Ricardo Malucelli, diretor executivo</div>
       </div>
-      <div style="text-align:right; min-width:260px;">
+      <div style="flex:1; max-width:300px;">
         <div class="micro" style="margin-bottom:6px;">Fatores externos tipicos</div>
-        <div class="small">Licenciamento ambiental, desapropriacao, realocacao de redes, dependencia de outros contratados.</div>
+        <div style="font-size:12px; line-height:1.45; color:var(--ink-2);">Licenciamento, desapropriacao, realocacao de redes, dependencia de outros contratados.</div>
+      </div>
+      <div class="critical" style="flex:1; max-width:320px;">
+        <span class="ct-tag">Leitura critica</span>
+        <p class="ct-body">A clausula "descontados fatores externos" e ampla o suficiente para tornar o 100&#37; pouco falsificavel.</p>
       </div>
     </div>
   </div>
@@ -1111,42 +1203,51 @@
 
   <div class="content">
     <span class="eyebrow">Cultura familiar, baixa rotatividade</span>
-    <h2 class="display display-m" style="margin-top:12px;">Empresa antiga, gente que fica.</h2>
+    <h2 class="display display-m" style="margin-top:12px;">Tenure alto: ativo cultural ou inercia organizacional?</h2>
 
-    <div class="rh-layout" style="margin-top:36px;">
+    <div style="margin-top:30px; display:grid; grid-template-columns: 0.85fr 1.15fr; gap:48px; align-items:start;">
       <div>
         <div class="big-stat-block">
-          <div class="big-stat">12<span class="yr">anos</span></div>
-          <div class="kpi-label" style="margin-top:14px;">Tenure medio no corporativo</div>
+          <div class="big-stat" style="font-size:128px;">12<span class="yr" style="font-size:32px;">anos</span></div>
+          <div class="kpi-label" style="margin-top:12px;">Tenure medio no corporativo</div>
         </div>
-        <div style="margin-top:32px; display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+        <div style="margin-top:24px; display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
           <div>
             <div class="stat-inline" style="margin-bottom:4px;">
               <span class="n">1.200</span><span class="l">funcionarios</span>
             </div>
-            <div class="small" style="font-size:12.5px; color:var(--ink-3);">Corporativo em Curitiba e canteiros em todo Brasil.</div>
+            <div style="font-size:12px; line-height:1.4; color:var(--ink-3);">Corporativo Curitiba + canteiros em todo Brasil.</div>
           </div>
           <div>
             <div class="stat-inline" style="margin-bottom:4px;">
-              <span class="n">90/10</span><span class="l">pratica vs. estudo</span>
+              <span class="n">90/10</span><span class="l">pratica/estudo</span>
             </div>
-            <div class="small" style="font-size:12.5px; color:var(--ink-3);">Aprendizado no canteiro, responsabilidade semanal.</div>
+            <div style="font-size:12px; line-height:1.4; color:var(--ink-3);">Aprendizado no canteiro, sem programa formal.</div>
           </div>
+        </div>
+        <div style="margin-top:22px; padding-top:16px; border-top:1px solid var(--border-soft);">
+          <div class="micro" style="margin-bottom:8px;">Estrutura</div>
+          <ul class="dash-list" style="font-size:12.5px; line-height:1.45; color:var(--ink-2);">
+            <li>Engenheiros civis dominam cargos-chave nas duas frentes.</li>
+            <li>Multiplos Malucelli em cargos executivos do holding.</li>
+            <li>Crews de campo moveis, times A sao transferidos entre obras.</li>
+          </ul>
         </div>
       </div>
 
-      <div class="rh-quote">
-        <div class="quote-block" style="border-left-width:3px; padding-left:28px;">
-          <p class="quote-text" style="font-size:30px;">&ldquo;Quem fica, veste a camisa. Quem sai, volta em breve.&rdquo;</p>
+      <div>
+        <div class="quote-block" style="border-left-width:3px; padding-left:24px;">
+          <p class="quote-text" style="font-size:26px;">&ldquo;Quem fica, veste a camisa. Quem sai, volta em breve.&rdquo;</p>
           <div class="quote-source">Ricardo Malucelli, diretor executivo</div>
         </div>
 
-        <div style="margin-top:24px; display:flex; flex-direction:column; gap:10px;">
-          <ul class="dash-list small">
-            <li>Engenharia civil como filtro de contratacao em cargos-chave.</li>
-            <li>Estrutura familiar, multiplos Malucelli em cargos executivos.</li>
-            <li>Governanca familiar combinada com gestao profissional.</li>
-            <li>Crews de campo mais moveis, mas times A sao transferidos.</li>
+        <div class="critical" style="margin-top:24px;">
+          <span class="ct-tag">Leitura critica</span>
+          <ul class="dash-list" style="margin-top:6px;">
+            <li>Tenure de 12 anos pode mascarar resistencia a mudanca, nao so engajamento.</li>
+            <li>"Vestir a camisa" e narrativa corporativa, nao evidencia neutra de cultura.</li>
+            <li>Governanca familiar concentra decisao no holding e limita teto de carreira a quem nao e Malucelli.</li>
+            <li>90/10 pratica/estudo indica ausencia de programa formal de desenvolvimento.</li>
           </ul>
         </div>
       </div>
@@ -1171,10 +1272,10 @@
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:18px;">
       <div>
         <span class="eyebrow">PODC aplicado a MLC Infra</span>
-        <h2 class="display display-m" style="margin-top:10px; font-size:46px;">Quatro funcoes, operadas livro-texto.</h2>
+        <h2 class="display display-m" style="margin-top:10px; font-size:46px;">Fayol em ritmo mensal, com lacunas visiveis.</h2>
       </div>
       <p class="lead" style="font-size:14px; max-width:300px; text-align:right;">
-        Planejamento, organizacao, direcao e controle como ritmo de gestao mensal.
+        Quatro funcoes presentes na rotina, mas controle e mais retrospectivo que preditivo.
       </p>
     </div>
 
@@ -1238,45 +1339,64 @@
   <div class="content">
     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
       <div>
-        <span class="eyebrow">Quatro pilares explicitos</span>
-        <h2 class="display display-m" style="margin-top:10px; font-size:46px;">Cultura formal, conservadora, disciplinada.</h2>
+        <span class="eyebrow">Quatro pilares declarados</span>
+        <h2 class="display display-m" style="margin-top:10px; font-size:44px;">Retorica oficial em cima, leitura critica embaixo.</h2>
       </div>
-      <p class="lead" style="font-size:14px; max-width:300px; text-align:right;">
+      <p class="lead" style="font-size:13.5px; max-width:300px; text-align:right;">
         Clima estavel ancorado no perfil analitico da engenharia e na baixa rotatividade.
       </p>
     </div>
 
-    <div class="pillars" style="margin-top:44px;">
+    <div class="pillars" style="margin-top:30px;">
       <div class="pillar">
         <span class="pillar-num">01</span>
-        <div class="pillar-name">Etica e<br>credibilidade</div>
-        <p class="pillar-desc">Transparencia em parcerias de longo prazo com clientes, fornecedores e times.</p>
+        <div class="pillar-name" style="font-size:22px;">Etica e<br>credibilidade</div>
+        <p class="pillar-desc" style="font-size:12.5px;">Transparencia em parcerias de longo prazo com clientes, fornecedores e times.</p>
       </div>
       <div class="pillar">
         <span class="pillar-num">02</span>
-        <div class="pillar-name">Disciplina e<br>eficiencia</div>
-        <p class="pillar-desc">Disciplina como veiculo de eficacia, rigor de prazo e excelencia operacional.</p>
+        <div class="pillar-name" style="font-size:22px;">Disciplina e<br>eficiencia</div>
+        <p class="pillar-desc" style="font-size:12.5px;">Disciplina como veiculo de eficacia, rigor de prazo e excelencia operacional.</p>
       </div>
       <div class="pillar">
         <span class="pillar-num">03</span>
-        <div class="pillar-name">Qualidade e<br>orgulho</div>
-        <p class="pillar-desc">Melhoria continua somada ao valor da historia e ao espirito de equipe.</p>
+        <div class="pillar-name" style="font-size:22px;">Qualidade e<br>orgulho</div>
+        <p class="pillar-desc" style="font-size:12.5px;">Melhoria continua somada ao valor da historia e ao espirito de equipe.</p>
       </div>
       <div class="pillar">
         <span class="pillar-num">04</span>
-        <div class="pillar-name">Sustentabilidade<br>e seguranca</div>
-        <p class="pillar-desc">Compromisso ambiental e seguranca no canteiro como base do longo prazo.</p>
+        <div class="pillar-name" style="font-size:22px;">Sustentabilidade<br>e seguranca</div>
+        <p class="pillar-desc" style="font-size:12.5px;">Compromisso ambiental e seguranca no canteiro como base do longo prazo.</p>
       </div>
     </div>
 
-    <div style="margin-top:34px; padding-top:22px; border-top:1px solid var(--border-soft); display:grid; grid-template-columns: 1.4fr 1fr; gap:48px; align-items:center;">
+    <div style="margin-top:22px; display:grid; grid-template-columns: repeat(4, 1fr); gap:18px;">
+      <div class="critical" style="border-top-width:1px;">
+        <span class="ct-tag">Tensao</span>
+        <p class="ct-body" style="font-size:11.5px;">Credibilidade como ativo do grupo, nao mensuravel em indicador interno.</p>
+      </div>
+      <div class="critical" style="border-top-width:1px;">
+        <span class="ct-tag">Tensao</span>
+        <p class="ct-body" style="font-size:11.5px;">Eficiencia operacional vira sinonimo de avesso a risco e inovacao.</p>
+      </div>
+      <div class="critical" style="border-top-width:1px;">
+        <span class="ct-tag">Tensao</span>
+        <p class="ct-body" style="font-size:11.5px;">Orgulho de historia e conservadorismo cultural sao a mesma moeda.</p>
+      </div>
+      <div class="critical" style="border-top-width:1px;">
+        <span class="ct-tag">Tensao</span>
+        <p class="ct-body" style="font-size:11.5px;">ISO minima certifica conformidade, nao estrategia de sustentabilidade.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:auto; padding-top:18px; border-top:1px solid var(--border-soft); display:grid; grid-template-columns: 1.4fr 1fr; gap:36px; align-items:center;">
       <div class="quote-block" style="border-left-width:2px;">
-        <p class="quote-text" style="font-size:22px;">&ldquo;Tem que estar todos fazendo a sua parte em cima de um planejamento.&rdquo;</p>
+        <p class="quote-text" style="font-size:18px;">&ldquo;Tem que estar todos fazendo a sua parte em cima de um planejamento.&rdquo;</p>
         <div class="quote-source">Ricardo Malucelli, diretor executivo</div>
       </div>
-      <div class="img-ph" style="height:112px;">
+      <div class="img-ph" style="height:92px;">
         <span class="ph-tag">imagem</span>
-        <span class="ph-desc">Foto institucional do time, sede em Curitiba ou cerimonia da empresa</span>
+        <span class="ph-desc">Foto institucional do time ou da sede</span>
       </div>
     </div>
   </div>
@@ -1307,35 +1427,48 @@
       </div>
     </div>
 
-    <div style="margin-top:24px;">
+    <div style="margin-top:22px;">
       <div class="challenge-row">
         <span class="challenge-num">01</span>
         <span class="challenge-name">Mao de obra qualificada</span>
-        <span class="challenge-desc">Escassez critica no campo, principal gargalo do setor com 1.200+ trabalhadores em mobilizacao constante.</span>
+        <div>
+          <span class="challenge-desc">Escassez critica no campo, principal gargalo do setor com 1.200+ trabalhadores em mobilizacao constante.</span>
+          <div class="impact-pill">Impacto: rotatividade alta, atraso na partida de obra</div>
+        </div>
         <div class="severity-bar high"></div>
       </div>
       <div class="challenge-row">
         <span class="challenge-num">02</span>
         <span class="challenge-name">Volatilidade de insumos</span>
-        <span class="challenge-desc">Choque do diesel de R$ 5,80 para R$ 7,80 por litro produziu R$ 2 a 3 milhoes de prejuizo em uma unica obra.</span>
+        <div>
+          <span class="challenge-desc">Choque do diesel de R$ 5,80 para R$ 7,80 por litro: +34&#37; no custo unitario, sem reajuste contratual imediato.</span>
+          <div class="impact-pill">Impacto quantificado: R$ 2 a 3 milhoes/obra</div>
+        </div>
         <div class="severity-bar mid"></div>
       </div>
       <div class="challenge-row">
         <span class="challenge-num">03</span>
         <span class="challenge-name">Defasagem tecnologica</span>
-        <span class="challenge-desc">Auto-reconhecida: a empresa fica atras de concorrentes em free flow, monitoramento por IA e automacao de equipamentos.</span>
+        <div>
+          <span class="challenge-desc">Empresa fica atras de concorrentes em free flow, monitoramento por IA e automacao de equipamento pesado.</span>
+          <div class="impact-pill">Impacto: perda de competitividade em leiloes de concessao</div>
+        </div>
         <div class="severity-bar mid"></div>
       </div>
     </div>
 
-    <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-soft); display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
+    <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--border-soft); display:grid; grid-template-columns: 1fr 1fr 1fr; gap:32px;">
       <div>
         <div class="micro" style="margin-bottom:8px;">Pipeline estrategico</div>
-        <p class="small">Rodovias, ferrovias, portos e aeroportos. Continuidade com concessionarias do Parana e expansao via consorcio de quatro construtoras com braco financeiro.</p>
+        <p style="font-size:12.5px; line-height:1.45; color:var(--ink-2);">Rodovias, ferrovias, portos, aeroportos. Continuidade com concessionarias PR e consorcio de 4 construtoras + braco financeiro.</p>
       </div>
       <div>
         <div class="micro" style="margin-bottom:8px;">Vulnerabilidade estrutural</div>
-        <p class="small">Cultura conservadora protege a operacao mas atrasa a adocao de tecnologia. Setor caminha pra free flow, IA e equipamento autonomo.</p>
+        <p style="font-size:12.5px; line-height:1.45; color:var(--ink-2);">Cultura conservadora protege a operacao mas atrasa adocao de free flow, IA e equipamento autonomo.</p>
+      </div>
+      <div class="critical" style="border-top-color:var(--accent);">
+        <span class="ct-tag">Leitura critica</span>
+        <p class="ct-body" style="font-size:12.5px;">Tres gargalos relacionados: escassez de mao de obra e volatilidade de insumo seriam menores com a tecnologia que a empresa nao adotou.</p>
       </div>
     </div>
   </div>
@@ -1428,53 +1561,60 @@
 
   <div class="content">
     <span class="eyebrow">Certificacoes, ODS e Instituto</span>
-    <h2 class="display display-m" style="margin-top:10px;">ESG ancorado na atividade, nao na narrativa.</h2>
+    <h2 class="display display-m" style="margin-top:10px; font-size:50px;">ESG passivo: conformidade certificada, sem estrategia ofensiva.</h2>
 
-    <div style="margin-top:22px; padding:16px 0; border-top:1px solid var(--border-soft); border-bottom:1px solid var(--border-soft); display:flex; justify-content:space-between; align-items:center; gap:24px;">
+    <div style="margin-top:18px; padding:14px 0; border-top:1px solid var(--border-soft); border-bottom:1px solid var(--border-soft); display:flex; justify-content:space-between; align-items:center; gap:24px;">
       <div class="micro">Certificacoes vigentes</div>
       <div class="cert-row" style="flex:1; justify-content:flex-end;">
         <div class="cert">ISO 9001<span class="cert-sub">Qualidade</span></div>
         <div class="cert">PBQP-H<span class="cert-sub">Habitacional</span></div>
-        <div class="cert">ISO 14001<span class="cert-sub">Meio ambiente (alinhado)</span></div>
-        <div class="cert">ISO 45001<span class="cert-sub">Saude e seguranca (alinhado)</span></div>
+        <div class="cert">ISO 14001<span class="cert-sub">Meio ambiente, alinhado</span></div>
+        <div class="cert">ISO 45001<span class="cert-sub">Saude, alinhado</span></div>
       </div>
     </div>
 
-    <div style="margin-top:24px; display:grid; grid-template-columns: 1fr 1.45fr; gap:36px; flex:1;">
+    <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1.35fr; gap:32px; flex:1;">
       <div>
-        <div class="micro" style="margin-bottom:14px;">Acao social</div>
-        <div style="font-family:'Fraunces',serif; font-size:30px; line-height:1.05; letter-spacing:-0.025em; color:var(--ink-1);">
+        <div class="micro" style="margin-bottom:12px;">Acao social</div>
+        <div style="font-family:'Fraunces',serif; font-size:26px; line-height:1.05; letter-spacing:-0.025em; color:var(--ink-1);">
           Instituto Joel Malucelli
         </div>
-        <p class="body" style="font-size:13.5px; margin-top:10px;">
+        <p style="font-size:12.5px; line-height:1.45; color:var(--ink-2); margin-top:8px;">
           Patrocinio de projetos culturais, esportivos, educacionais e assistenciais. Canal estruturado do grupo familiar.
         </p>
-        <div style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border-soft);">
-          <div class="micro" style="margin-bottom:10px;">Autenticidade do ESG</div>
-          <p class="small">
-            A atividade-fim gera emprego direto, fomenta economias locais e entrega bem publico de infraestrutura. ESG aqui e expressao operacional, nao posicionamento de marketing.
-          </p>
+
+        <div class="critical" style="margin-top:18px;">
+          <span class="ct-tag">Leitura critica</span>
+          <ul class="dash-list" style="margin-top:6px;">
+            <li>Sem departamento dedicado de sustentabilidade na MLC.</li>
+            <li>Conformidade via ISO, postura defensiva "parametro minimo", segundo o proprio entrevistado.</li>
+            <li>Os ODS adotados sao subprodutos da atividade-fim, nao direcionadores estrategicos.</li>
+          </ul>
         </div>
       </div>
 
       <div>
-        <div class="micro" style="margin-bottom:14px;">Tres ODS adotados como pilares</div>
+        <div class="micro" style="margin-bottom:12px;">Tres ODS declarados como pilares</div>
         <div class="ods-grid">
           <div class="ods">
             <div class="ods-num">08</div>
             <div class="ods-name">Trabalho decente e crescimento</div>
-            <div class="ods-desc">1.200 empregos diretos, contratos longos com terceiros e subcontratados.</div>
+            <div class="ods-desc">1.200 empregos diretos, contratos longos com terceiros.</div>
           </div>
           <div class="ods">
             <div class="ods-num">10</div>
             <div class="ods-name">Reducao das desigualdades</div>
-            <div class="ods-desc">Obras em regioes remotas, integracao logistica, mobilidade nacional.</div>
+            <div class="ods-desc">Obras em regioes remotas, integracao logistica nacional.</div>
           </div>
           <div class="ods">
             <div class="ods-num">16</div>
             <div class="ods-name">Instituicoes solidas</div>
-            <div class="ods-desc">Compliance, parcerias publicas, governanca familiar profissional.</div>
+            <div class="ods-desc">Compliance, parcerias publicas, governanca familiar.</div>
           </div>
+        </div>
+
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-soft); font-size:11.5px; line-height:1.45; color:var(--ink-3); font-style:italic;">
+          Os tres ODS sao defensaveis, mas decorrem da natureza da atividade. Nao ha programa proprio de mensuracao ou meta interna ligada a eles.
         </div>
       </div>
     </div>
@@ -1496,35 +1636,42 @@
 
   <div class="content">
     <span class="eyebrow">Sintese do caso</span>
-    <h2 class="display display-l" style="margin-top:12px; font-size:62px;">Tradicao disciplinada, vulnerabilidade tecnologica, gestao de manual.</h2>
+    <h2 class="display display-l" style="margin-top:10px; font-size:54px;">Operacao textbook, vulnerabilidades nao resolvidas, futuro em aberto.</h2>
 
-    <div class="concl-grid" style="margin-top:40px;">
+    <div class="concl-grid" style="margin-top:34px;">
       <div class="concl-cell">
         <span class="concl-tag">Pontos fortes</span>
-        <div class="concl-headline">Disciplina operacional e solidez de grupo.</div>
-        <p class="concl-body">
-          Baixa rotatividade, ritual mensal de controle, mapa de stakeholders amplo, credibilidade do Grupo JMalucelli como ativo competitivo.
+        <div class="concl-headline" style="font-size:22px;">Disciplina operacional e solidez de grupo.</div>
+        <p class="concl-body" style="font-size:12.5px;">
+          Baixa rotatividade, ritual mensal de controle, mapa amplo de stakeholders, credibilidade do Grupo JMalucelli como ativo de credito.
         </p>
       </div>
       <div class="concl-cell vulner">
         <span class="concl-tag">Vulnerabilidade</span>
-        <div class="concl-headline">Defasagem tecnologica auto-confessada.</div>
-        <p class="concl-body">
-          Cultura conservadora protege o presente mas atrasa a adocao de free flow, IA e equipamentos automatizados que ja sao realidade competitiva.
+        <div class="concl-headline" style="font-size:22px;">Defasagem tecnologica auto-confessada.</div>
+        <p class="concl-body" style="font-size:12.5px;">
+          Cultura conservadora protege o presente mas atrasa free flow, IA e equipamento automatizado, ja realidade nos concorrentes.
         </p>
       </div>
       <div class="concl-cell">
         <span class="concl-tag">Licao teorica</span>
-        <div class="concl-headline">Classicos da gestao seguem operando.</div>
-        <p class="concl-body">
+        <div class="concl-headline" style="font-size:22px;">Classicos seguem operando.</div>
+        <p class="concl-body" style="font-size:12.5px;">
           Fayol, Weber, Taylor, Mayo e Freeman descrevem com precisao um negocio capital-intensivo, baseado em projeto, em pleno seculo 21.
+        </p>
+      </div>
+      <div class="concl-cell vulner">
+        <span class="concl-tag">Questoes em aberto</span>
+        <div class="concl-headline" style="font-size:22px;">O que o caso nao responde.</div>
+        <p class="concl-body" style="font-size:12.5px;">
+          Sucessao familiar no holding. Sobrevivencia sem inovacao no medio prazo. Concentracao em concessionarias do PR como risco de cliente.
         </p>
       </div>
     </div>
 
-    <div style="margin-top:auto; padding-top:22px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-      <p class="lead" style="font-size:17px; max-width:740px;">
-        Para um calouro de administracao, a MLC Infra mostra que rigor de planejamento, organizacao, direcao e controle ainda decidem resultado competitivo.
+    <div style="margin-top:auto; padding-top:18px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <p style="font-family:'Fraunces',serif; font-style:italic; font-size:15px; line-height:1.4; color:var(--ink-2); max-width:780px;">
+        A MLC Infra mostra que o rigor de planejamento, organizacao, direcao e controle ainda decide resultado competitivo, mas tambem que disciplina sem renovacao tecnologica e um equilibrio instavel.
       </p>
       <div class="micro" style="text-align:right;">
         Obrigado.<br>Perguntas, 5 minutos.
