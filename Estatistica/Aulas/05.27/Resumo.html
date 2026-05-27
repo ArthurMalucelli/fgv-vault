@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Resumo Didático — IC + TLC + S→T</title>
+<style>
+  @page { size: A4; margin: 14mm 16mm 14mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #111;
+    margin: 0;
+  }
+  h1 {
+    font-size: 20pt;
+    border-bottom: 3px solid #111;
+    padding-bottom: 6px;
+    margin: 0 0 6px 0;
+  }
+  h1 + p.sub { margin-top: 0; color: #555; font-size: 9.5pt; margin-bottom: 18px; }
+  h2 {
+    font-size: 14pt;
+    background: #111;
+    color: #fff;
+    padding: 5px 10px;
+    margin: 22px 0 8px 0;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    margin: 14px 0 5px 0;
+    border-bottom: 1px solid #888;
+    padding-bottom: 2px;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 11pt;
+    margin: 10px 0 3px 0;
+    color: #222;
+    page-break-after: avoid;
+  }
+  p { margin: 5px 0; text-align: justify; }
+  ul, ol { margin: 4px 0 6px 22px; padding: 0; }
+  li { margin: 2px 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 0.6px solid #888;
+    padding: 4px 7px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #eee; font-weight: 700; }
+  code, pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9.5pt;
+  }
+  pre {
+    background: #f4f4f4;
+    border-left: 3px solid #444;
+    padding: 6px 10px;
+    margin: 6px 0;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  .formula {
+    background: #fff8d6;
+    border: 1px solid #d4b96b;
+    padding: 6px 10px;
+    margin: 8px 0;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 10.5pt;
+    page-break-inside: avoid;
+  }
+  .excel {
+    background: #e8f0e8;
+    border-left: 3px solid #2c7a2c;
+    padding: 5px 9px;
+    margin: 6px 0;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  .excel::before {
+    content: "EXCEL · ";
+    font-family: "Helvetica Neue", sans-serif;
+    font-weight: 700;
+    color: #2c7a2c;
+    font-size: 8.5pt;
+  }
+  .warn {
+    background: #ffe9e3;
+    border-left: 3px solid #c0392b;
+    padding: 5px 10px;
+    margin: 8px 0;
+    font-size: 10pt;
+  }
+  .key {
+    background: #e3f3ff;
+    border-left: 3px solid #2274a5;
+    padding: 5px 10px;
+    margin: 8px 0;
+    font-size: 10pt;
+  }
+  .example {
+    background: #faf6e9;
+    border: 1px solid #d4c896;
+    padding: 8px 12px;
+    margin: 10px 0;
+    page-break-inside: avoid;
+  }
+  .example h4 { margin-top: 0; }
+  .pagebreak { page-break-before: always; }
+  .symbol { font-family: "Times New Roman", serif; font-style: italic; }
+  .true { color: #1a7d3b; font-weight: 700; }
+  .false { color: #c0392b; font-weight: 700; }
+  .toc { font-size: 10pt; }
+  .toc ol { margin-left: 14px; }
+  .toc li { margin: 1px 0; }
+</style>
+</head>
+<body>
+
+<h1>Resumo Didático: Intervalo de Confiança</h1>
+<p class="sub">Tudo o que cai na provinha de 27/05 explicado do zero · Nelson Lerner Barth · T6 · 2026.1</p>
+
+<div class="toc">
+<b>Sumário</b>
+<ol>
+  <li>O problema fundamental, por que existe IC</li>
+  <li>Distribuição normal, refresher rápido</li>
+  <li>Distribuição amostral da média (a peça central)</li>
+  <li>Teorema do Limite Central (TLC)</li>
+  <li>IC para média, σ conhecido</li>
+  <li>IC para média, σ desconhecido, e por que S → T</li>
+  <li>IC para proporção</li>
+  <li>Como interpretar um IC sem cair em pegadinha</li>
+  <li>Tamanho de amostra</li>
+  <li>Suposições, quando o IC vale e quando não</li>
+  <li>Roteiro mecânico de prova</li>
+  <li>Pegadinhas conceituais (V/F comentado)</li>
+</ol>
+</div>
+
+<!-- ============================================================ -->
+<h2>1. O problema fundamental</h2>
+
+<p>Estatística inferencial existe pra resolver um problema simples: você quer saber a média de uma característica de uma <b>população</b> enorme (todos os adultos brasileiros, todos os clientes de um banco, todos os componentes que saem de uma fábrica), mas medir todo mundo é impraticável. Solução: você mede só uma <b>amostra</b> de n pessoas, calcula a média amostral X̄, e usa X̄ pra estimar a média populacional verdadeira μ.</p>
+
+<p>O problema é que X̄ tem erro. Se você refizesse a pesquisa com outra amostra de n pessoas, daria um X̄ diferente. Então em vez de dizer "μ ≈ X̄" (chamado <i>estimativa por ponto</i>, frágil), você dá uma faixa de valores plausíveis: "μ está entre LI e LS com γ% de confiança". Essa faixa é o <b>intervalo de confiança (IC)</b>.</p>
+
+<p>O IC tem três peças:</p>
+<ul>
+  <li>O centro, que é X̄</li>
+  <li>A margem de erro E, que define a largura</li>
+  <li>O nível de confiança γ (tipicamente 95%, 90% ou 99%)</li>
+</ul>
+
+<p>A fórmula geral é simplesmente <b>IC = X̄ ± E</b>. Toda a discussão sobre IC é sobre como calcular E corretamente em cada cenário.</p>
+
+<div class="key">A diferença entre as três fórmulas de IC (σ conhecido, σ desconhecido, proporção) é só o cálculo de E. O resto é igual: estimativa ± E.</div>
+
+<!-- ============================================================ -->
+<h2>2. Distribuição normal, refresher rápido</h2>
+
+<p>Distribuição é simplesmente como os valores se espalham. A normal tem formato de sino simétrico, descrita por dois parâmetros: a média μ (onde fica o pico) e o desvio padrão σ (largura do sino). Quanto maior σ, mais espalhada a distribuição.</p>
+
+<p>A regra empírica: ~68% dos dados ficam dentro de μ ± 1σ, ~95% dentro de μ ± 2σ (mais precisamente 1,96σ), e ~99,7% dentro de μ ± 3σ. É daqui que sai o famoso "Z = 1,96 cobre 95%".</p>
+
+<p>A <b>normal padrão</b> é a normal com μ = 0 e σ = 1, geralmente chamada de Z. Qualquer X normal pode ser convertido em Z subtraindo a média e dividindo pelo desvio:</p>
+
+<div class="formula">Z = (X − μ) / σ</div>
+
+<p>Isso permite usar uma tabela única (de Z) pra resolver qualquer problema com normal, qualquer que seja μ e σ.</p>
+
+<div class="excel">
+P(X &lt; x) numa normal qualquer = DIST.NORM.N(x ; μ ; σ ; 1)<br>
+P(Z &lt; z) na normal padrão    = DIST.NORM.P.N(z ; 1)
+</div>
+
+<!-- ============================================================ -->
+<h2>3. Distribuição amostral da média</h2>
+
+<p>Aqui está a peça mais importante pra entender IC. Imagina que você refizesse a pesquisa muitas vezes (universos paralelos), sempre coletando uma nova amostra de n pessoas e calculando o X̄ de cada uma. Cada amostra daria um X̄ diferente. A coleção desses infinitos X̄ tem uma distribuição própria, chamada <b>distribuição amostral da média</b>.</p>
+
+<p>Essa distribuição tem três propriedades fundamentais:</p>
+<ul>
+  <li><b>Centro</b>: μ (a mesma média da população). Os X̄ se distribuem ao redor de μ.</li>
+  <li><b>Desvio padrão</b>: σ/√n, chamado <b>erro padrão</b>. É o desvio dos X̄, não dos X individuais.</li>
+  <li><b>Formato</b>: normal, sob certas condições (ver TLC abaixo).</li>
+</ul>
+
+<p>O ponto crucial é que <b>σ/√n &lt; σ</b>. A dispersão das médias amostrais é menor que a dispersão dos valores individuais. Faz sentido: amostras maiores produzem médias mais estáveis. Quanto maior n, menor σ/√n, e mais "apertada" fica a distribuição de X̄ em torno de μ.</p>
+
+<p>Essa é a razão pela qual <b>quadruplicar n divide o erro padrão pela metade</b>: √4 = 2 no denominador. Por consequência, divide a margem de erro do IC pela metade. Cortar E pela metade exige quadruplicar n.</p>
+
+<div class="warn">Não confunda os três conceitos de "desvio":<br>
+<b>σ</b> = dispersão de X individual na população (raramente conhecido).<br>
+<b>S</b> = dispersão de X individual na sua amostra (estimativa de σ).<br>
+<b>σ/√n</b> = dispersão de X̄ entre diferentes amostras (erro padrão da média).
+</div>
+
+<!-- ============================================================ -->
+<h2>4. Teorema do Limite Central (TLC)</h2>
+
+<p>Pra construir IC, você precisa que X̄ tenha distribuição normal. Caso contrário, a fórmula <code>X̄ ± Z · σ/√n</code> não faz sentido (o Z = 1,96 só funciona dentro da curva normal).</p>
+
+<p>Tem dois caminhos pra garantir que X̄ é normal:</p>
+
+<h4>Caminho 1: X já é normal pelo enunciado</h4>
+<p>Se a variável original X tem distribuição normal (porque o enunciado disse, ou porque você verificou empiricamente), então X̄ é normal pra qualquer n, mesmo n = 5. Sem mistério.</p>
+
+<h4>Caminho 2: TLC salva</h4>
+<p>E quando X não é normal? Pode ser exponencial (tempo de espera), uniforme (sorteio entre 1 e 6), discreta (número de filhos), bimodal, sei lá. Aí entra o TLC:</p>
+
+<div class="formula">Se n &gt; 30, então X̄ é aproximadamente normal, independente do formato de X.</div>
+
+<p>Isso é o TLC em uma frase. O TLC age sobre X̄ (a média), <b>não</b> sobre X (o valor individual). Mesmo com TLC, X individual continua com a distribuição original. Mas X̄ vai virando sino conforme n cresce, por uma espécie de "suavização por agregação" (somas e médias de muitas variáveis perdem a forma original e convergem pra normal).</p>
+
+<p>Por isso a régua de bolso é <b>n &gt; 30</b>. Acima disso, a distribuição de X̄ é praticamente normal. Abaixo, sem ajuda do TLC, você precisaria saber que X é normal por outro motivo.</p>
+
+<div class="key">Cenários possíveis:<br>
+1. X normal + qualquer n → X̄ normal (sempre dá IC)<br>
+2. X qualquer + n &gt; 30 → X̄ normal pelo TLC (dá IC)<br>
+3. X não normal + n ≤ 30 → não dá pra concluir, IC inválido
+</div>
+
+<!-- ============================================================ -->
+<h2>5. IC para média, σ conhecido</h2>
+
+<p>Caso mais simples (e o primeiro que se aprende), embora irrealista: o desvio padrão populacional σ é dado no enunciado. A fórmula é:</p>
+
+<div class="formula">IC<sub>γ%</sub> = X̄ ± Z<sub>α/2</sub> · σ/√n</div>
+
+<p>Onde:</p>
+<ul>
+  <li><b>X̄</b> é a média da sua amostra (centro do IC)</li>
+  <li><b>σ</b> é o desvio padrão populacional (dado)</li>
+  <li><b>n</b> é o tamanho da amostra</li>
+  <li><b>σ/√n</b> é o erro padrão da média</li>
+  <li><b>Z<sub>α/2</sub></b> é o valor crítico da normal padrão correspondente à confiança escolhida</li>
+</ul>
+
+<p>O Z<sub>α/2</sub> sai da tabela:</p>
+
+<table style="width:55%">
+<tr><th>γ</th><th>α = 1−γ</th><th>α/2</th><th>Z<sub>α/2</sub></th></tr>
+<tr><td>90%</td><td>10%</td><td>5%</td><td><b>1,645</b></td></tr>
+<tr><td>95%</td><td>5%</td><td>2,5%</td><td><b>1,96</b></td></tr>
+<tr><td>99%</td><td>1%</td><td>0,5%</td><td>2,58</td></tr>
+</table>
+
+<p>A parte <b>Z<sub>α/2</sub> · σ/√n</b> é chamada <b>margem de erro (E)</b>. Então o IC pode ser escrito como X̄ ± E, ou [X̄ − E ; X̄ + E].</p>
+
+<div class="excel">
+Z<sub>α/2</sub> = INV.NORM.P.N(1 − α/2)<br>
+E      = INT.CONFIANÇA.NORM(α ; σ ; n)  ← atalho, recebe α (não α/2)<br>
+LI     = X̄ − E<br>
+LS     = X̄ + E
+</div>
+
+<div class="example">
+<h4>Exemplo</h4>
+<p>Tempo de deslocamento no país tem σ = 10 min. Amostra de 200 curitibanos, média 38 min. IC com 95%?</p>
+<pre>
+Z = 1,96
+E = 1,96 · 10/√200 = 1,96 · 0,7071 = 1,386
+IC = [38 − 1,386 ; 38 + 1,386] = [36,61 ; 39,39]
+</pre>
+<div class="excel">
+LI = 38 − INT.CONFIANÇA.NORM(0,05 ; 10 ; 200) → 36,61<br>
+LS = 38 + INT.CONFIANÇA.NORM(0,05 ; 10 ; 200) → 39,39
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>6. IC para média, σ desconhecido (a regra S → T)</h2>
+
+<p>Na prática, você quase nunca conhece σ. Se conhecesse, provavelmente já saberia μ também (geralmente os dois vêm da mesma fonte populacional), e nem precisaria fazer IC. O caso real é: você tem só S, calculado dos próprios dados da amostra.</p>
+
+<p>A tentação é simplesmente trocar σ por S na fórmula:</p>
+
+<pre>IC = X̄ ± Z · S/√n     ← tecnicamente errado</pre>
+
+<p>O problema é que isso ignora uma fonte de incerteza. S é uma <b>estimativa</b> de σ, não é σ. Como S tem erro, o IC sai mais estreito do que deveria, e a confiança real fica menor que γ%. Pra compensar esse erro extra, troca-se Z por T:</p>
+
+<div class="formula">IC<sub>γ%</sub> = X̄ ± T<sub>α/2, n−1</sub> · S/√n</div>
+
+<h3>O que é a distribuição T de Student</h3>
+<p>T (T de Student) é uma curva muito parecida com a normal: simétrica, em forma de sino, centrada em 0. A diferença é que ela tem caudas mais pesadas, o que faz com que os valores críticos T sejam maiores que os Z correspondentes. Esses valores maiores compensam o erro de ter estimado σ por S.</p>
+
+<p>T depende de dois números:</p>
+<ul>
+  <li>O nível α/2 (igual no Z)</li>
+  <li>Os <b>graus de liberdade (gl)</b>, que pra IC de média sempre é <b>n − 1</b></li>
+</ul>
+
+<p>Quanto menor n, mais larga a T fica (compensa mais o erro de S, que é maior com pouca amostra). Quanto maior n, mais T se aproxima de Z. No limite n → ∞, T = Z exatamente.</p>
+
+<table style="width:60%">
+<tr><th>n</th><th>gl</th><th>T (γ=95%)</th><th>Z</th><th>diferença</th></tr>
+<tr><td>9</td><td>8</td><td>2,365</td><td>1,96</td><td>+21%</td></tr>
+<tr><td>15</td><td>14</td><td>2,145</td><td>1,96</td><td>+9%</td></tr>
+<tr><td>25</td><td>24</td><td>2,064</td><td>1,96</td><td>+5%</td></tr>
+<tr><td>50</td><td>49</td><td>2,010</td><td>1,96</td><td>+3%</td></tr>
+<tr><td>120</td><td>119</td><td>1,980</td><td>1,96</td><td>+1%</td></tr>
+<tr><td>∞</td><td>∞</td><td>1,960</td><td>1,96</td><td>0</td></tr>
+</table>
+
+<h3>Por que gl = n − 1?</h3>
+<p>Calcular S amostral exige que você primeiro saiba X̄ (porque a fórmula de S envolve (xᵢ − X̄)²). Você "gasta" um grau de liberdade pra estimar a média antes de calcular o desvio. Sobram n − 1 valores livres pra estimar a dispersão. Não precisa entender a derivação matemática, só lembrar: <b>pra IC de média, gl = n − 1, sempre</b>.</p>
+
+<h3>Quando usar T e quando usar Z (com S)</h3>
+<p>A regra do Nelson: <b>"Se você puser S, ponha T."</b> T sempre é tecnicamente correto, qualquer n. Pra n grande (geralmente n &gt; 50), Z trocando σ por S é uma aproximação aceitável (a diferença com T fica abaixo de 3%), mas T continua sendo a opção rigorosa.</p>
+
+<table>
+<tr><th>Cenário</th><th>Estatística</th></tr>
+<tr><td>σ conhecido (qualquer n)</td><td>Z</td></tr>
+<tr><td>σ desconhecido, n &gt; 50</td><td>Z aproxima, T é rigoroso</td></tr>
+<tr><td>σ desconhecido, n ≤ 50</td><td><b>T obrigatório</b>, gl = n − 1</td></tr>
+<tr><td>σ desconhecido, n &lt; 30, mas X é normal</td><td>T (X̄ é normal pela suposição, não pelo TLC)</td></tr>
+</table>
+
+<div class="excel">
+T<sub>α/2, n−1</sub> = INV.T(1 − α/2 ; n − 1)   ← unicaudal<br>
+T bicaudal           = INV.T.BC(α ; n − 1)        ← passa α direto<br>
+E                    = INT.CONFIANÇA.T(α ; S ; n) ← atalho<br>
+LI                   = X̄ − E<br>
+LS                   = X̄ + E
+</div>
+
+<div class="example">
+<h4>Exemplo</h4>
+<p>Amostra de 25 funcionários, tempo médio X̄ = 29,6 min, S = 4,62 min. Pop é normal. IC com 97%?</p>
+<pre>
+γ = 97% → α = 3% → α/2 = 1,5%
+gl = 24
+T = INV.T(0,985; 24) ≈ 2,326
+
+E  = 2,326 · 4,62 / √25 = 2,326 · 0,9238 = 2,149
+IC = 29,6 ± 2,149 = [27,45 ; 31,75]
+</pre>
+<div class="excel">
+E = INT.CONFIANÇA.T(0,03 ; 4,62 ; 25) → 2,149
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>7. IC para proporção</h2>
+
+<p>Quando o que você quer estimar não é uma média, mas uma <b>proporção</b> (% de eleitores do candidato A, % de clientes satisfeitos, taxa de defeito numa linha de produção), a estrutura muda:</p>
+
+<div class="formula">IC<sub>γ%</sub> = p̂ ± Z<sub>α/2</sub> · √( p̂(1−p̂) / n )</div>
+
+<p>Onde:</p>
+<ul>
+  <li><b>p̂</b> é a proporção amostral (número de "sim" dividido por n)</li>
+  <li><b>√(p̂(1−p̂)/n)</b> é o erro padrão da proporção, análogo a σ/√n da média</li>
+  <li><b>Z<sub>α/2</sub></b> é o mesmo valor crítico da normal, sempre Z (não T)</li>
+</ul>
+
+<h3>Por que sempre Z, e não T?</h3>
+<p>Diferente da média, a fórmula do erro padrão de proporção não envolve um parâmetro extra que precise ser estimado e compensado. <code>p̂(1−p̂)</code> já é função só de p̂. Não tem o problema "S em vez de σ" que justificaria usar T. Então sempre Z.</p>
+
+<h3>Suposições</h3>
+<p>Pra a aproximação normal valer, exige-se: <b>n · p̂ ≥ 5</b> e <b>n · (1−p̂) ≥ 5</b>. Na prática, se p̂ não é extremo (digamos entre 0,1 e 0,9) e n &gt; 30, está garantido.</p>
+
+<div class="excel">
+p̂ = X/n   onde X é o número de "sim" e n o total<br>
+E  = INV.NORM.P.N(1 − α/2) * RAIZ(p̂ * (1 − p̂) / n)<br>
+LI = p̂ − E<br>
+LS = p̂ + E
+</div>
+
+<div class="warn"><b>Pegadinha "2 pontos percentuais":</b> "candidato A com 30% e margem de 2 pontos" significa E = <b>0,02</b>, não 2. A gíria de pesquisa eleitoral confunde quem não tá ligado.</div>
+
+<div class="example">
+<h4>Exemplo</h4>
+<p>Pesquisa com n = 800 eleitores, 240 disseram que votariam no candidato A. IC com 95%?</p>
+<pre>
+p̂ = 240/800 = 0,30
+Z = 1,96
+E = 1,96 · √(0,30 · 0,70 / 800)
+  = 1,96 · √(0,000262)
+  = 1,96 · 0,01620
+  = 0,0318
+
+IC = [0,30 − 0,0318 ; 0,30 + 0,0318] = [0,268 ; 0,332] = [26,8% ; 33,2%]
+</pre>
+</div>
+
+<!-- ============================================================ -->
+<h2>8. Como interpretar um IC sem cair em pegadinha</h2>
+
+<p>Essa é a parte mais cobrada conceitualmente e onde mais gente erra. Existem duas interpretações que parecem iguais em português, mas tecnicamente são diferentes:</p>
+
+<h4>Interpretação CORRETA (foca no procedimento):</h4>
+<p>"Se você refizer o procedimento de coletar amostra e construir IC muitas vezes, γ% dos ICs construídos vão conter o μ verdadeiro." Equivalente: "γ% de probabilidade de o intervalo conter μ."</p>
+
+<h4>Interpretação ERRADA (atribui distribuição a μ):</h4>
+<p>"Tem γ% de chance do μ estar nesse IC específico." O que parece a mesma coisa, mas tecnicamente é errado porque μ é fixo (é um parâmetro populacional, não uma variável aleatória). μ não tem distribuição. Ele está em algum lugar específico, e ponto. A aleatoriedade está no procedimento de construir o IC, não no μ.</p>
+
+<div class="key">Na linguagem do Nelson, dizer "γ% de probabilidade do intervalo conter μ" é aceito (foca no procedimento, no intervalo aleatório). Mas frases que sugerem "μ tem mais chance de estar no centro" ou "μ tem distribuição" são pegadinhas erradas.</div>
+
+<h4>Outras pegadinhas comuns</h4>
+<ul>
+  <li>"P(X̄ está no IC) = γ%" → ERRADO, é 100%. O IC é construído ao redor de X̄, então X̄ sempre cai no centro por construção.</li>
+  <li>"P(X individual está no IC) = γ%" → ERRADO. O IC é sobre μ, não sobre X. Pra falar de X você precisaria de outra coisa (intervalo de predição, não de confiança).</li>
+  <li>"μ está mais perto do centro do IC com γ%" → ERRADO. Atribui distribuição a μ.</li>
+  <li>"γ% dos indivíduos têm valores no IC" → ERRADO. Mesmo erro que acima.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>9. Tamanho de amostra</h2>
+
+<p>Pergunta inversa: você quer construir IC com confiança γ e margem de erro máxima E. Quantas pessoas precisa entrevistar?</p>
+
+<p>Inverte a fórmula da margem de erro:</p>
+
+<div class="formula">
+n média (σ conhecido)        n = ( Z<sub>α/2</sub> · σ / E )²<br>
+n proporção (com p̂)          n = Z<sub>α/2</sub>² · p̂(1−p̂) / E²<br>
+n proporção (sem estim.)     n = Z<sub>α/2</sub>² · 0,25 / E²
+</div>
+
+<h4>Por que 0,25 quando não tem estimativa</h4>
+<p>O termo p̂(1−p̂) é maximizado quando p̂ = 0,5, e dá 0,25. Esse é o pior caso (variância máxima da proporção). Usar 0,25 garante a precisão desejada para qualquer p̂ que apareça depois.</p>
+
+<h4>Arredondamento</h4>
+<p>Sempre arredonda <b>pra cima</b>, mesmo que dê 138,01. Isso garante que a margem de erro fica no máximo no E desejado (arredondar pra baixo deixaria E maior que o pedido). Exceção: se o enunciado pedir "arredondamento matemático" explicitamente, aí usa arredondamento normal (5 ou mais sobe).</p>
+
+<h4>Trade-off importante</h4>
+<p>Como n entra na fórmula via 1/√n na margem de erro, a relação é: <b>E ∝ 1/√n</b>. Isso significa que:</p>
+<ul>
+  <li>Quadruplicar n divide E pela metade</li>
+  <li>Cortar E pela metade exige quadruplicar n</li>
+  <li>Cortar E em 1/3 exige multiplicar n por 9</li>
+</ul>
+<p>Pesquisa precisa fica cara muito rápido. É um trade-off real que pesa em decisões reais de orçamento de pesquisa.</p>
+
+<div class="excel">
+n média
+ = ARREDONDAR.PARA.CIMA( (INV.NORM.P.N(1−α/2)*σ/E)^2 ; 0 )
+
+n proporção (conservador)
+ = ARREDONDAR.PARA.CIMA( INV.NORM.P.N(1−α/2)^2 * 0,25 / E^2 ; 0 )
+</div>
+
+<div class="example">
+<h4>Exemplo</h4>
+<p>Quero estimar o tempo médio de atendimento com margem de 2 min, σ = 17 min, confiança 95%.</p>
+<pre>
+Z = 1,96
+n = (1,96 · 17 / 2)² = (16,66)² = 277,56
+Arredonda pra cima → 278
+</pre>
+<div class="excel">
+n = ARREDONDAR.PARA.CIMA( (INV.NORM.P.N(0,975)*17/2)^2 ; 0 ) → 278
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>10. Suposições — quando o IC vale e quando não</h2>
+
+<p>Toda fórmula de IC carrega suposições. Se você aplica sem checar, o resultado pode estar tecnicamente inválido.</p>
+
+<h4>Para IC de média</h4>
+<ol>
+  <li><b>X̄ tem distribuição normal.</b> Isso é o pré-requisito pra Z (ou T) valer. Garantido por: (i) X já é normal pelo enunciado, ou (ii) n &gt; 30 pelo TLC. Se nenhum dos dois, IC inválido.</li>
+  <li><b>Amostragem aleatória simples (AAS).</b> Cada elemento da população tem mesma chance de entrar na amostra. Sem AAS, a amostra é viciada e o IC não representa nada.</li>
+  <li><b>Se σ é desconhecido</b>, usa S e troca pra T (regra S → T).</li>
+</ol>
+
+<h4>Para IC de proporção</h4>
+<ol>
+  <li><b>n · p̂ ≥ 5 e n · (1 − p̂) ≥ 5.</b> Garante que a aproximação normal da binomial é boa.</li>
+  <li><b>AAS</b>, mesmo motivo.</li>
+</ol>
+
+<div class="warn">Se a amostra é viciada (ex: só pesquisou amigos, só pegou os que chegaram primeiro, só clientes que reclamaram), nenhuma fórmula salva. O IC vai gerar números, mas eles não representam a população. AAS é hipótese técnica não negociável.</div>
+
+<!-- ============================================================ -->
+<h2>11. Roteiro mecânico antes de cada questão</h2>
+
+<ol>
+  <li><b>Identifica o tipo</b>. Proporção? Média? Tamanho de amostra? Conceitual?</li>
+  <li><b>Lista o que tem</b>. n, X̄ (ou p̂), σ (ou S), γ, E. O que falta?</li>
+  <li><b>Decide Z ou T</b>. Tem σ → Z. Tem só S → T (obrigatório se n ≤ 50).</li>
+  <li><b>Checa X̄ normal</b>. X é normal pelo enunciado? Ou n &gt; 30? Senão, IC inválido.</li>
+  <li><b>Calcula α/2 e busca Z ou T</b>. Tabela mental ou Excel.</li>
+  <li><b>Erro padrão</b>. σ/√n, S/√n, ou √(p̂(1−p̂)/n).</li>
+  <li><b>E = Z (ou T) · erro padrão</b>.</li>
+  <li><b>IC = estimativa ± E</b>.</li>
+  <li><b>Se pediu n</b>: inverte a fórmula, arredonda pra cima.</li>
+  <li><b>Vincula células no Excel</b>. Nunca arredonda no meio do cálculo. Arredonda só no resultado final.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2>12. Pegadinhas conceituais (V/F comentado)</h2>
+
+<table>
+<tr><th style="width:55%">Afirmação</th><th style="width:7%">V/F</th><th>Por quê</th></tr>
+<tr><td>P(X̄ está no IC) = γ%</td><td class="false">F</td><td>É 100%. IC construído ao redor de X̄ por construção.</td></tr>
+<tr><td>γ% chance do μ estar nesse IC específico</td><td class="false">F</td><td>μ é fixo, não tem distribuição. γ% é do procedimento.</td></tr>
+<tr><td>γ% de probabilidade do <i>intervalo</i> conter μ</td><td class="true">V</td><td>Foca no procedimento (intervalo é aleatório). Aceito pelo Nelson.</td></tr>
+<tr><td>μ está mais perto do centro com γ%</td><td class="false">F</td><td>μ é ponto fixo. Não tem distribuição dentro do IC.</td></tr>
+<tr><td>γ% dos X individuais estão no IC</td><td class="false">F</td><td>IC é sobre μ, não sobre X. Confusão grave.</td></tr>
+<tr><td>Quanto maior σ, menor E</td><td class="false">F</td><td>E ∝ σ. Pop mais dispersa exige margem maior.</td></tr>
+<tr><td>Quanto maior γ, maior E</td><td class="true">V</td><td>Z (ou T) sobe → E sobe. Mais confiança custa precisão.</td></tr>
+<tr><td>Quadruplicar n divide E pela metade</td><td class="true">V</td><td>E ∝ 1/√n, então √4 = 2 no denominador.</td></tr>
+<tr><td>n &lt; 30 → IC sempre inválido</td><td class="false">F</td><td>Vale se X já é normal pelo enunciado (mesmo n = 8).</td></tr>
+<tr><td>Pode usar Z com S e n pequeno</td><td class="false">F</td><td>S + n pequeno → T obrigatório. Regra do Nelson.</td></tr>
+<tr><td>AAS não basta como suposição</td><td class="false">F</td><td>AAS + normalidade de X̄ são exatamente o necessário.</td></tr>
+<tr><td>TLC garante que X individual é normal</td><td class="false">F</td><td>TLC age sobre X̄. X individual continua com a distribuição original.</td></tr>
+<tr><td>gl = n para IC de média</td><td class="false">F</td><td>gl = n − 1. Você gasta 1 grau ao calcular X̄.</td></tr>
+<tr><td>Aumentar variância da pop aumenta precisão</td><td class="false">F</td><td>Inverso. σ maior → E maior → menos precisão.</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>13. Apêndice: Excel completo</h2>
+
+<h4>Valores críticos</h4>
+<div class="excel">
+Z<sub>α/2</sub>              = INV.NORM.P.N(1 − α/2)<br>
+T<sub>α/2, n−1</sub>         = INV.T(1 − α/2 ; n − 1)<br>
+T bicaudal             = INV.T.BC(α ; n − 1)
+</div>
+
+<h4>Margem de erro (atalho, recebe α direto)</h4>
+<div class="excel">
+E média σ conhecido    = INT.CONFIANÇA.NORM(α ; σ ; n)<br>
+E média σ desconhecido = INT.CONFIANÇA.T(α ; S ; n)
+</div>
+
+<h4>IC de proporção (manual, sem função pronta)</h4>
+<div class="excel">
+E = INV.NORM.P.N(1 − α/2) * RAIZ(p̂ * (1 − p̂) / n)<br>
+LI = p̂ − E<br>
+LS = p̂ + E
+</div>
+
+<h4>Tamanho de amostra</h4>
+<div class="excel">
+n média = ARREDONDAR.PARA.CIMA( (INV.NORM.P.N(1−α/2)*σ/E)^2 ; 0 )<br><br>
+n proporção (com p̂) = ARREDONDAR.PARA.CIMA( INV.NORM.P.N(1−α/2)^2 * p̂*(1−p̂) / E^2 ; 0 )<br><br>
+n proporção (conservador) = ARREDONDAR.PARA.CIMA( INV.NORM.P.N(1−α/2)^2 * 0,25 / E^2 ; 0 )
+</div>
+
+<h4>Estatísticas amostrais</h4>
+<div class="excel">
+X̄ = MÉDIA(intervalo)<br>
+S  = DESVPAD.A(intervalo)        ← amostral, n−1, usa quase sempre<br>
+σ  = DESVPAD.P(intervalo)        ← populacional, n<br>
+n  = CONT.NÚM(intervalo)<br>
+p̂  = CONT.SE(intervalo; "sim") / CONT.NÚM(intervalo)
+</div>
+
+<h4>Probabilidades</h4>
+<div class="excel">
+P(X &lt; x) normal qualquer    = DIST.NORM.N(x ; μ ; σ ; 1)<br>
+P(Z &lt; z) normal padrão      = DIST.NORM.P.N(z ; 1)<br>
+γ a partir de Z              = 2 * DIST.NORM.P.N(Z ; 1) − 1
+</div>
+
+</body>
+</html>
