@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>MLC Infra - Operações para Competitividade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* light editorial: warm cream bg + dark ink text + ochre accent */
+    --bg: #FAFAF6;
+    --bg-soft: #F1EFE8;
+    --surface: #FFFFFF;
+    --border: #D6D3CB;
+    --border-soft: #E5E2DA;
+    --ink-1: #18181B;
+    --ink-2: #44403C;
+    --ink-3: #78716C;
+    --ink-4: #A8A29E;
+    --accent: #B45309;
+    --accent-dark: #7C2D12;
+    --accent-soft: rgba(180, 83, 9, 0.08);
+    --accent-mid: rgba(180, 83, 9, 0.18);
+    --crit: #B91C1C;
+    --crit-soft: rgba(185, 28, 28, 0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: 1280px 720px; margin: 0; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    color: var(--ink-1);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .slide {
+    width: 1280px;
+    height: 720px;
+    page-break-after: always;
+    break-after: page;
+    position: relative;
+    padding: 56px 72px 60px;
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide:last-child { page-break-after: auto; }
+
+  .strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .strip .pill { display: inline-flex; align-items: center; gap: 10px; }
+  .strip .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; }
+  .strip .number { color: var(--ink-1); font-weight: 500; }
+
+  .footer {
+    position: absolute;
+    left: 72px;
+    right: 72px;
+    bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .footer .who { color: var(--ink-1); font-weight: 500; }
+  .footer .who::before { content: 'Apresenta · '; color: var(--ink-3); font-weight: 400; }
+
+  .eyebrow {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .display {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.96;
+    color: var(--ink-1);
+  }
+
+  .display-xl { font-size: 124px; }
+  .display-l  { font-size: 80px; }
+  .display-m  { font-size: 58px; }
+  .display-s  { font-size: 44px; }
+
+  .lead {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink-2);
+    letter-spacing: -0.01em;
+  }
+
+  .body { font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+  .small { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .micro {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  ul.dash-list { list-style: none; }
+  ul.dash-list li {
+    padding-left: 22px;
+    position: relative;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  ul.dash-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 12px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+
+  .rule-accent { width: 48px; height: 2px; background: var(--accent); margin: 0; border: 0; }
+
+  .content { flex: 1; display: flex; flex-direction: column; padding-top: 32px; min-height: 0; }
+
+  /* Image placeholder */
+  .img-ph {
+    border: 1.4px dashed rgba(217, 119, 6, 0.45);
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(217, 119, 6, 0.04),
+      rgba(217, 119, 6, 0.04) 8px,
+      rgba(217, 119, 6, 0.09) 8px,
+      rgba(217, 119, 6, 0.09) 16px
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 18px;
+    border-radius: 2px;
+    color: var(--ink-2);
+  }
+  .img-ph .ph-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .img-ph .ph-tag::before { content: ''; width: 14px; height: 1px; background: var(--accent); }
+  .img-ph .ph-desc {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--ink-2);
+    max-width: 240px;
+  }
+
+  /* Cover */
+  .cover-title { font-size: 156px; line-height: 0.88; letter-spacing: -0.035em; }
+
+  .cover-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 32px; }
+  .cover-meta .label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .cover-meta .value { font-size: 14px; line-height: 1.4; color: var(--ink-1); }
+
+  /* Slide 2 KPI band */
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .kpi-num {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 56px;
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    color: var(--ink-1);
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-num .unit {
+    font-family: 'Geist', sans-serif;
+    font-size: 18px;
+    color: var(--ink-3);
+    letter-spacing: -0.01em;
+    margin-left: 6px;
+  }
+  .kpi-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 8px;
+  }
+
+  /* Phases timeline */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .phase { display: flex; flex-direction: column; gap: 10px; padding-top: 24px; position: relative; border-top: 1.5px solid var(--ink-1); }
+  .phase .num {
+    position: absolute;
+    top: -14px; left: 0;
+    width: 28px; height: 28px;
+    background: var(--bg);
+    border: 1.5px solid var(--ink-1);
+    border-radius: 50%;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-1);
+  }
+  .phase .name {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 26px;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--ink-1);
+  }
+  .phase .desc { font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+
+  /* Quote */
+  .quote-block { padding-left: 24px; border-left: 2px solid var(--accent); }
+  .quote-text {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink-1);
+  }
+  .quote-source {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 14px;
+  }
+
+  /* Process map - flowchart */
+  .flow {
+    flex: 1;
+    position: relative;
+    margin-top: 12px;
+  }
+  .flow svg { width: 100%; height: 100%; }
+  .flow-node {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: 'Geist', sans-serif;
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--ink-1);
+    background: var(--surface);
+    border: 1.5px solid var(--ink-1);
+    padding: 8px 12px;
+  }
+  .flow-node.start, .flow-node.end {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 15px;
+    font-style: italic;
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  .flow-node.activity {
+    width: 160px;
+    min-height: 60px;
+    border-radius: 4px;
+  }
+  .flow-node.decision {
+    width: 110px;
+    height: 110px;
+    transform: rotate(45deg);
+    background: var(--bg-soft);
+    border-color: var(--accent);
+  }
+  .flow-node.decision .inner {
+    transform: rotate(-45deg);
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    text-align: center;
+    width: 100px;
+  }
+  .flow-label {
+    position: absolute;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-shape {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink-1);
+  }
+  .legend-shape.circle { border-radius: 50%; background: var(--accent); border-color: var(--accent); }
+  .legend-shape.rect { border-radius: 2px; background: var(--surface); }
+  .legend-shape.diamond { transform: rotate(45deg); background: var(--bg-soft); border-color: var(--accent); }
+  .legend-shape.arrow { border: 0; width: 18px; height: 1.5px; background: var(--ink-1); position: relative; }
+  .legend-shape.arrow::after { content: ''; position: absolute; right: -2px; top: -3px; border-left: 5px solid var(--ink-1); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+
+  /* Matriz IxD */
+  .matrix-wrap { flex: 1; display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: stretch; padding-top: 20px; }
+  .matrix {
+    position: relative;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    aspect-ratio: 1.05 / 1;
+    max-height: 460px;
+  }
+  .matrix-axes {
+    position: absolute;
+    inset: 0;
+  }
+  .matrix-cell-bg {
+    position: absolute;
+  }
+  .matrix-zone-urgent  { left: 0; top: 0; width: 50%; height: 33%; background: rgba(220, 38, 38, 0.10); }
+  .matrix-zone-improve { left: 0; top: 33%; width: 50%; height: 34%; background: rgba(217, 119, 6, 0.08); }
+  .matrix-zone-ok      { left: 50%; top: 0; width: 50%; height: 67%; background: rgba(46, 125, 50, 0.06); }
+  .matrix-zone-excess  { left: 50%; top: 67%; width: 50%; height: 33%; background: rgba(120, 113, 108, 0.06); }
+  .matrix-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, var(--border-soft) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border-soft) 1px, transparent 1px);
+    background-size: 20% 20%;
+    pointer-events: none;
+  }
+  .matrix-diag {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .matrix-point {
+    position: absolute;
+    width: 36px; height: 36px;
+    margin-left: -18px; margin-top: -18px;
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1.5px var(--accent);
+    z-index: 3;
+  }
+  .matrix-axis-label {
+    position: absolute;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .axis-x { bottom: -22px; left: 50%; transform: translateX(-50%); }
+  .axis-y { top: 50%; left: -10px; transform: translateY(-50%) rotate(-90deg); transform-origin: left; white-space: nowrap; }
+  .matrix-tick {
+    position: absolute;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  .criteria-list { display: flex; flex-direction: column; gap: 10px; }
+  .criteria-row {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 8px 0;
+    border-top: 1px solid var(--border-soft);
+  }
+  .criteria-num {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .criteria-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 16px;
+    line-height: 1.1;
+    color: var(--ink-1);
+  }
+  .criteria-just {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--ink-2);
+    margin-top: 3px;
+  }
+  .criteria-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  /* Leitura da matriz - quadrants */
+  .quadrants { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; }
+  .quadrant {
+    padding: 22px;
+    border: 1px solid var(--border-soft);
+    background: var(--surface);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .quadrant.urgent { border-left: 3px solid var(--crit); }
+  .quadrant.strength { border-left: 3px solid #16A34A; }
+  .quadrant.improve { border-left: 3px solid var(--accent); }
+  .quadrant.ok { border-left: 3px solid var(--ink-3); }
+  .quadrant .qd-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .quadrant.urgent .qd-tag { color: var(--crit); }
+  .quadrant.strength .qd-tag { color: #4ADE80; }
+  .quadrant .qd-headline {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+  .quadrant .qd-body { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+  .quadrant .qd-evidence {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-2);
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  /* Proposta */
+  .prop-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; flex: 1; }
+  .prop-cell {
+    display: flex; flex-direction: column; gap: 12px;
+    padding-top: 18px;
+    border-top: 2px solid var(--accent);
+  }
+  .prop-cell .prop-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .prop-cell .prop-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+  .prop-cell .prop-body { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+  .prop-cell .prop-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .prop-cell .prop-meta .label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+  .prop-cell .prop-meta .value {
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--ink-1);
+  }
+
+  /* Conclusion grid */
+  .concl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; flex: 1; }
+  .concl-cell {
+    display: flex; flex-direction: column; gap: 14px;
+    border-top: 2px solid var(--ink-1);
+    padding-top: 20px;
+  }
+  .concl-cell.accent { border-top-color: var(--accent); }
+  .concl-cell .concl-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .concl-cell.accent .concl-tag { color: var(--accent); }
+  .concl-cell .concl-headline {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+  .concl-cell .concl-body { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<!-- =================== SLIDE 1 - CAPA =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>FGV EAESP · Operações para Competitividade · CGAE 2026.1</span></span>
+    <span><span class="number">01</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <div style="display:grid; grid-template-columns: 1.4fr 1fr; gap:48px; align-items:stretch; flex:1;">
+      <div style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <span class="eyebrow">Análise operacional · Grupo 1</span>
+          <h1 class="display" style="font-size:148px; line-height:0.86; letter-spacing:-0.03em; margin-top:18px;">MLC Infra.</h1>
+          <hr class="rule-accent" style="margin-top:24px;">
+          <p class="lead" style="margin-top:18px; max-width:540px;">
+            Análise operacional de uma obra de infraestrutura: mapa de processo, matriz Importância × Desempenho e propostas de melhoria.
+          </p>
+        </div>
+
+        <div class="cover-meta">
+          <div>
+            <div class="label">Empresa</div>
+            <div class="value">MLC Infra, Grupo JMalucelli<br>Curitiba, Paraná</div>
+          </div>
+          <div>
+            <div class="label">Contato</div>
+            <div class="value">Ricardo Malucelli<br>Diretor Executivo</div>
+          </div>
+          <div>
+            <div class="label">Disciplina</div>
+            <div class="value">Operações para Competitividade</div>
+          </div>
+          <div>
+            <div class="label">Visita</div>
+            <div class="value">20 de maio de 2026<br>Google Meet, 42 min + questionário</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-left:1.5px solid var(--border); padding-left:36px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="micro" style="margin-bottom:14px;">Grupo 1</div>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+            <li style="font-family:'Instrument Serif',serif; font-size:22px; letter-spacing:-0.015em; line-height:1.1;">Arthur Gomes Malucelli</li>
+            <li style="font-family:'Instrument Serif',serif; font-size:22px; letter-spacing:-0.015em; line-height:1.1;">Caio Pupo Murari</li>
+            <li style="font-family:'Instrument Serif',serif; font-size:22px; letter-spacing:-0.015em; line-height:1.1;">João Paulo Bicudo</li>
+            <li style="font-family:'Instrument Serif',serif; font-size:22px; letter-spacing:-0.015em; line-height:1.1;">Luca Quartieri</li>
+            <li style="font-family:'Instrument Serif',serif; font-size:22px; letter-spacing:-0.015em; line-height:1.1;">Mateus Bortotto Decimoni</li>
+            <li style="font-family:'Instrument Serif',serif; font-size:22px; letter-spacing:-0.015em; line-height:1.1;">Matheus Scigliano</li>
+          </ul>
+        </div>
+
+        <div class="img-ph" style="height:180px;">
+          <span class="ph-tag">imagem 01</span>
+          <span class="ph-desc">Foto da equipe na visita, logo da MLC ou screenshot do Meet com Ricardo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Arthur Malucelli</span>
+    <span>7 min · vídeo Eclass</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 2 - CONTEXTUALIZAÇÃO =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Contextualização da empresa</span></span>
+    <span><span class="number">02</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <span class="eyebrow">Quem é a MLC Infra</span>
+    <h2 class="display display-m" style="margin-top:10px;">Construtora pesada de capital fechado, parte do Grupo JMalucelli.</h2>
+
+    <div class="kpi-row" style="margin-top:20px;">
+      <div>
+        <div class="kpi-num">1.200<span class="unit">funcionários</span></div>
+        <div class="kpi-label">Corporativo + canteiros</div>
+      </div>
+      <div>
+        <div class="kpi-num">3<span class="unit">concessões ativas</span></div>
+        <div class="kpi-label">BR-364, BR-381, escolas PR</div>
+      </div>
+      <div>
+        <div class="kpi-num">2 a 5<span class="unit">anos por obra</span></div>
+        <div class="kpi-label">Ciclo médio de execução</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 5fr 4fr 3.5fr; gap:24px; margin-top:18px; flex:1; align-items:start;">
+      <div>
+        <div class="micro" style="margin-bottom:10px;">Perfil e atividade</div>
+        <ul class="dash-list" style="font-size:13px;">
+          <li>Sede em Curitiba, Paraná. Capital fechado.</li>
+          <li>CNAE 42.13-8: construção de rodovias e ferrovias.</li>
+          <li>Setor: construção pesada de infraestrutura.</li>
+          <li>Público-alvo: concessionárias privadas e contratos públicos.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="micro" style="margin-bottom:10px;">Escopo da análise</div>
+        <p style="font-size:12.5px; line-height:1.5; color:var(--ink-2);">
+          MLC é grupo grande, mas cada obra opera de forma semi-autônoma com Gerente de Contrato e estrutura local. Nossa análise foca em <strong style="color:var(--ink-1);">uma obra típica de rodovia</strong> como unidade operacional.
+        </p>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-soft);">
+          <div class="micro" style="margin-bottom:6px; font-size:9px;">Operação observada</div>
+          <p style="font-size:11.5px; line-height:1.4; color:var(--ink-2);">Execução de obra rodoviária: mobilização, terraplanagem, drenagem, pavimentação, sinalização e entrega.</p>
+        </div>
+      </div>
+      <div class="img-ph" style="height:240px;">
+        <span class="ph-tag">imagem 02</span>
+        <span class="ph-desc">Logo MLC Infra, fachada da sede, ou foto de uma obra rodoviária da empresa</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Matheus Scigliano</span>
+    <span>Slide 02 · Contextualização</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 3 - ANÁLISE DA OPERAÇÃO PRINCIPAL =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Operação principal</span></span>
+    <span><span class="number">03</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <span class="eyebrow">Como uma obra acontece</span>
+    <h2 class="display display-m" style="margin-top:10px;">Três macroetapas, estrutura semi-autônoma por canteiro.</h2>
+
+    <div class="timeline" style="margin-top:48px;">
+      <div class="phase">
+        <span class="num">1</span>
+        <div class="name">Mobilização e setup</div>
+        <p class="desc">Gerente de Contrato, líderes técnicos (produção, planejamento, segurança), aluguel de instalações, ERP parametrizado, projeção de caixa e contratação de subempreiteiros e equipamentos.</p>
+      </div>
+      <div class="phase">
+        <span class="num">2</span>
+        <div class="name">Execução em campo</div>
+        <p class="desc">Topografia, terraplanagem, drenagem, pavimentação, obras complementares e sinalização. Layout do canteiro: escritório local, oficina de manutenção, área de estocagem, alojamento ou casa alugada para corpo técnico.</p>
+      </div>
+      <div class="phase">
+        <span class="num">3</span>
+        <div class="name">Controle, medição e entrega</div>
+        <p class="desc">Testes de qualidade ISO 9001 por etapa, medição mensal para faturamento, curva ABC reconciliando custo real e proposta de orçamento, encerramento com CRP e acervo técnico no CREA.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:auto; padding-top:22px; border-top:1px solid var(--border-soft); display:grid; grid-template-columns: 1.4fr 1fr; gap:32px; align-items:flex-start;">
+      <div class="quote-block">
+        <p class="quote-text" style="font-size:18px;">"O grande segredo é manutenção em dia. E controle de custo de obra a obra, com reunião mensal e ação imediata se desvia."</p>
+        <div class="quote-source">Ricardo Malucelli, diretor executivo</div>
+      </div>
+      <div>
+        <div class="micro" style="margin-bottom:6px;">Tecnologia observada</div>
+        <p style="font-size:12px; line-height:1.45; color:var(--ink-2);">ERP corporativo integrado por obra, ponto eletrônico em campo, planilhas de medição. Equipamento pesado próprio e terceirizado.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Caio Murari</span>
+    <span>Slide 03 · Operação</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 4 - MAPA DE PROCESSO =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Mapa de processo</span></span>
+    <span><span class="number">04</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:18px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px;">
+      <div>
+        <span class="eyebrow">Fluxo de execução de uma obra</span>
+        <h2 class="display" style="margin-top:6px; font-size:34px;">Do contrato assinado à entrega final.</h2>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-shape circle"></span> Evento</span>
+        <span class="legend-item"><span class="legend-shape rect"></span> Atividade</span>
+        <span class="legend-item"><span class="legend-shape diamond"></span> Decisão</span>
+        <span class="legend-item"><span class="legend-shape arrow"></span> Fluxo</span>
+      </div>
+    </div>
+
+    <div class="flow">
+      <svg viewBox="0 0 1136 470" preserveAspectRatio="none" style="position:absolute; inset:0;">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#F2EAD3"/>
+          </marker>
+        </defs>
+        <!-- Start (50,90) → Mobilização (210,90) -->
+        <line x1="100" y1="90" x2="160" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Mobilização → Decisão1 (430,90) -->
+        <line x1="290" y1="90" x2="380" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Decisão1 SIM → Execução (680,90) -->
+        <line x1="488" y1="90" x2="600" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="510" y="80" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
+        <!-- Decisão1 NÃO → Embute custo financeiro (430, 220) -->
+        <line x1="434" y1="148" x2="434" y2="200" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="442" y="180" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
+        <!-- Custo financeiro → Execução (volta pra direita) -->
+        <line x1="514" y1="220" x2="680" y2="220" stroke="#F2EAD3" stroke-width="1.5"/>
+        <line x1="680" y1="220" x2="680" y2="148" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Execução → Medição mensal (910,90) -->
+        <line x1="760" y1="90" x2="850" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Medição → Decisão2 (910, 240) -->
+        <line x1="910" y1="148" x2="910" y2="220" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Decisão2 SIM → Ação corretiva (700,290) -->
+        <line x1="857" y1="294" x2="760" y2="294" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="780" y="285" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
+        <!-- Ação corretiva → volta pra Execução -->
+        <line x1="680" y1="270" x2="680" y2="150" stroke="#F2EAD3" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <!-- Decisão2 NÃO → Encerramento (910, 410) -->
+        <line x1="910" y1="350" x2="910" y2="380" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="918" y="370" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
+        <!-- Encerramento → Fim (250, 410) -->
+        <line x1="830" y1="410" x2="170" y2="410" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+      </svg>
+
+      <div class="flow-node start" style="left:0px; top:40px; width:100px; height:100px; font-size:13px; padding:8px;">Contrato<br>assinado</div>
+      <div class="flow-node activity" style="left:160px; top:60px;">Mobilização<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">gerente, ERP, caixa</span></div>
+      <div class="flow-node decision" style="left:380px; top:35px;"><div class="inner">Cliente<br>adianta?</div></div>
+      <div class="flow-node activity" style="left:434px; top:200px; width:160px; transform:translateX(-80px);">Custo financeiro<br>embutido no preço</div>
+      <div class="flow-node activity" style="left:600px; top:60px;">Execução<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">terra, drena, pavi</span></div>
+      <div class="flow-node activity" style="left:850px; top:60px;">Medição<br>mensal</div>
+      <div class="flow-node decision" style="left:855px; top:240px;"><div class="inner">Desvio<br>na curva<br>ABC?</div></div>
+      <div class="flow-node activity" style="left:620px; top:264px; width:140px;">Ação corretiva<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">carta ao cliente</span></div>
+      <div class="flow-node activity" style="left:830px; top:380px;">Encerramento<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">CRP + CREA</span></div>
+      <div class="flow-node end" style="left:60px; top:360px; width:100px; height:100px; font-size:13px; padding:8px;">Obra<br>entregue</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Luca Quartieri</span>
+    <span>Slide 04 · Mapa de processo</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 5 - MATRIZ IxD =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Matriz Importância × Desempenho</span></span>
+    <span><span class="number">05</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:18px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
+      <div>
+        <span class="eyebrow">Critérios competitivos avaliados</span>
+        <h2 class="display" style="margin-top:6px; font-size:34px;">Onde a MLC ganha, onde precisa atacar.</h2>
+      </div>
+      <p class="lead" style="font-size:12px; max-width:260px; text-align:right;">Slack &amp; Lewis: 6 critérios plotados a partir das observações da entrevista.</p>
+    </div>
+
+    <div class="matrix-wrap">
+      <div style="position:relative; padding-bottom:14px; padding-left:24px;">
+        <div class="matrix">
+          <div class="matrix-zone-urgent matrix-cell-bg"></div>
+          <div class="matrix-zone-improve matrix-cell-bg"></div>
+          <div class="matrix-zone-ok matrix-cell-bg"></div>
+          <div class="matrix-zone-excess matrix-cell-bg"></div>
+          <div class="matrix-grid"></div>
+
+          <!-- diagonal limits -->
+          <svg class="matrix-diag" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="50" y1="0" x2="50" y2="100" stroke="#3D3528" stroke-width="0.4"/>
+            <line x1="0" y1="33" x2="100" y2="33" stroke="#3D3528" stroke-width="0.4"/>
+            <line x1="0" y1="67" x2="100" y2="67" stroke="#3D3528" stroke-width="0.4"/>
+          </svg>
+
+          <!-- Zone labels -->
+          <div style="position:absolute; left:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#DC2626; font-weight:500;">Ação urgente</div>
+          <div style="position:absolute; left:8px; top:36%; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); font-weight:500;">Melhoramento</div>
+          <div style="position:absolute; right:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#4ADE80; font-weight:500; text-align:right;">Apropriado</div>
+          <div style="position:absolute; right:8px; bottom:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3); font-weight:500; text-align:right;">Excesso</div>
+
+          <!-- Plotted points. Position: left = desempenho (0-100), top = inverso importância (0=alta) -->
+          <div class="matrix-point" style="left:85%; top:10%;">1</div>
+          <div class="matrix-point" style="left:80%; top:14%;">2</div>
+          <div class="matrix-point" style="left:25%; top:22%;">3</div>
+          <div class="matrix-point" style="left:55%; top:50%;">4</div>
+          <div class="matrix-point" style="left:75%; top:55%;">5</div>
+          <div class="matrix-point" style="left:40%; top:75%;">6</div>
+        </div>
+        <div class="matrix-axis-label axis-x">Desempenho →</div>
+        <div class="matrix-axis-label axis-y">Importância p/ cliente →</div>
+      </div>
+
+      <div>
+        <div class="micro" style="margin-bottom:10px;">Critérios e justificativas</div>
+        <div class="criteria-list">
+          <div class="criteria-row">
+            <div class="criteria-num">1</div>
+            <div>
+              <div class="criteria-name">Confiabilidade de prazo</div>
+              <div class="criteria-just">"100% no prazo, descontados fatores externos." Alto desempenho, alta importância para cliente concessionário.</div>
+            </div>
+          </div>
+          <div class="criteria-row">
+            <div class="criteria-num">2</div>
+            <div>
+              <div class="criteria-name">Qualidade técnica</div>
+              <div class="criteria-just">ISO 9001 + PBQP-H. Testes por etapa. Cliente opera rodovia 30 anos, qualidade é não-negociável.</div>
+            </div>
+          </div>
+          <div class="criteria-row">
+            <div class="criteria-num">3</div>
+            <div>
+              <div class="criteria-name">Disponibilidade de mão de obra</div>
+              <div class="criteria-just">Gargalo crítico setorial. MLC tem 1.200 funcionários em mobilização constante, escala agrava o problema.</div>
+            </div>
+          </div>
+          <div class="criteria-row">
+            <div class="criteria-num">4</div>
+            <div>
+              <div class="criteria-name">Custo competitivo</div>
+              <div class="criteria-just">MLC é cara comparada a entrantes. Cliente equilibra custo vs. confiabilidade.</div>
+            </div>
+          </div>
+          <div class="criteria-row">
+            <div class="criteria-num">5</div>
+            <div>
+              <div class="criteria-name">Flexibilidade contratual</div>
+              <div class="criteria-just">Aditivos absorvidos com revisão de prazo/preço. Adequado ao setor.</div>
+            </div>
+          </div>
+          <div class="criteria-row">
+            <div class="criteria-num">6</div>
+            <div>
+              <div class="criteria-name">Velocidade de mobilização</div>
+              <div class="criteria-just">Tempo de setup inicial é padrão do setor. Cliente prioriza início rápido, mas ciclo total de 2-5 anos absorve.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Mateus Bortotto</span>
+    <span>Slide 05 · Matriz IxD</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 6 - LEITURA DA MATRIZ =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Leitura da Matriz</span></span>
+    <span><span class="number">06</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <span class="eyebrow">O que a matriz revela</span>
+    <h2 class="display display-m" style="margin-top:10px; font-size:46px;">Vantagens consolidadas, um gargalo crítico, ajustes pontuais.</h2>
+
+    <div class="quadrants" style="margin-top:30px;">
+      <div class="quadrant strength">
+        <span class="qd-tag">Pontos fortes</span>
+        <div class="qd-headline">Confiabilidade e qualidade como vantagem.</div>
+        <p class="qd-body">Critérios 1 e 2 estão no quadrante apropriado, próximos do canto superior direito. Sustentam a precificação premium da empresa.</p>
+        <p class="qd-evidence">"Entregamos 100% no prazo, descontados fatores externos." ISO 9001 vigente e PBQP-H mantida.</p>
+      </div>
+      <div class="quadrant urgent">
+        <span class="qd-tag">Zona de ação urgente</span>
+        <div class="qd-headline">Disponibilidade de mão de obra qualificada.</div>
+        <p class="qd-body">Critério 3. Alta importância, desempenho baixo. Escassez crítica no setor agrava-se na escala de 1.200 funcionários em mobilização permanente.</p>
+        <p class="qd-evidence">Ricardo apontou mão de obra como o principal gargalo operacional da empresa.</p>
+      </div>
+      <div class="quadrant improve">
+        <span class="qd-tag">Melhoramento</span>
+        <div class="qd-headline">Custo competitivo sob pressão.</div>
+        <p class="qd-body">Critério 4. Cliente paga premium pela confiabilidade, mas entrantes mais agressivos pressionam margens, principalmente em insumos voláteis.</p>
+        <p class="qd-evidence">Choque do diesel: R$ 5,80 → R$ 7,80 = R$ 2 a 3 milhões de prejuízo em uma obra.</p>
+      </div>
+      <div class="quadrant ok">
+        <span class="qd-tag">Apropriado</span>
+        <div class="qd-headline">Flexibilidade e velocidade alinhadas ao setor.</div>
+        <p class="qd-body">Critérios 5 e 6 estão dentro do esperado para o porte de obra. Não há urgência nem espaço claro para reforço diferencial.</p>
+        <p class="qd-evidence">Aditivos contratuais absorvidos sem ruído. Setup inicial dentro do padrão setorial.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">João Paulo Bicudo</span>
+    <span>Slide 06 · Leitura da matriz</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 7 - PROPOSTA 1 =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Proposta de melhoria · 1 de 3</span></span>
+    <span><span class="number">07</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <span class="eyebrow">Atacar a zona de ação urgente</span>
+    <h2 class="display display-m" style="margin-top:10px;">Programa interno de captação e qualificação de mão de obra.</h2>
+
+    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:48px; margin-top:32px; flex:1; align-items:start;">
+      <div>
+        <div class="micro" style="margin-bottom:12px;">Descrição</div>
+        <p style="font-size:14.5px; line-height:1.55; color:var(--ink-2);">
+          Estruturar um <strong style="color:var(--ink-1);">centro de formação interna</strong> em parceria com SENAI ou outra instituição técnica, com trilhas para operadores de equipamento, encarregados, técnicos de segurança e administrativos de obra.
+        </p>
+        <ul class="dash-list" style="margin-top:14px; font-size:13px;">
+          <li>Convênio com SENAI/IFs para módulos de qualificação acelerada.</li>
+          <li>Contrato de aprendiz e jovem aprendiz como funil de entrada.</li>
+          <li>Trilha de promoção: ajudante → operador → encarregado → técnico.</li>
+          <li>Bolsa de horas pagas para curso vinculada a tempo de casa.</li>
+        </ul>
+
+        <div style="margin-top:20px; padding-top:14px; border-top:1px solid var(--border-soft);">
+          <div class="micro" style="margin-bottom:6px;">Conexão com a matriz</div>
+          <p style="font-size:12.5px; line-height:1.45; color:var(--ink-2); font-family:'Instrument Serif',serif; font-style:italic;">
+            Move o critério 3 (mão de obra) do quadrante "ação urgente" para "melhoramento" no médio prazo. Reduz dependência do mercado externo, hoje escasso.
+          </p>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div style="padding:18px; border:1px solid var(--border); background:var(--surface);">
+          <div class="micro" style="margin-bottom:8px;">Impacto esperado</div>
+          <ul class="dash-list" style="font-size:12px;">
+            <li>Reduz time-to-readiness de novos funcionários em ~40%.</li>
+            <li>Diminui rotatividade ao criar plano de carreira.</li>
+            <li>Endogeniza a oferta de mão de obra crítica.</li>
+          </ul>
+        </div>
+        <div style="padding:18px; border:1px solid var(--border); background:var(--surface);">
+          <div class="micro" style="margin-bottom:8px;">Viabilidade</div>
+          <ul class="dash-list" style="font-size:12px;">
+            <li>Capex baixo: usar instalações de obra como sala de aula.</li>
+            <li>Opex: bolsa, instrutor, material. Compensa em 1-2 obras.</li>
+            <li>Aderente ao 90/10 prática/estudo já praticado.</li>
+          </ul>
+        </div>
+        <div style="padding:14px 18px; background:var(--accent-soft); border-left:2px solid var(--accent);">
+          <div class="micro" style="margin-bottom:4px; color:var(--accent);">Prazo</div>
+          <div style="font-size:13px; color:var(--ink-1); font-family:'Instrument Serif',serif;">Piloto em 6 meses, escala em 18 meses.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Matheus Scigliano</span>
+    <span>Slide 07 · Proposta 1</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 8 - PROPOSTAS 2 E 3 =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Propostas de melhoria · 2 e 3</span></span>
+    <span><span class="number">08</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <span class="eyebrow">Proteger margem e prazo</span>
+    <h2 class="display display-m" style="margin-top:10px; font-size:44px;">Hedge de insumos voláteis + buffer climático no cronograma.</h2>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:32px; margin-top:34px; flex:1; align-items:start;">
+      <div style="padding-top:18px; border-top:2px solid var(--accent);">
+        <span class="micro" style="color:var(--accent);">Proposta 2</span>
+        <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.05; letter-spacing:-0.02em; color:var(--ink-1); margin-top:6px;">Hedge financeiro de diesel e insumos voláteis.</div>
+
+        <p style="font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:12px;">
+          Instrumentos de proteção contra choque de preço: <strong style="color:var(--ink-1);">contratos futuros de diesel</strong>, fórmulas de reajuste contratual indexadas a preço de barril e cláusulas de revisão automática em variações superiores a 15%.
+        </p>
+
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-soft);">
+          <div class="micro" style="margin-bottom:6px;">Conexão com a matriz</div>
+          <p style="font-size:12px; line-height:1.4; font-family:'Instrument Serif',serif; font-style:italic; color:var(--ink-2);">
+            Endereça o critério 4 (custo). Protege a margem sem precisar reprecificar pra baixo, preservando a vantagem em confiabilidade.
+          </p>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px;">
+          <div>
+            <div class="micro" style="margin-bottom:4px; font-size:9px;">Impacto</div>
+            <div style="font-size:11.5px; line-height:1.4; color:var(--ink-1);">Reduz exposição de R$ 2 a 3 mi/obra a choques de diesel.</div>
+          </div>
+          <div>
+            <div class="micro" style="margin-bottom:4px; font-size:9px;">Viabilidade</div>
+            <div style="font-size:11.5px; line-height:1.4; color:var(--ink-1);">Mercado de derivativos já existe. Custo do hedge é fração do risco.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding-top:18px; border-top:2px solid var(--accent);">
+        <span class="micro" style="color:var(--accent);">Proposta 3</span>
+        <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.05; letter-spacing:-0.02em; color:var(--ink-1); margin-top:6px;">Buffer climático calibrado por região e estação.</div>
+
+        <p style="font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:12px;">
+          Modelar o cronograma de obra com <strong style="color:var(--ink-1);">dados históricos de pluviosidade</strong> do site específico. Calcular buffer de dias úteis por mês na fase de terraplanagem e drenagem, sensíveis a chuva.
+        </p>
+
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-soft);">
+          <div class="micro" style="margin-bottom:6px;">Conexão com a matriz</div>
+          <p style="font-size:12px; line-height:1.4; font-family:'Instrument Serif',serif; font-style:italic; color:var(--ink-2);">
+            Reforça o critério 1 (confiabilidade de prazo). Reduz dependência da cláusula "fatores externos" e melhora previsibilidade contratual.
+          </p>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px;">
+          <div>
+            <div class="micro" style="margin-bottom:4px; font-size:9px;">Impacto</div>
+            <div style="font-size:11.5px; line-height:1.4; color:var(--ink-1);">Cronograma menos otimista, mais executável. Menos reprogramações.</div>
+          </div>
+          <div>
+            <div class="micro" style="margin-bottom:4px; font-size:9px;">Viabilidade</div>
+            <div style="font-size:11.5px; line-height:1.4; color:var(--ink-1);">Dados INMET públicos. Ajuste de planilha, sem capex novo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Caio Murari</span>
+    <span>Slide 08 · Propostas 2 e 3</span>
+  </footer>
+</section>
+
+
+<!-- =================== SLIDE 9 - CONCLUSÃO =================== -->
+<section class="slide">
+  <header class="strip">
+    <span class="pill"><span class="dot"></span><span>Conclusão</span></span>
+    <span><span class="number">09</span> · 09</span>
+  </header>
+
+  <div class="content" style="padding-top:24px;">
+    <span class="eyebrow">Síntese operacional</span>
+    <h2 class="display display-l" style="margin-top:10px; font-size:52px;">Operação madura, vantagens claras, gargalo de mão de obra a atacar.</h2>
+
+    <div class="concl-grid" style="margin-top:36px;">
+      <div class="concl-cell">
+        <span class="concl-tag">Achados operacionais</span>
+        <div class="concl-headline">Processo padronizado e controlado.</div>
+        <p class="concl-body">
+          Três macroetapas executadas com Gerente de Contrato semi-autônomo, ERP integrado, medição mensal e curva ABC reconciliada. ISO 9001 mantém qualidade técnica.
+        </p>
+      </div>
+      <div class="concl-cell accent">
+        <span class="concl-tag">Matriz IxD</span>
+        <div class="concl-headline">Vantagem em prazo e qualidade. Pressão em mão de obra e custo.</div>
+        <p class="concl-body">
+          Critérios 1 e 2 sustentam a posição premium. Critério 3 está em ação urgente. Critério 4 sob pressão de entrantes mais baratos.
+        </p>
+      </div>
+      <div class="concl-cell">
+        <span class="concl-tag">Relevância competitiva</span>
+        <div class="concl-headline">Três alavancas operacionais executáveis.</div>
+        <p class="concl-body">
+          Programa interno de mão de obra ataca o gargalo principal. Hedge protege margem em choque de insumos. Buffer climático preserva o ativo competitivo de confiabilidade.
+        </p>
+      </div>
+    </div>
+
+    <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <p style="font-family:'Instrument Serif',serif; font-style:italic; font-size:15px; line-height:1.4; color:var(--ink-2); max-width:780px;">
+        A análise mostra que a competitividade da MLC não depende de novos diferenciais, mas de proteger o que já funciona e endereçar a escassez de mão de obra antes que ela limite a capacidade de crescer.
+      </p>
+      <div class="micro" style="text-align:right;">
+        Obrigado.<br>FGV EAESP · 2026.1
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span class="who">Arthur Malucelli</span>
+    <span>Slide 09 · Encerramento</span>
+  </footer>
+</section>
+
+</body>
+</html>
