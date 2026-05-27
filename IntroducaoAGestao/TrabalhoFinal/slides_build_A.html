@@ -896,6 +896,18 @@
     display: inline-block;
     margin-top: 6px;
   }
+
+  /* When real image is set, hide placeholder treatment */
+  .img-ph.has-image {
+    background: var(--bg) no-repeat center center;
+    background-size: cover;
+    border: 0;
+  }
+  .img-ph.has-image .ph-tag,
+  .img-ph.has-image .ph-desc,
+  .img-ph.has-image .ph-meta {
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -951,9 +963,7 @@
           </ul>
         </div>
 
-        <div class="img-ph" id="ph-slide1" style="height:200px;">
-          <span class="ph-tag">imagem 01</span>
-          <span class="ph-desc">Foto da equipe em obra (capacete + canteiro) ou retrato institucional do grupo</span>
+        <div class="img-ph has-image" id="ph-slide1" style="height:200px; background-image:url('fotos/01_capa.jpg');">
         </div>
       </div>
     </div>

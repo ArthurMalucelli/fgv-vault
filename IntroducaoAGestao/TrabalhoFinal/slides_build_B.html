@@ -992,6 +992,26 @@
     flex-direction: column;
     height: 100%;
   }
+
+  /* When real image is set, hide placeholder treatment */
+  .img-bleed.has-image,
+  .img-ph.has-image {
+    background: var(--bg) no-repeat center center;
+    background-size: cover;
+    border: 0;
+  }
+  .img-bleed.has-image::before,
+  .img-ph.has-image::before {
+    display: none;
+  }
+  .img-bleed.has-image .ph-tag,
+  .img-bleed.has-image .ph-desc,
+  .img-bleed.has-image .ph-meta,
+  .img-ph.has-image .ph-tag,
+  .img-ph.has-image .ph-desc,
+  .img-ph.has-image .ph-meta {
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -999,10 +1019,7 @@
 <!-- =================== SLIDE 1 - CAPA =================== -->
 <section class="slide" style="padding:0;">
   <!-- Full-bleed image, right 56% -->
-  <div class="img-bleed" id="ph-slide1" style="top:0; right:0; width:56%; height:100%;">
-    <span class="ph-tag">imagem 01 &middot; capa</span>
-    <span class="ph-desc">Foto da equipe em obra (capacete + canteiro), retrato do grupo, ou panoramica da sede em Curitiba</span>
-    <span class="ph-meta">Vertical 1100&times;1500 ou horizontal 1600&times;1100, alta resolucao</span>
+  <div class="img-bleed has-image" id="ph-slide1" style="top:0; right:0; width:56%; height:100%; background-image:url('fotos/01_capa.jpg');">
   </div>
 
   <!-- Content pane, left 44% -->
