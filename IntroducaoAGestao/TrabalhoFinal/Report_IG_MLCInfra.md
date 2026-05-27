@@ -27,7 +27,7 @@ tags: [relatorio, ig, mlcinfra]
 
 **Interview:**
 - Interviewee: Ricardo Malucelli, Executive Director at MLC Infra
-- Format: Online (Microsoft Teams, recorded and transcribed)
+- Format: Online (Google Meet, recorded and transcribed)
 - Date: May 20, 2026
 - Duration: ~42 minutes
 - Complementary written questionnaire: May 22, 2026
@@ -183,4 +183,4 @@ For a first-semester management student, the case offers a compelling demonstrat
 ---
 
 *Word count: ~2,000 words*
-*Report based on a recorded online interview (Microsoft Teams, May 20, 2026) and a complementary written questionnaire (May 22, 2026) with Ricardo Malucelli, Executive Director at MLC Infra. Recording, transcript and questionnaire archived as appendices.*
+*Report based on a recorded online interview (Google Meet, May 20, 2026) and a complementary written questionnaire (May 22, 2026) with Ricardo Malucelli, Executive Director at MLC Infra. Recording, transcript and questionnaire archived as appendices.*
