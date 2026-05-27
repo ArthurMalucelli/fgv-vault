@@ -140,24 +140,26 @@
 <b>n proporção (com p̂)</b> &nbsp; n = Z<sub>α/2</sub>² · p̂(1−p̂) / E²
 </div>
 
-<h2>3. Z e T mágicos</h2>
-<div class="col2">
+<h2>3. Z ou T? Quando usar + como buscar no Excel</h2>
 <table class="compact">
-<tr><th>γ</th><th>α</th><th>α/2</th><th>Z<sub>α/2</sub></th></tr>
-<tr><td>90%</td><td>10%</td><td>5%</td><td><b>1,645</b></td></tr>
-<tr><td>95%</td><td>5%</td><td>2,5%</td><td><b>1,96</b></td></tr>
-<tr><td>97%</td><td>3%</td><td>1,5%</td><td>2,17</td></tr>
-<tr><td>99%</td><td>1%</td><td>0,5%</td><td>2,58</td></tr>
+<tr><th style="width:42%">Situação</th><th style="width:12%">Usa</th><th>Fórmula Excel</th></tr>
+<tr><td>IC para <b>proporção</b> (qualquer caso)</td><td><b>Z</b></td><td>=INV.NORM.P.N(1 − α/2)</td></tr>
+<tr><td>IC para média, <b>σ DADO</b> no enunciado</td><td><b>Z</b></td><td>=INV.NORM.P.N(1 − α/2)</td></tr>
+<tr><td>IC para média, <b>σ desconhecido</b> (só tem S), n ≤ 50</td><td><b>T</b> obrigatório</td><td>=INV.T(1 − α/2 ; n − 1)</td></tr>
+<tr><td>IC para média, <b>σ desconhecido</b>, n &gt; 50</td><td>T (ou Z aprox.)</td><td>=INV.T(1 − α/2 ; n − 1)</td></tr>
 </table>
-<table class="compact">
-<tr><th>n</th><th>gl</th><th>T (γ=95%)</th></tr>
-<tr><td>9</td><td>8</td><td>2,365</td></tr>
-<tr><td>15</td><td>14</td><td>2,145</td></tr>
-<tr><td>25</td><td>24</td><td>2,064</td></tr>
-<tr><td>50</td><td>49</td><td>2,010</td></tr>
-<tr><td>∞</td><td>∞</td><td>1,960</td></tr>
-</table>
-</div>
+<div class="key"><b>Regra do Nelson:</b> "Se puser S, ponha T." T sempre é tecnicamente correto. Z só usa com σ conhecido ou em proporção. Pra T, sempre <b>gl = n − 1</b>.</div>
+<pre>
+Exemplos práticos no Excel
+
+γ = 95% → α/2 = 0,025 → Z = INV.NORM.P.N(0,975)        → 1,96
+γ = 90% → α/2 = 0,05  → Z = INV.NORM.P.N(0,95)         → 1,645
+γ = 99% → α/2 = 0,005 → Z = INV.NORM.P.N(0,995)        → 2,58
+
+γ = 95%, n = 25 → T = INV.T(0,975 ; 24)                → 2,064
+γ = 97%, n = 25 → T = INV.T(0,985 ; 24)                → 2,326
+γ = 99%, n = 10 → T = INV.T(0,995 ; 9)                 → 3,250
+</pre>
 
 <h2>4. Árvore de decisão</h2>
 <pre>
