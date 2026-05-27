@@ -8,19 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F4F1EA;
-    --bg-soft: #ECE7DA;
-    --surface: #FFFFFF;
-    --border: #D6CDB7;
-    --border-soft: #E5DECA;
-    --ink-1: #18181B;
-    --ink-2: #44403C;
-    --ink-3: #78716C;
-    --ink-4: #A8A29E;
-    --accent: #B45309;
-    --accent-dark: #7C2D12;
-    --accent-soft: rgba(180, 83, 9, 0.08);
-    --accent-mid: rgba(180, 83, 9, 0.18);
+    /* dark editorial: warm ink + cream type + ochre accent */
+    --bg: #14110C;
+    --bg-soft: #1D1812;
+    --surface: #1B1711;
+    --border: #3D3528;
+    --border-soft: #2A2520;
+    --ink-1: #F2EAD3;
+    --ink-2: #C2B89E;
+    --ink-3: #8F8775;
+    --ink-4: #5C5546;
+    --accent: #D97706;
+    --accent-dark: #B45309;
+    --accent-soft: rgba(217, 119, 6, 0.10);
+    --accent-mid: rgba(217, 119, 6, 0.22);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -250,13 +251,13 @@
 
   /* Image placeholder */
   .img-ph {
-    border: 1.4px dashed #C8B98A;
+    border: 1.4px dashed rgba(217, 119, 6, 0.45);
     background: repeating-linear-gradient(
       135deg,
-      rgba(180, 83, 9, 0.025),
-      rgba(180, 83, 9, 0.025) 8px,
-      rgba(180, 83, 9, 0.05) 8px,
-      rgba(180, 83, 9, 0.05) 16px
+      rgba(217, 119, 6, 0.04),
+      rgba(217, 119, 6, 0.04) 8px,
+      rgba(217, 119, 6, 0.09) 8px,
+      rgba(217, 119, 6, 0.09) 16px
     );
     display: flex;
     flex-direction: column;
@@ -265,7 +266,7 @@
     text-align: center;
     padding: 18px;
     border-radius: 2px;
-    color: var(--accent-dark);
+    color: var(--ink-2);
   }
   .img-ph .ph-tag {
     font-family: 'Geist Mono', monospace;
@@ -290,7 +291,7 @@
     font-style: italic;
     font-size: 12.5px;
     line-height: 1.35;
-    color: var(--accent-dark);
+    color: var(--ink-2);
     max-width: 240px;
   }
 
