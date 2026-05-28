@@ -788,52 +788,42 @@
       </div>
     </div>
 
-    <div class="flow">
-      <svg viewBox="0 0 1136 470" preserveAspectRatio="none" style="position:absolute; inset:0;">
+    <div class="flow" style="height:360px; flex:none;">
+      <svg viewBox="0 0 1136 360" preserveAspectRatio="none" style="position:absolute; inset:0; width:100%; height:100%;">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="#18181B"/>
           </marker>
         </defs>
-        <!-- Start (50,90) → Mobilização (210,90) -->
-        <line x1="100" y1="90" x2="160" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Mobilização → Decisão1 (430,90) -->
-        <line x1="290" y1="90" x2="380" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Decisão1 SIM → Execução (680,90) -->
-        <line x1="488" y1="90" x2="600" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="510" y="80" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
-        <!-- Decisão1 NÃO → Embute custo financeiro (430, 220) -->
-        <line x1="434" y1="148" x2="434" y2="200" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="442" y="180" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
-        <!-- Custo financeiro → Execução (volta pra direita) -->
-        <line x1="514" y1="220" x2="680" y2="220" stroke="#18181B" stroke-width="1.5"/>
-        <line x1="680" y1="220" x2="680" y2="148" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Execução → Medição mensal (910,90) -->
-        <line x1="760" y1="90" x2="850" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Medição → Decisão2 (910, 240) -->
-        <line x1="910" y1="148" x2="910" y2="220" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Decisão2 SIM → Ação corretiva (700,290) -->
-        <line x1="857" y1="294" x2="760" y2="294" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="780" y="285" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
-        <!-- Ação corretiva → volta pra Execução -->
-        <line x1="680" y1="270" x2="680" y2="150" stroke="#18181B" stroke-width="1.5" stroke-dasharray="4,3"/>
-        <!-- Decisão2 NÃO → Encerramento (910, 410) -->
-        <line x1="910" y1="350" x2="910" y2="380" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="918" y="370" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
-        <!-- Encerramento → Fim (250, 410) -->
-        <line x1="830" y1="410" x2="170" y2="410" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Start (50,90) → Mobilização -->
+        <line x1="100" y1="90" x2="120" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Mobilização → Execução -->
+        <line x1="250" y1="90" x2="280" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Execução → Medição mensal -->
+        <line x1="400" y1="90" x2="430" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Medição → Desvio ABC (visual diamond left at ~579) -->
+        <line x1="550" y1="90" x2="582" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Desvio NÃO → Encerramento (diamond right at ~720) -->
+        <line x1="718" y1="90" x2="740" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="725" y="80" fill="#B45309" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
+        <!-- Encerramento → End circle -->
+        <line x1="870" y1="90" x2="900" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Desvio SIM → down then left to Ação corretiva (diamond bottom at ~161) -->
+        <line x1="650" y1="161" x2="650" y2="270" stroke="#18181B" stroke-width="1.5"/>
+        <text x="658" y="200" fill="#B45309" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
+        <line x1="650" y1="270" x2="400" y2="270" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <!-- Ação corretiva (loop, dashed) → up to Execução -->
+        <line x1="340" y1="240" x2="340" y2="123" stroke="#18181B" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
       </svg>
 
       <div class="flow-node start" style="left:0px; top:40px; width:100px; height:100px; font-size:13px; padding:8px;">Contrato<br>assinado</div>
-      <div class="flow-node activity" style="left:160px; top:60px;">Mobilização<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">gerente, ERP, caixa</span></div>
-      <div class="flow-node decision" style="left:380px; top:35px;"><div class="inner">Cliente<br>adianta?</div></div>
-      <div class="flow-node activity" style="left:434px; top:200px; width:160px; transform:translateX(-80px);">Custo financeiro<br>embutido no preço</div>
-      <div class="flow-node activity" style="left:600px; top:60px;">Execução<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">terra, drena, pavi</span></div>
-      <div class="flow-node activity" style="left:850px; top:60px;">Medição<br>mensal</div>
-      <div class="flow-node decision" style="left:855px; top:240px;"><div class="inner">Desvio<br>na curva<br>ABC?</div></div>
-      <div class="flow-node activity" style="left:620px; top:264px; width:140px;">Ação corretiva<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">carta ao cliente</span></div>
-      <div class="flow-node activity" style="left:830px; top:380px;">Encerramento<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">CRP + CREA</span></div>
-      <div class="flow-node end" style="left:60px; top:360px; width:100px; height:100px; font-size:13px; padding:8px;">Obra<br>entregue</div>
+      <div class="flow-node activity" style="left:120px; top:60px; width:130px;">Mobilização<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">gerente, ERP, caixa</span></div>
+      <div class="flow-node activity" style="left:280px; top:60px; width:120px;">Execução<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">terra, drena, pavi</span></div>
+      <div class="flow-node activity" style="left:430px; top:60px; width:120px;">Medição<br>mensal</div>
+      <div class="flow-node decision" style="left:600px; top:40px; width:100px; height:100px;"><div class="inner" style="width:90px;">Desvio<br>curva<br>ABC?</div></div>
+      <div class="flow-node activity" style="left:740px; top:60px; width:130px;">Encerramento<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">CRP + CREA</span></div>
+      <div class="flow-node end" style="left:900px; top:40px; width:100px; height:100px; font-size:13px; padding:8px;">Obra<br>entregue</div>
+      <div class="flow-node activity" style="left:280px; top:240px; width:120px;">Ação corretiva<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">carta ao cliente</span></div>
     </div>
   </div>
 
