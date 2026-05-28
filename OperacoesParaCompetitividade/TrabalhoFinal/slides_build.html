@@ -153,13 +153,13 @@
 
   /* Image placeholder */
   .img-ph {
-    border: 1.4px dashed rgba(217, 119, 6, 0.45);
+    border: 1.4px dashed rgba(180, 83, 9, 0.50);
     background: repeating-linear-gradient(
       135deg,
-      rgba(217, 119, 6, 0.04),
-      rgba(217, 119, 6, 0.04) 8px,
-      rgba(217, 119, 6, 0.09) 8px,
-      rgba(217, 119, 6, 0.09) 16px
+      rgba(180, 83, 9, 0.03),
+      rgba(180, 83, 9, 0.03) 8px,
+      rgba(180, 83, 9, 0.08) 8px,
+      rgba(180, 83, 9, 0.08) 16px
     );
     display: flex;
     flex-direction: column;
@@ -190,6 +190,17 @@
     line-height: 1.35;
     color: var(--ink-2);
     max-width: 240px;
+  }
+
+  /* When real image is set, hide placeholder treatment */
+  .img-ph.has-image {
+    background: var(--bg) no-repeat center center;
+    background-size: cover;
+    border: 0;
+  }
+  .img-ph.has-image .ph-tag,
+  .img-ph.has-image .ph-desc {
+    display: none;
   }
 
   /* Cover */
@@ -309,7 +320,7 @@
     font-size: 15px;
     font-style: italic;
     background: var(--accent);
-    color: var(--bg);
+    color: #FFFFFF;
     border-color: var(--accent);
   }
   .flow-node.activity {
@@ -379,10 +390,10 @@
   .matrix-cell-bg {
     position: absolute;
   }
-  .matrix-zone-urgent  { left: 0; top: 0; width: 50%; height: 33%; background: rgba(220, 38, 38, 0.10); }
-  .matrix-zone-improve { left: 0; top: 33%; width: 50%; height: 34%; background: rgba(217, 119, 6, 0.08); }
-  .matrix-zone-ok      { left: 50%; top: 0; width: 50%; height: 67%; background: rgba(46, 125, 50, 0.06); }
-  .matrix-zone-excess  { left: 50%; top: 67%; width: 50%; height: 33%; background: rgba(120, 113, 108, 0.06); }
+  .matrix-zone-urgent  { left: 0; top: 0; width: 50%; height: 33%; background: rgba(185, 28, 28, 0.12); }
+  .matrix-zone-improve { left: 0; top: 33%; width: 50%; height: 34%; background: rgba(180, 83, 9, 0.10); }
+  .matrix-zone-ok      { left: 50%; top: 0; width: 50%; height: 67%; background: rgba(22, 101, 52, 0.10); }
+  .matrix-zone-excess  { left: 50%; top: 67%; width: 50%; height: 33%; background: rgba(120, 113, 108, 0.10); }
   .matrix-grid {
     position: absolute;
     inset: 0;
@@ -402,13 +413,13 @@
     width: 36px; height: 36px;
     margin-left: -18px; margin-top: -18px;
     background: var(--accent);
-    color: var(--bg);
+    color: #FFFFFF;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Geist Mono', monospace;
     font-size: 11px;
     font-weight: 700;
-    border: 2px solid var(--bg);
+    border: 2px solid #FFFFFF;
     box-shadow: 0 0 0 1.5px var(--accent);
     z-index: 3;
   }
@@ -443,7 +454,7 @@
   .criteria-num {
     width: 22px; height: 22px;
     background: var(--accent);
-    color: var(--bg);
+    color: #FFFFFF;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Geist Mono', monospace;
@@ -482,7 +493,7 @@
     display: flex; flex-direction: column; gap: 10px;
   }
   .quadrant.urgent { border-left: 3px solid var(--crit); }
-  .quadrant.strength { border-left: 3px solid #16A34A; }
+  .quadrant.strength { border-left: 3px solid #15803D; }
   .quadrant.improve { border-left: 3px solid var(--accent); }
   .quadrant.ok { border-left: 3px solid var(--ink-3); }
   .quadrant .qd-tag {
@@ -494,7 +505,7 @@
     font-weight: 500;
   }
   .quadrant.urgent .qd-tag { color: var(--crit); }
-  .quadrant.strength .qd-tag { color: #4ADE80; }
+  .quadrant.strength .qd-tag { color: #15803D; }
   .quadrant .qd-headline {
     font-family: 'Instrument Serif', serif;
     font-size: 24px;
@@ -637,9 +648,7 @@
           </ul>
         </div>
 
-        <div class="img-ph" style="height:180px;">
-          <span class="ph-tag">imagem 01</span>
-          <span class="ph-desc">Foto da equipe na visita, logo da MLC ou screenshot do Meet com Ricardo</span>
+        <div class="img-ph has-image" style="height:180px; background-image:url('fotos/01_capa.jpg');">
         </div>
       </div>
     </div>
@@ -698,9 +707,7 @@
           <p style="font-size:11.5px; line-height:1.4; color:var(--ink-2);">Execução de obra rodoviária: mobilização, terraplanagem, drenagem, pavimentação, sinalização e entrega.</p>
         </div>
       </div>
-      <div class="img-ph" style="height:240px;">
-        <span class="ph-tag">imagem 02</span>
-        <span class="ph-desc">Logo MLC Infra, fachada da sede, ou foto de uma obra rodoviária da empresa</span>
+      <div class="img-ph has-image" style="height:240px; background-image:url('fotos/02_perfil.jpg');">
       </div>
     </div>
   </div>
@@ -785,36 +792,36 @@
       <svg viewBox="0 0 1136 470" preserveAspectRatio="none" style="position:absolute; inset:0;">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#F2EAD3"/>
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#18181B"/>
           </marker>
         </defs>
         <!-- Start (50,90) → Mobilização (210,90) -->
-        <line x1="100" y1="90" x2="160" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="100" y1="90" x2="160" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <!-- Mobilização → Decisão1 (430,90) -->
-        <line x1="290" y1="90" x2="380" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="290" y1="90" x2="380" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <!-- Decisão1 SIM → Execução (680,90) -->
-        <line x1="488" y1="90" x2="600" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="488" y1="90" x2="600" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <text x="510" y="80" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
         <!-- Decisão1 NÃO → Embute custo financeiro (430, 220) -->
-        <line x1="434" y1="148" x2="434" y2="200" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="434" y1="148" x2="434" y2="200" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <text x="442" y="180" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
         <!-- Custo financeiro → Execução (volta pra direita) -->
-        <line x1="514" y1="220" x2="680" y2="220" stroke="#F2EAD3" stroke-width="1.5"/>
-        <line x1="680" y1="220" x2="680" y2="148" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="514" y1="220" x2="680" y2="220" stroke="#18181B" stroke-width="1.5"/>
+        <line x1="680" y1="220" x2="680" y2="148" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <!-- Execução → Medição mensal (910,90) -->
-        <line x1="760" y1="90" x2="850" y2="90" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="760" y1="90" x2="850" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <!-- Medição → Decisão2 (910, 240) -->
-        <line x1="910" y1="148" x2="910" y2="220" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="910" y1="148" x2="910" y2="220" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <!-- Decisão2 SIM → Ação corretiva (700,290) -->
-        <line x1="857" y1="294" x2="760" y2="294" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="857" y1="294" x2="760" y2="294" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <text x="780" y="285" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
         <!-- Ação corretiva → volta pra Execução -->
-        <line x1="680" y1="270" x2="680" y2="150" stroke="#F2EAD3" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="680" y1="270" x2="680" y2="150" stroke="#18181B" stroke-width="1.5" stroke-dasharray="4,3"/>
         <!-- Decisão2 NÃO → Encerramento (910, 410) -->
-        <line x1="910" y1="350" x2="910" y2="380" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="910" y1="350" x2="910" y2="380" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
         <text x="918" y="370" fill="#D97706" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
         <!-- Encerramento → Fim (250, 410) -->
-        <line x1="830" y1="410" x2="170" y2="410" stroke="#F2EAD3" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="830" y1="410" x2="170" y2="410" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
       </svg>
 
       <div class="flow-node start" style="left:0px; top:40px; width:100px; height:100px; font-size:13px; padding:8px;">Contrato<br>assinado</div>
@@ -864,15 +871,15 @@
 
           <!-- diagonal limits -->
           <svg class="matrix-diag" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line x1="50" y1="0" x2="50" y2="100" stroke="#3D3528" stroke-width="0.4"/>
-            <line x1="0" y1="33" x2="100" y2="33" stroke="#3D3528" stroke-width="0.4"/>
-            <line x1="0" y1="67" x2="100" y2="67" stroke="#3D3528" stroke-width="0.4"/>
+            <line x1="50" y1="0" x2="50" y2="100" stroke="#D6D3CB" stroke-width="0.4"/>
+            <line x1="0" y1="33" x2="100" y2="33" stroke="#D6D3CB" stroke-width="0.4"/>
+            <line x1="0" y1="67" x2="100" y2="67" stroke="#D6D3CB" stroke-width="0.4"/>
           </svg>
 
           <!-- Zone labels -->
           <div style="position:absolute; left:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#DC2626; font-weight:500;">Ação urgente</div>
           <div style="position:absolute; left:8px; top:36%; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); font-weight:500;">Melhoramento</div>
-          <div style="position:absolute; right:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#4ADE80; font-weight:500; text-align:right;">Apropriado</div>
+          <div style="position:absolute; right:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#15803D; font-weight:500; text-align:right;">Apropriado</div>
           <div style="position:absolute; right:8px; bottom:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3); font-weight:500; text-align:right;">Excesso</div>
 
           <!-- Plotted points. Position: left = desempenho (0-100), top = inverso importância (0=alta) -->
