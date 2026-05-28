@@ -1,5 +1,7 @@
 # Gaps abertos
 
-Ultima atualizacao: 2026-05-28 (reset pos-teste)
+Ultima atualizacao: 2026-05-28 00:36
 
-Sem gaps ainda, primeira sessao real ainda nao rodou.
+
+## ProdutosFinanceiros (1 gap(s))
+- **IR Renda Fixa** (parcial desde 2026-05-28)

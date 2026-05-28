@@ -1,1 +1,55 @@
-{}
+{
+  "Taxa Livre de Risco": {
+    "subject": "ProdutosFinanceiros",
+    "first_probed": "2026-05-28",
+    "times_probed": 1,
+    "times_certo": 1,
+    "times_parcial": 0,
+    "times_gap": 0,
+    "last_probed": "2026-05-28",
+    "last_status": "certo"
+  },
+  "IR Renda Fixa": {
+    "subject": "ProdutosFinanceiros",
+    "first_probed": "2026-05-28",
+    "times_probed": 1,
+    "times_certo": 0,
+    "times_parcial": 1,
+    "times_gap": 0,
+    "last_probed": "2026-05-28",
+    "last_status": "parcial"
+  },
+  "Dividend Yield": {
+    "subject": "ProdutosFinanceiros",
+    "first_probed": "2026-05-28",
+    "times_probed": 1,
+    "times_certo": 0,
+    "times_parcial": 0,
+    "times_gap": 0,
+    "last_probed": "2026-05-28",
+    "last_status": "nao_sabe",
+    "times_nao_sabe": 1
+  },
+  "Ganho de Capital": {
+    "subject": "ProdutosFinanceiros",
+    "first_probed": "2026-05-28",
+    "times_probed": 1,
+    "times_certo": 0,
+    "times_parcial": 0,
+    "times_gap": 0,
+    "last_probed": "2026-05-28",
+    "last_status": "nao_testado",
+    "times_nao_testado": 1
+  },
+  "Valuation": {
+    "subject": "ProdutosFinanceiros",
+    "first_probed": "2026-05-28",
+    "times_probed": 1,
+    "times_certo": 0,
+    "times_parcial": 0,
+    "times_gap": 0,
+    "last_probed": "2026-05-28",
+    "last_status": "nao_testado",
+    "times_nao_testado": 1
+  }
+}
