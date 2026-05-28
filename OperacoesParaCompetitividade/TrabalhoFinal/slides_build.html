@@ -788,42 +788,76 @@
       </div>
     </div>
 
-    <div class="flow" style="height:360px; flex:none;">
-      <svg viewBox="0 0 1136 360" preserveAspectRatio="none" style="position:absolute; inset:0; width:100%; height:100%;">
+    <div style="flex:1; display:flex; align-items:center; justify-content:center; padding-top:20px;">
+      <svg viewBox="0 0 1100 380" style="width:100%; height:auto; max-height:440px;" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#18181B"/>
+          <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 10 4 L 0 8 z" fill="#18181B"/>
           </marker>
         </defs>
-        <!-- Start (50,90) → Mobilização -->
-        <line x1="100" y1="90" x2="120" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Mobilização → Execução -->
-        <line x1="250" y1="90" x2="280" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Execução → Medição mensal -->
-        <line x1="400" y1="90" x2="430" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Medição → Desvio ABC (visual diamond left at ~579) -->
-        <line x1="550" y1="90" x2="582" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Desvio NÃO → Encerramento (diamond right at ~720) -->
-        <line x1="718" y1="90" x2="740" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <text x="710" y="52" fill="#B45309" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">NÃO</text>
-        <!-- Encerramento → End circle -->
-        <line x1="870" y1="90" x2="900" y2="90" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Desvio SIM → down then left to Ação corretiva (diamond bottom at ~161) -->
-        <line x1="650" y1="161" x2="650" y2="270" stroke="#18181B" stroke-width="1.5"/>
-        <text x="658" y="200" fill="#B45309" font-family="Geist Mono" font-size="11" letter-spacing="0.1em">SIM</text>
-        <line x1="650" y1="270" x2="400" y2="270" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrow)"/>
-        <!-- Ação corretiva (loop, dashed) → up to Execução -->
-        <line x1="340" y1="240" x2="340" y2="123" stroke="#18181B" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
-      </svg>
 
-      <div class="flow-node start" style="left:0px; top:40px; width:100px; height:100px; font-size:13px; padding:8px;">Contrato<br>assinado</div>
-      <div class="flow-node activity" style="left:120px; top:60px; width:130px;">Mobilização<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">gerente, ERP, caixa</span></div>
-      <div class="flow-node activity" style="left:280px; top:60px; width:120px;">Execução<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">terra, drena, pavi</span></div>
-      <div class="flow-node activity" style="left:430px; top:60px; width:120px;">Medição<br>mensal</div>
-      <div class="flow-node decision" style="left:600px; top:40px; width:100px; height:100px;"><div class="inner" style="width:90px;">Desvio<br>curva<br>ABC?</div></div>
-      <div class="flow-node activity" style="left:740px; top:60px; width:130px;">Encerramento<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">CRP + CREA</span></div>
-      <div class="flow-node end" style="left:900px; top:40px; width:100px; height:100px; font-size:13px; padding:8px;">Obra<br>entregue</div>
-      <div class="flow-node activity" style="left:280px; top:240px; width:120px;">Ação corretiva<br><span style="font-size:10px; color:var(--ink-3); font-family:'Geist Mono',monospace;">carta ao cliente</span></div>
+        <!-- ===== Connecting lines (drawn first, behind nodes) ===== -->
+        <!-- Main horizontal flow at y=100 -->
+        <line x1="120" y1="100" x2="148" y2="100" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="290" y1="100" x2="318" y2="100" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="450" y1="100" x2="478" y2="100" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="610" y1="100" x2="638" y2="100" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="752" y1="100" x2="778" y2="100" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="920" y1="100" x2="933" y2="100" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+        <!-- SIM branch: diamond bottom → down → left to Ação corretiva -->
+        <line x1="695" y1="155" x2="695" y2="300" stroke="#18181B" stroke-width="1.5"/>
+        <line x1="695" y1="300" x2="453" y2="300" stroke="#18181B" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+        <!-- Loop back (dashed): Ação corretiva → up → Execução bottom -->
+        <line x1="385" y1="270" x2="385" y2="133" stroke="#18181B" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+
+        <!-- Arrow labels -->
+        <text x="755" y="88" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.1em" fill="#B45309" font-weight="500">NÃO</text>
+        <text x="704" y="220" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.1em" fill="#B45309" font-weight="500">SIM</text>
+
+        <!-- ===== Nodes ===== -->
+        <!-- Start: Contrato assinado -->
+        <circle cx="70" cy="100" r="50" fill="#B45309" stroke="#B45309" stroke-width="1.5"/>
+        <text x="70" y="95" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="15" fill="#FFFFFF">Contrato</text>
+        <text x="70" y="113" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="15" fill="#FFFFFF">assinado</text>
+
+        <!-- Mobilização -->
+        <rect x="150" y="70" width="140" height="60" rx="3" fill="#FFFFFF" stroke="#18181B" stroke-width="1.5"/>
+        <text x="220" y="94" text-anchor="middle" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#18181B">Mobilização</text>
+        <text x="220" y="113" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9.5" fill="#78716C">gerente · ERP · caixa</text>
+
+        <!-- Execução -->
+        <rect x="320" y="70" width="130" height="60" rx="3" fill="#FFFFFF" stroke="#18181B" stroke-width="1.5"/>
+        <text x="385" y="94" text-anchor="middle" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#18181B">Execução</text>
+        <text x="385" y="113" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9.5" fill="#78716C">terra · drena · pavi</text>
+
+        <!-- Medição mensal -->
+        <rect x="480" y="70" width="130" height="60" rx="3" fill="#FFFFFF" stroke="#18181B" stroke-width="1.5"/>
+        <text x="545" y="94" text-anchor="middle" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#18181B">Medição</text>
+        <text x="545" y="112" text-anchor="middle" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#18181B">mensal</text>
+
+        <!-- Decision: Desvio curva ABC? -->
+        <polygon points="695,45 750,100 695,155 640,100" fill="#F5E0C5" stroke="#B45309" stroke-width="1.5"/>
+        <text x="695" y="88" text-anchor="middle" font-family="Geist, sans-serif" font-size="11" font-weight="500" fill="#B45309">Desvio</text>
+        <text x="695" y="103" text-anchor="middle" font-family="Geist, sans-serif" font-size="11" font-weight="500" fill="#B45309">curva</text>
+        <text x="695" y="118" text-anchor="middle" font-family="Geist, sans-serif" font-size="11" font-weight="500" fill="#B45309">ABC?</text>
+
+        <!-- Encerramento -->
+        <rect x="780" y="70" width="140" height="60" rx="3" fill="#FFFFFF" stroke="#18181B" stroke-width="1.5"/>
+        <text x="850" y="94" text-anchor="middle" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#18181B">Encerramento</text>
+        <text x="850" y="113" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9.5" fill="#78716C">CRP + CREA</text>
+
+        <!-- End: Obra entregue -->
+        <circle cx="985" cy="100" r="50" fill="#B45309" stroke="#B45309" stroke-width="1.5"/>
+        <text x="985" y="95" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="15" fill="#FFFFFF">Obra</text>
+        <text x="985" y="113" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="15" fill="#FFFFFF">entregue</text>
+
+        <!-- Ação corretiva -->
+        <rect x="320" y="270" width="130" height="60" rx="3" fill="#FFFFFF" stroke="#18181B" stroke-width="1.5"/>
+        <text x="385" y="294" text-anchor="middle" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#18181B">Ação corretiva</text>
+        <text x="385" y="313" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9.5" fill="#78716C">carta ao cliente</text>
+      </svg>
     </div>
   </div>
 
@@ -842,7 +876,7 @@
   </header>
 
   <div class="content" style="padding-top:18px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px;">
       <div>
         <span class="eyebrow">Critérios competitivos avaliados</span>
         <h2 class="display" style="margin-top:6px; font-size:34px;">Onde a MLC ganha, onde precisa atacar.</h2>
@@ -850,40 +884,86 @@
       <p class="lead" style="font-size:12px; max-width:260px; text-align:right;">Slack &amp; Lewis: 6 critérios plotados a partir das observações da entrevista.</p>
     </div>
 
-    <div class="matrix-wrap">
-      <div style="position:relative; padding-bottom:14px; padding-left:24px;">
-        <div class="matrix">
-          <div class="matrix-zone-urgent matrix-cell-bg"></div>
-          <div class="matrix-zone-improve matrix-cell-bg"></div>
-          <div class="matrix-zone-ok matrix-cell-bg"></div>
-          <div class="matrix-zone-excess matrix-cell-bg"></div>
-          <div class="matrix-grid"></div>
+    <div style="flex:1; display:grid; grid-template-columns: 480px 1fr; gap:36px; align-items:start; padding-top:8px;">
+      <!-- Matrix in pure SVG -->
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <svg viewBox="0 0 540 540" style="width:100%; max-width:480px; height:auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Y axis label (rotated, to the left of matrix) -->
+          <text x="-270" y="14" transform="rotate(-90)" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.18em" fill="#78716C">IMPORTÂNCIA P/ CLIENTE →</text>
 
-          <!-- diagonal limits -->
-          <svg class="matrix-diag" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line x1="50" y1="0" x2="50" y2="100" stroke="#D6D3CB" stroke-width="0.4"/>
-            <line x1="0" y1="33" x2="100" y2="33" stroke="#D6D3CB" stroke-width="0.4"/>
-            <line x1="0" y1="67" x2="100" y2="67" stroke="#D6D3CB" stroke-width="0.4"/>
-          </svg>
+          <!-- Matrix area: 40, 0 to 520, 480 (480x480) -->
+          <!-- Zone backgrounds (Slack banded) -->
+          <!-- Ação urgente: top-left, 0-33% y, 0-50% x -->
+          <rect x="40" y="0" width="240" height="160" fill="rgba(185, 28, 28, 0.10)"/>
+          <!-- Melhoramento: middle-left, 33-67% y, 0-50% x -->
+          <rect x="40" y="160" width="240" height="160" fill="rgba(180, 83, 9, 0.10)"/>
+          <!-- Apropriado: right side, 0-67% y, 50-100% x -->
+          <rect x="280" y="0" width="240" height="320" fill="rgba(22, 101, 52, 0.10)"/>
+          <!-- Excesso: bottom-right, 67-100% y, 50-100% x -->
+          <rect x="280" y="320" width="240" height="160" fill="rgba(120, 113, 108, 0.10)"/>
+          <!-- Bottom-left (neutral, low I + low D) -->
+          <rect x="40" y="320" width="240" height="160" fill="rgba(217, 213, 200, 0.30)"/>
+
+          <!-- Matrix border -->
+          <rect x="40" y="0" width="480" height="480" fill="none" stroke="#D6D3CB" stroke-width="1.5"/>
+
+          <!-- Internal divider lines -->
+          <line x1="280" y1="0" x2="280" y2="480" stroke="#D6D3CB" stroke-width="1"/>
+          <line x1="40" y1="160" x2="520" y2="160" stroke="#D6D3CB" stroke-width="1"/>
+          <line x1="40" y1="320" x2="520" y2="320" stroke="#D6D3CB" stroke-width="1"/>
+
+          <!-- Subtle 5x5 grid -->
+          <line x1="136" y1="0" x2="136" y2="480" stroke="#E5E2DA" stroke-width="0.5"/>
+          <line x1="232" y1="0" x2="232" y2="480" stroke="#E5E2DA" stroke-width="0.5"/>
+          <line x1="328" y1="0" x2="328" y2="480" stroke="#E5E2DA" stroke-width="0.5"/>
+          <line x1="424" y1="0" x2="424" y2="480" stroke="#E5E2DA" stroke-width="0.5"/>
+          <line x1="40" y1="96" x2="520" y2="96" stroke="#E5E2DA" stroke-width="0.5"/>
+          <line x1="40" y1="240" x2="520" y2="240" stroke="#E5E2DA" stroke-width="0.5"/>
+          <line x1="40" y1="384" x2="520" y2="384" stroke="#E5E2DA" stroke-width="0.5"/>
 
           <!-- Zone labels -->
-          <div style="position:absolute; left:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#DC2626; font-weight:500;">Ação urgente</div>
-          <div style="position:absolute; left:8px; top:36%; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); font-weight:500;">Melhoramento</div>
-          <div style="position:absolute; right:8px; top:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#15803D; font-weight:500; text-align:right;">Apropriado</div>
-          <div style="position:absolute; right:8px; bottom:8px; font-family:'Geist Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3); font-weight:500; text-align:right;">Excesso</div>
+          <text x="50" y="22" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.16em" fill="#B91C1C" font-weight="600">AÇÃO URGENTE</text>
+          <text x="510" y="22" text-anchor="end" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.16em" fill="#15803D" font-weight="600">APROPRIADO</text>
+          <text x="50" y="182" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.16em" fill="#B45309" font-weight="600">MELHORAMENTO</text>
+          <text x="510" y="472" text-anchor="end" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.16em" fill="#78716C" font-weight="600">EXCESSO</text>
 
-          <!-- Plotted points. Position: left = desempenho (0-100), top = inverso importância (0=alta) -->
-          <div class="matrix-point" style="left:85%; top:10%;">1</div>
-          <div class="matrix-point" style="left:80%; top:14%;">2</div>
-          <div class="matrix-point" style="left:25%; top:22%;">3</div>
-          <div class="matrix-point" style="left:55%; top:50%;">4</div>
-          <div class="matrix-point" style="left:75%; top:55%;">5</div>
-          <div class="matrix-point" style="left:40%; top:75%;">6</div>
-        </div>
-        <div class="matrix-axis-label axis-x">Desempenho →</div>
-        <div class="matrix-axis-label axis-y">Importância p/ cliente →</div>
+          <!-- Plotted points (with halo for clarity) -->
+          <!-- 1: Confiabilidade de prazo - top-right APROPRIADO -->
+          <circle cx="465" cy="60" r="20" fill="#FAFAF6"/>
+          <circle cx="465" cy="60" r="18" fill="#B45309"/>
+          <text x="465" y="66" text-anchor="middle" font-family="Geist Mono, monospace" font-size="14" font-weight="700" fill="#FFFFFF">1</text>
+
+          <!-- 2: Qualidade técnica - close to 1 -->
+          <circle cx="440" cy="95" r="20" fill="#FAFAF6"/>
+          <circle cx="440" cy="95" r="18" fill="#B45309"/>
+          <text x="440" y="101" text-anchor="middle" font-family="Geist Mono, monospace" font-size="14" font-weight="700" fill="#FFFFFF">2</text>
+
+          <!-- 3: Disponibilidade de mão de obra - AÇÃO URGENTE -->
+          <circle cx="140" cy="80" r="20" fill="#FAFAF6"/>
+          <circle cx="140" cy="80" r="18" fill="#B45309"/>
+          <text x="140" y="86" text-anchor="middle" font-family="Geist Mono, monospace" font-size="14" font-weight="700" fill="#FFFFFF">3</text>
+
+          <!-- 4: Custo competitivo - MELHORAMENTO -->
+          <circle cx="200" cy="230" r="20" fill="#FAFAF6"/>
+          <circle cx="200" cy="230" r="18" fill="#B45309"/>
+          <text x="200" y="236" text-anchor="middle" font-family="Geist Mono, monospace" font-size="14" font-weight="700" fill="#FFFFFF">4</text>
+
+          <!-- 5: Flexibilidade contratual - APROPRIADO mid -->
+          <circle cx="400" cy="230" r="20" fill="#FAFAF6"/>
+          <circle cx="400" cy="230" r="18" fill="#B45309"/>
+          <text x="400" y="236" text-anchor="middle" font-family="Geist Mono, monospace" font-size="14" font-weight="700" fill="#FFFFFF">5</text>
+
+          <!-- 6: Velocidade de mobilização - EXCESSO -->
+          <circle cx="380" cy="410" r="20" fill="#FAFAF6"/>
+          <circle cx="380" cy="410" r="18" fill="#B45309"/>
+          <text x="380" y="416" text-anchor="middle" font-family="Geist Mono, monospace" font-size="14" font-weight="700" fill="#FFFFFF">6</text>
+
+          <!-- X axis label below -->
+          <text x="280" y="515" text-anchor="middle" font-family="Geist Mono, monospace" font-size="11" letter-spacing="0.18em" fill="#78716C">DESEMPENHO →</text>
+        </svg>
       </div>
 
+      <!-- Criteria list -->
       <div>
         <div class="micro" style="margin-bottom:10px;">Critérios e justificativas</div>
         <div class="criteria-list">
@@ -926,7 +1006,7 @@
             <div class="criteria-num">6</div>
             <div>
               <div class="criteria-name">Velocidade de mobilização</div>
-              <div class="criteria-just">Tempo de setup inicial é padrão do setor. Cliente prioriza início rápido, mas ciclo total de 2-5 anos absorve.</div>
+              <div class="criteria-just">Setup inicial é padrão do setor. Cliente prioriza início rápido, mas ciclo de 2-5 anos absorve.</div>
             </div>
           </div>
         </div>
