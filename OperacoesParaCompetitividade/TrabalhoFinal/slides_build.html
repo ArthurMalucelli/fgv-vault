@@ -70,22 +70,7 @@
   .strip .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; }
   .strip .number { color: var(--ink-1); font-weight: 500; }
 
-  .footer {
-    position: absolute;
-    left: 72px;
-    right: 72px;
-    bottom: 28px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: 'Geist Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    color: var(--ink-3);
-    text-transform: uppercase;
-    padding-top: 14px;
-    border-top: 1px solid var(--border-soft);
-  }
+  .footer { display: none; }
   .footer .who { color: var(--ink-1); font-weight: 500; }
   .footer .who::before { content: 'Apresenta · '; color: var(--ink-3); font-weight: 400; }
 
@@ -670,7 +655,7 @@
 
   <div class="content" style="padding-top:24px;">
     <span class="eyebrow">Quem é a MLC Infra</span>
-    <h2 class="display display-m" style="margin-top:10px;">Construtora pesada de capital fechado, parte do Grupo JMalucelli.</h2>
+    <h2 class="display display-m" style="margin-top:10px;">Construtora pesada de capital fechado.</h2>
 
     <div class="kpi-row" style="margin-top:20px;">
       <div>
@@ -728,7 +713,7 @@
 
   <div class="content" style="padding-top:24px;">
     <span class="eyebrow">Como uma obra acontece</span>
-    <h2 class="display display-m" style="margin-top:10px;">Três macroetapas, estrutura semi-autônoma por canteiro.</h2>
+    <h2 class="display display-m" style="margin-top:10px;">Três etapas, estrutura semi-autônoma por canteiro.</h2>
 
     <div class="timeline" style="margin-top:48px;">
       <div class="phase">
@@ -1140,7 +1125,7 @@
 
   <div class="content" style="padding-top:24px;">
     <span class="eyebrow">Proteger margem e prazo</span>
-    <h2 class="display display-m" style="margin-top:10px; font-size:44px;">Hedge de insumos voláteis + buffer climático no cronograma.</h2>
+    <h2 class="display display-m" style="margin-top:10px; font-size:44px;">Hedge de insumos voláteis + margem climática no cronograma.</h2>
 
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:32px; margin-top:34px; flex:1; align-items:start;">
       <div style="padding-top:18px; border-top:2px solid var(--accent);">
@@ -1172,10 +1157,10 @@
 
       <div style="padding-top:18px; border-top:2px solid var(--accent);">
         <span class="micro" style="color:var(--accent);">Proposta 3</span>
-        <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.05; letter-spacing:-0.02em; color:var(--ink-1); margin-top:6px;">Buffer climático calibrado por região e estação.</div>
+        <div style="font-family:'Instrument Serif',serif; font-size:26px; line-height:1.05; letter-spacing:-0.02em; color:var(--ink-1); margin-top:6px;">Margem climática calibrado por região e estação.</div>
 
         <p style="font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:12px;">
-          Modelar o cronograma de obra com <strong style="color:var(--ink-1);">dados históricos de pluviosidade</strong> do site específico. Calcular buffer de dias úteis por mês na fase de terraplanagem e drenagem, sensíveis a chuva.
+          Modelar o cronograma de obra com <strong style="color:var(--ink-1);">dados históricos de pluviosidade</strong> do site específico. Calcular margem de dias úteis por mês na fase de terraplanagem e drenagem, sensíveis a chuva.
         </p>
 
         <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-soft);">
@@ -1222,7 +1207,7 @@
         <span class="concl-tag">Achados operacionais</span>
         <div class="concl-headline">Processo padronizado e controlado.</div>
         <p class="concl-body">
-          Três macroetapas executadas com Gerente de Contrato semi-autônomo, ERP integrado, medição mensal e curva ABC reconciliada. ISO 9001 mantém qualidade técnica.
+          Três etapas executadas com Gerente de Contrato semi-autônomo, ERP integrado, medição mensal e curva ABC reconciliada. ISO 9001 mantém qualidade técnica.
         </p>
       </div>
       <div class="concl-cell accent">
@@ -1236,7 +1221,7 @@
         <span class="concl-tag">Relevância competitiva</span>
         <div class="concl-headline">Três alavancas operacionais executáveis.</div>
         <p class="concl-body">
-          Programa interno de mão de obra ataca o gargalo principal. Hedge protege margem em choque de insumos. Buffer climático preserva o ativo competitivo de confiabilidade.
+          Programa interno de mão de obra ataca o gargalo principal. Hedge protege margem em choque de insumos. Margem climática preserva o ativo competitivo de confiabilidade.
         </p>
       </div>
     </div>
