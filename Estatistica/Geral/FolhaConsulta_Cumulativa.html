@@ -6,30 +6,37 @@
 <style>
   @page { size: A4; margin: 6mm 7mm; }
   * { box-sizing: border-box; }
-  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.6pt; line-height: 1.28; color: #000; margin: 0; }
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.4pt; line-height: 1.26; color: #000; margin: 0; }
   h1 { font-size: 11.5pt; margin: 0 0 4px 0; padding: 3px 7px; background: #000; color: #fff; }
   h1 .pg { float: right; font-weight: 400; font-size: 8pt; opacity: 0.8; }
   .sheet { column-count: 2; column-gap: 9px; }
   .sec { break-inside: avoid; page-break-inside: avoid; margin-bottom: 5px; }
-  h2 { font-size: 9pt; background: #000; color: #fff; padding: 2px 6px; margin: 0 0 3px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; }
-  h3 { font-size: 8.5pt; margin: 3px 0 1px 0; font-weight: 700; }
-  table { border-collapse: collapse; width: 100%; margin: 2px 0; font-size: 7.9pt; }
+  h2 { font-size: 8.9pt; background: #000; color: #fff; padding: 2px 6px; margin: 0 0 3px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; }
+  h3 { font-size: 8.4pt; margin: 3px 0 1px 0; font-weight: 700; }
+  table { border-collapse: collapse; width: 100%; margin: 2px 0; font-size: 7.8pt; }
   th, td { border: 0.4px solid #999; padding: 1.5px 4px; text-align: left; vertical-align: top; }
   th { background: #ddd; font-weight: 700; }
-  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 7.7pt; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 7.6pt; }
   pre { background: #f3f3f3; border-left: 2px solid #333; padding: 3px 5px; margin: 2px 0; white-space: pre-wrap; }
-  .formula { background: #fff8d6; border: 0.5px solid #b58c00; padding: 3px 6px; margin: 2px 0; font-family: "SF Mono", Menlo, monospace; font-size: 8.1pt; line-height: 1.4; }
-  .key { background: #e9f3ff; border-left: 2px solid #1f6fb2; padding: 2px 5px; margin: 2px 0; font-size: 8.1pt; }
-  .warn { background: #ffe9e3; border-left: 2px solid #c0392b; padding: 2px 5px; margin: 2px 0; font-size: 8.1pt; }
-  .ex { background: #faf6e9; border-left: 2px solid #b58c00; padding: 2px 6px; margin: 2px 0; font-size: 8pt; }
+  .formula { background: #fff8d6; border: 0.5px solid #b58c00; padding: 3px 6px; margin: 2px 0; font-family: "SF Mono", Menlo, monospace; font-size: 8pt; line-height: 1.38; }
+  .key { background: #e9f3ff; border-left: 2px solid #1f6fb2; padding: 2px 5px; margin: 2px 0; font-size: 8pt; }
+  .warn { background: #ffe9e3; border-left: 2px solid #c0392b; padding: 2px 5px; margin: 2px 0; font-size: 8pt; }
+  .ex { background: #faf6e9; border-left: 2px solid #b58c00; padding: 2px 6px; margin: 2px 0; font-size: 7.9pt; }
   .ex b { color: #7a5c00; }
+  .qblock { background: #eaf2fb; border: 0.5px solid #9fc1e0; padding: 3px 7px; margin: 2px 0; font-size: 8pt; }
+  .tblock { background: #eaf5ec; border: 0.5px solid #a9cdb2; padding: 3px 7px; margin: 2px 0; font-size: 8pt; }
+  .lbl { font-weight: 700; display: block; margin-top: 3px; }
+  .lbl:first-child { margin-top: 0; }
+  .qblock .lbl { color: #1f5e9e; }
+  .tblock .lbl { color: #1a7d3b; }
+  .qblock code, .tblock code { font-size: 7.7pt; }
   .true { color: #1a7d3b; font-weight: 700; }
   .false { color: #c0392b; font-weight: 700; }
   ul { margin: 2px 0 2px 14px; padding: 0; }
   ol { margin: 2px 0 2px 15px; padding: 0; }
   li { margin: 0.8px 0; }
   p { margin: 2px 0; }
-  .symbol { font-family: "Times New Roman", serif; font-style: italic; font-size: 8.6pt; }
+  .symbol { font-family: "Times New Roman", serif; font-style: italic; font-size: 8.4pt; }
   b { font-weight: 700; }
 </style>
 </head>
@@ -86,77 +93,93 @@ E(X±Y)=E(X)±E(Y)&nbsp; |&nbsp; Var(X±Y)=Var(X)+Var(Y) (se independentes)
 </div>
 
 <div class="sec">
-<h2>5 · Distribuição binomial</h2>
-<p><b>Quando:</b> n tentativas independentes, sucesso/fracasso com a mesma p, conta sucessos.</p>
-<div class="formula">
-P(X=k)=C(n,k)·p^k·(1−p)^(n−k)&nbsp; |&nbsp; C(n,k)=n!/[k!(n−k)!]<br>
-E(X)=n·p&nbsp; |&nbsp; Var=n·p·(1−p)&nbsp; |&nbsp; DP=√(n·p·(1−p))
+<h2>5 · Binomial: quando usar</h2>
+<div class="qblock">
+<span class="lbl">Sinais</span>n fixo de tentativas · sucesso/fracasso · p igual em todas · independência.
+<span class="lbl">Exatamente x · P(X=x)</span><code>=DISTR.BINOM.N(x;n;p;FALSO)</code>
+<span class="lbl">x ou menos · P(X≤x)</span><code>=DISTR.BINOM.N(x;n;p;VERDADEIRO)</code>
+<span class="lbl">Pelo menos x · P(X≥x)</span><code>=1−DISTR.BINOM.N(x−1;n;p;VERDADEIRO)</code>
+<span class="lbl">Mais que x · P(X&gt;x)</span><code>=1−DISTR.BINOM.N(x;n;p;VERDADEIRO)</code>
+<span class="lbl">Menos que x · P(X&lt;x)</span><code>=DISTR.BINOM.N(x−1;n;p;VERDADEIRO)</code>
+<span class="lbl">Fórmula e momentos</span>P(X=k)=C(n,k)·p^k·(1−p)^(n−k) · E=n·p · Var=n·p·(1−p) · DP=√(n·p·(1−p))
 </div>
-<pre>
-=DISTR.BINOM.N(k;n;p;FALSO)      pontual P(X=k)
-=DISTR.BINOM.N(k;n;p;VERDADEIRO) acum.  P(X≤k)
-=COMBIN(n;k)   =INV.BINOM(n;p;prob) quantil
-</pre>
-<b>Tradução:</b> "ao menos 1" = 1−P(X=0); "ao menos k" = 1−P(X≤k−1); "no máximo k" = P(X≤k); "exatamente k" = pontual.
 </div>
 
 <div class="sec">
-<h2>6 · Poisson</h2>
-<p><b>Quando:</b> conta eventos num intervalo de tempo/espaço com taxa média μ.</p>
-<div class="formula">P(X=k)=e^(−μ)·μ^k/k! | E(X)=Var(X)=μ | =DISTR.POISSON(k;μ;0/1)</div>
+<h2>6 · Binomial: tradução rápida</h2>
+<div class="tblock">
+<span class="lbl">"3 ou menos"</span>inclui 0,1,2,3 → acumulado até 3 (VERDADEIRO, x=3).
+<span class="lbl">"pelo menos 4"</span>inclui 4,5,… → 1 − acumulado até 3.
+<span class="lbl">"mais que 4"</span>não inclui 4 → 1 − acumulado até 4.
+<span class="lbl">"exatamente 4"</span>pontual (FALSO).
+<span class="lbl">Quanto produzir (quantil)</span>menor x com P(X≤x) ≥ meta · <code>=INV.BINOM(n;p;prob)</code>.
+<span class="lbl">Ex: chute, 10 questões, 5 alt</span>p=0,2; "pelo menos 4" = <code>1−DISTR.BINOM.N(3;10;0,2;VERDADEIRO)</code> = 12,1%.
+<span class="lbl">Ex: sorteio suspeito</span>todos câmera desligada, p=0,8: P(n seguidos)=0,8ⁿ; cai abaixo de 5% com n=14.
+</div>
 </div>
 
 <div class="sec">
-<h2>7 · Binomial aproximada pela Normal</h2>
-<div class="key">Se n é grande com n·p ≥ 5 e n·(1−p) ≥ 5, a binomial vira aproximadamente <b>N(np, np(1−p))</b>. <b>Combo de prova:</b> calcula a probabilidade individual de um evento pela Normal e usa esse valor como o <b>p</b> de uma binomial.</div>
+<h2>7 · Poisson</h2>
+<div class="qblock">
+<span class="lbl">Sinais</span>conta eventos num intervalo de tempo/espaço com taxa média μ.
+<span class="lbl">Pontual · P(X=k)</span><code>=DISTR.POISSON(k;μ;FALSO)</code>
+<span class="lbl">Acumulada · P(X≤k)</span><code>=DISTR.POISSON(k;μ;VERDADEIRO)</code>
+<span class="lbl">Fórmula e momentos</span>P(X=k)=e^(−μ)·μ^k/k! · E(X)=Var(X)=μ
+</div>
 </div>
 
 <div class="sec">
-<h2>8 · Variável contínua: a ideia</h2>
+<h2>8 · Binomial aproximada pela Normal</h2>
+<div class="key">Se n grande com n·p ≥ 5 e n·(1−p) ≥ 5, a binomial vira aproximadamente <b>N(np, np(1−p))</b>. <b>Combo de prova:</b> calcula a probabilidade individual de um evento pela Normal e usa esse valor como o <b>p</b> de uma binomial.</div>
+</div>
+
+<div class="sec">
+<h2>9 · Variável contínua: a ideia</h2>
 <div class="key">Probabilidade = <b>área</b> sob a fdp, não a altura. P(X=c)=0 sempre. P(a&lt;X&lt;b)=P(a≤X≤b). Área total = 1.</div>
 </div>
 
 <div class="sec">
-<h2>9 · Uniforme contínua  U(a,b)</h2>
+<h2>10 · Uniforme contínua  U(a,b)</h2>
 <div class="formula">fdp=1/(b−a) em [a,b] | P(c&lt;X&lt;d)=(d−c)/(b−a) | E=(a+b)/2 | Var=(b−a)²/12</div>
 </div>
 
 <div class="sec">
-<h2>10 · Exponencial (média μ)</h2>
-<p><b>Quando:</b> tempo de espera até ou entre eventos.</p>
-<div class="formula">
-f(x)=(1/μ)e^(−x/μ), x≥0 | E=μ, σ=μ, Var=μ²<br>
-P(X&gt;k)=EXP(−k/μ) | P(X≤k)=1−EXP(−k/μ)
+<h2>11 · Exponencial (média μ)</h2>
+<div class="qblock">
+<span class="lbl">Sinais</span>tempo de espera até ou entre eventos.
+<span class="lbl">Acima de k · P(X&gt;k)</span><code>=EXP(−k/μ)</code>
+<span class="lbl">Abaixo de k · P(X≤k)</span><code>=1−EXP(−k/μ)</code>
+<span class="lbl">Fórmula e momentos</span>f(x)=(1/μ)e^(−x/μ), x≥0 · E=μ · σ=μ · Var=μ²
 </div>
 </div>
 
 <div class="sec">
-<h2>11 · Distribuição Normal</h2>
-<div class="formula">X ~ N(μ,σ²) | Z=(X−μ)/σ → N(0,1) | volta: X=μ+Z·σ</div>
-<pre>
-P(X&lt;a)    = DIST.NORM.N(a;μ;σ;1)
-P(X&gt;a)    = 1 − DIST.NORM.N(a;μ;σ;1)
-P(a&lt;X&lt;b)  = DIST.NORM.N(b;μ;σ;1) − DIST.NORM.N(a;μ;σ;1)
-INVERSO   = INV.NORM.N(p_acum;μ;σ)
-  P(X&gt;k)=5% → passa 0,95 (acum. à esquerda, não 0,05)
-</pre>
-<div class="key">σ é desvio, NÃO variância (deu variância, tira a raiz). Empírica: ±1σ≈68%, ±2σ≈95%, ±3σ≈99,7%.</div>
-<div class="warn"><b>Dois eventos independentes:</b> prob de cada pela Normal e <b>multiplica</b>. <b>Quantidade esperada</b> = probabilidade × total.</div>
+<h2>12 · Normal: quando usar</h2>
+<div class="qblock">
+<span class="lbl">Sinais</span>sino, dá média μ e desvio σ. Z=(X−μ)/σ → N(0,1); volta X=μ+Z·σ.
+<span class="lbl">Abaixo de a · P(X&lt;a)</span><code>=DIST.NORM.N(a;μ;σ;1)</code>
+<span class="lbl">Acima de a · P(X&gt;a)</span><code>=1−DIST.NORM.N(a;μ;σ;1)</code>
+<span class="lbl">Entre a e b</span><code>=DIST.NORM.N(b;μ;σ;1)−DIST.NORM.N(a;μ;σ;1)</code>
+<span class="lbl">Valor dado a área (inverso)</span><code>=INV.NORM.N(p_acum;μ;σ)</code> · P(X&gt;k)=5% → passa 0,95 (acumulada à esquerda).
+<span class="lbl">Dois eventos independentes</span>prob de cada pela Normal e multiplica.
+<span class="lbl">Quantidade esperada</span>probabilidade × total.
+<span class="lbl">Lembra</span>σ é desvio, não variância (deu variância, tira a raiz). ±1σ≈68% · ±2σ≈95% · ±3σ≈99,7%.
+</div>
 </div>
 
 <div class="sec">
-<h2>12 · Distribuição amostral da média</h2>
+<h2>13 · Distribuição amostral da média</h2>
 <div class="formula">E(X̄)=μ | Var(X̄)=σ²/n | DP(X̄)=σ/√n (erro padrão) | X~N ⟹ X̄~N(μ,σ²/n)</div>
 <div class="warn"><b>Hierarquia:</b> σ (indivíduos na pop) · S (indivíduos numa amostra) · σ/√n (entre médias). 1 observação usa σ; média de n usa σ/√n. Pra metade do erro, quadruplica n.</div>
 </div>
 
 <div class="sec">
-<h2>13 · Teorema do Limite Central</h2>
+<h2>14 · Teorema do Limite Central</h2>
 <div class="key"><b>n &gt; 30 ⟹ X̄ ≈ Normal</b>, qualquer formato de X. Age sobre X̄, nunca sobre o X individual. <b>Soma → média:</b> P(ΣXᵢ &gt; k) = P(X̄ &gt; k/n).</div>
 </div>
 
 <div class="sec">
-<h2>14 · Amostragem e vieses</h2>
+<h2>15 · Amostragem e vieses</h2>
 <ul>
 <li><b>Aleatória simples (AAS):</b> mesma chance pra cada um. Estimador não viesado, E(p̂)=p.</li>
 <li><b>Voluntária/site:</b> não probabilística, viés de autosseleção.</li>
@@ -165,7 +188,7 @@ INVERSO   = INV.NORM.N(p_acum;μ;σ)
 </div>
 
 <div class="sec">
-<h2>15 · IC para a média</h2>
+<h2>16 · IC para a média</h2>
 <div class="formula">
 σ conhecido: X̄ ± Z<sub>α/2</sub>·σ/√n<br>
 σ desconhecido: X̄ ± T<sub>α/2,n−1</sub>·S/√n&nbsp; (gl=n−1)
@@ -180,7 +203,7 @@ E atalho = INT.CONFIANÇA.NORM/T(α; σ ou S; n)  [recebe α]
 </div>
 
 <div class="sec">
-<h2>16 · IC proporção + tamanho de amostra</h2>
+<h2>17 · IC proporção + tamanho de amostra</h2>
 <div class="formula">
 IC proporção: p̂ ± Z<sub>α/2</sub>·√(p̂(1−p̂)/n)&nbsp; <b>(sempre Z)</b>. Cond: n·p̂≥5 e n·(1−p̂)≥5.<br>
 n média = (Z<sub>α/2</sub>·σ/E)²&nbsp; |&nbsp; n prop = Z<sub>α/2</sub>²·0,25/E² (sem p̂) ou Z<sub>α/2</sub>²·p̂(1−p̂)/E² (com p̂)
@@ -189,7 +212,7 @@ n média = (Z<sub>α/2</sub>·σ/E)²&nbsp; |&nbsp; n prop = Z<sub>α/2</sub>²�
 </div>
 
 <div class="sec">
-<h2>17 · Interpretação do IC</h2>
+<h2>18 · Interpretação do IC</h2>
 <div class="key">
 <b class="true">Certo:</b> "γ% dos intervalos construídos contêm μ" (procedimento).<br>
 <b class="false">Errado:</b> "γ% de chance de μ estar nesse IC" (μ é fixo). P(X̄ no IC) = 100%.
@@ -197,7 +220,7 @@ n média = (Z<sub>α/2</sub>·σ/E)²&nbsp; |&nbsp; n prop = Z<sub>α/2</sub>²�
 </div>
 
 <div class="sec">
-<h2>18 · Reconhecer a distribuição</h2>
+<h2>19 · Reconhecer a distribuição</h2>
 <table>
 <tr><th>Situação no enunciado</th><th>Modelo</th></tr>
 <tr><td>conta sucessos em n tentativas fixas, p constante</td><td>Binomial</td></tr>
@@ -210,7 +233,7 @@ n média = (Z<sub>α/2</sub>·σ/E)²&nbsp; |&nbsp; n prop = Z<sub>α/2</sub>²�
 </div>
 
 <div class="sec">
-<h2>19 · Árvore de decisão (inferência)</h2>
+<h2>20 · Árvore de decisão (inferência)</h2>
 <pre>
 PROPORÇÃO → Z + √(p̂(1−p̂)/n)
 MÉDIA: σ dado → Z
@@ -223,7 +246,7 @@ X̄ normal? X normal → qq n
 </div>
 
 <div class="sec">
-<h2>20 · Roteiro mecânico</h2>
+<h2>21 · Roteiro mecânico</h2>
 <ol>
 <li>Tipo: área/valor, média, proporção, n, conceitual.</li>
 <li>Inventário: n, X̄ ou p̂, σ ou S, γ, E. O que falta?</li>
@@ -236,7 +259,7 @@ X̄ normal? X normal → qq n
 </div>
 
 <div class="sec">
-<h2>21 · Excel consolidado</h2>
+<h2>22 · Excel consolidado</h2>
 <pre>
 DISCRETAS
 E(X)=SOMARPRODUTO(val;prob) · Var=E(X²)−E(X)²
@@ -244,23 +267,16 @@ COMBIN(n;k) · DISTR.BINOM.N(k;n;p;0/1)
 INV.BINOM(n;p;prob) · DISTR.POISSON(k;μ;0/1)
 </pre>
 <pre>
-NORMAL
-DIST.NORM.N(x;μ;σ;1) · DIST.NORM.P.N(z;1)
-INV.NORM.N(p_ac;μ;σ) · INV.NORM.P.N(1−α/2)
-γ de Z = 2*DIST.NORM.P.N(Z;1)−1
-</pre>
-<pre>
 IC e DADOS
-INV.T(1−α/2;n−1) · INV.T.BC(α;n−1)
+INV.NORM.P.N(1−α/2) · INV.T(1−α/2;n−1) · INV.T.BC(α;n−1)
 INT.CONFIANÇA.NORM(α;σ;n) · .T(α;S;n)
 X̄=MÉDIA() · S=DESVPAD.A() · σ=DESVPAD.P()
-ARREDONDAR.PARA.CIMA(x;0)
-p̂=CONT.SE(int;"sim")/CONT.NÚM(int)
+ARREDONDAR.PARA.CIMA(x;0) · p̂=CONT.SE(int;"sim")/CONT.NÚM(int)
 </pre>
 </div>
 
 <div class="sec">
-<h2>22 · Suposições para o IC valer</h2>
+<h2>23 · Suposições para o IC valer</h2>
 <ul>
 <li><b>Média:</b> X̄ normal (X normal em qualquer n, OU n&gt;30 TLC) + AAS.</li>
 <li><b>Proporção:</b> n·p̂≥5 e n·(1−p̂)≥5 + AAS. Amostra pequena + X não-normal = não dá IC.</li>
@@ -268,8 +284,7 @@ p̂=CONT.SE(int;"sim")/CONT.NÚM(int)
 </div>
 
 <div class="sec">
-<h2>23 · Exemplos-relâmpago</h2>
-<div class="ex"><b>Binomial.</b> n=10, p=0,2, P(X≥1) = 1−P(X=0) = 1−0,8¹⁰ = 0,893.</div>
+<h2>24 · Exemplos-relâmpago</h2>
 <div class="ex"><b>Normal, área.</b> X~N(100,15²), P(X&gt;120): Z=(120−100)/15=1,33 → 1−DIST.NORM.N(120;100;15;1) ≈ 0,091.</div>
 <div class="ex"><b>Normal, inverso.</b> Top 10% de N(100,15): INV.NORM.N(0,90;100;15) = 100+1,28·15 ≈ 119,2.</div>
 <div class="ex"><b>IC média (T).</b> n=16, X̄=50, S=8, 95%: T(0,975;15)=2,131; E=2,131·8/√16=4,26; IC=[45,74; 54,26].</div>
@@ -279,7 +294,7 @@ p̂=CONT.SE(int;"sim")/CONT.NÚM(int)
 </div>
 
 <div class="sec">
-<h2>24 · Pegadinhas e checklist</h2>
+<h2>25 · Pegadinhas e checklist</h2>
 <div class="warn">
 <b>1.</b> Variância onde o Excel quer desvio (tira a raiz). <b>2.</b> DIST.NORM.N dá a ESQUERDA (direita = 1 menos). <b>3.</b> INV.NORM.N pede a acumulada, não a cauda (P(X&gt;k)=5%→0,95). <b>4.</b> σ no lugar de σ/√n na média de n. <b>5.</b> Z com σ desconhecido e n pequeno (era T). <b>6.</b> gl=n em vez de n−1. <b>7.</b> Transf. linear: esquecer b² ou que a some. <b>8.</b> "Ao menos k" = 1−P(X≤k−1). <b>9.</b> "2 pontos" = E=0,02; % no Excel é 0,20. <b>10.</b> n não arredondado pra cima. <b>11.</b> μ (fixo) vs X̄ (aleatório) no conceitual. <b>12.</b> Mutuamente exclusivo confundido com independente.
 </div>
