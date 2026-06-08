@@ -90,30 +90,7 @@ INVERSO (dada a área, acha o valor):
 </pre>
 <div class="key">P(X = c) = 0 sempre (contínua). P(a&lt;X&lt;b) = P(a≤X≤b). σ é desvio, NÃO variância: deu variância, tira a raiz.</div>
 
-<h2>4 · Valores críticos</h2>
-<div class="col2">
-<table class="compact">
-<tr><th>γ</th><th>α/2</th><th>Z<sub>α/2</sub></th></tr>
-<tr><td>90%</td><td>5%</td><td><b>1,645</b></td></tr>
-<tr><td>95%</td><td>2,5%</td><td><b>1,96</b></td></tr>
-<tr><td>99%</td><td>0,5%</td><td>2,58</td></tr>
-</table>
-<table class="compact">
-<tr><th>cauda α</th><th>Z</th></tr>
-<tr><td>0,10</td><td>1,282</td></tr>
-<tr><td>0,05</td><td>1,645</td></tr>
-<tr><td>0,025</td><td>1,96</td></tr>
-<tr><td>0,01</td><td>2,326</td></tr>
-<tr><td>0,005</td><td>2,576</td></tr>
-</table>
-</div>
-<table class="compact">
-<tr><th>T (γ=95%) · n</th><td>9</td><td>15</td><td>25</td><td>50</td><td>120</td><td>∞</td></tr>
-<tr><th>T<sub>2,5%, n−1</sub></th><td>2,365</td><td>2,145</td><td>2,064</td><td>2,010</td><td>1,980</td><td>1,96</td></tr>
-</table>
-<p class="mini">T &gt; Z sempre, e encolhe até virar Z conforme n cresce. Para n &gt; 50, T ≈ Z.</p>
-
-<h2>5 · Excel essencial</h2>
+<h2>4 · Excel essencial</h2>
 <div class="col2">
 <pre>
 Z<sub>α/2</sub>        = INV.NORM.P.N(1 − α/2)
@@ -142,7 +119,7 @@ Dados crus:  X̄ = MÉDIA(int)  ·  S = DESVPAD.A(int) [n−1]  ·  σ = DESVPAD
 <!-- ===================== PÁGINA 2 ===================== -->
 <div class="pagebreak"></div>
 
-<h2>6 · Árvore de decisão</h2>
+<h2>5 · Árvore de decisão</h2>
 <pre>
 PROPORÇÃO?  SIM → Z  +  √(p̂(1−p̂)/n)
             NÃO → MÉDIA:
@@ -154,7 +131,7 @@ PROPORÇÃO?  SIM → Z  +  √(p̂(1−p̂)/n)
                                senão → IC INVÁLIDO
 </pre>
 
-<h2>7 · Roteiro mecânico</h2>
+<h2>6 · Roteiro mecânico</h2>
 <ol>
 <li><b>Tipo:</b> área/valor da Normal · média · proporção · tamanho de amostra · conceitual</li>
 <li><b>Inventário:</b> tem n, X̄ ou p̂, σ ou S, γ, E? O que falta?</li>
@@ -167,7 +144,7 @@ PROPORÇÃO?  SIM → Z  +  √(p̂(1−p̂)/n)
 <li><b>Excel:</b> vincula células, nunca arredonda no meio do cálculo.</li>
 </ol>
 
-<h2>8 · Amostragem e TLC</h2>
+<h2>7 · Amostragem e TLC</h2>
 <div class="formula">
 E(X̄) = μ &nbsp;·&nbsp; Var(X̄) = σ²/n &nbsp;·&nbsp; DP(X̄) = σ/√n (erro padrão)<br>
 X ~ N(μ, σ²) ⟹ X̄ ~ N(μ, σ²/n) para qualquer n<br>
@@ -177,23 +154,23 @@ Exponencial(μ): P(X &gt; a) = EXP(−a/μ), com σ = μ
 </div>
 <div class="warn"><b>Hierarquia de desvios:</b> σ (dispersão de indivíduos na pop) · S (indivíduos numa amostra) · σ/√n (entre médias amostrais). Pergunta sobre 1 observação usa σ; sobre média de n usa σ/√n. TLC age sobre X̄, não sobre X individual.</div>
 
-<h2>9 · Suposições para o IC valer</h2>
+<h2>8 · Suposições para o IC valer</h2>
 <ul>
 <li><b>IC de média:</b> X̄ normal (X já normal em qualquer n, OU n &gt; 30 pelo TLC) + amostragem aleatória simples.</li>
 <li><b>IC de proporção:</b> n·p̂ ≥ 5 e n·(1−p̂) ≥ 5 + amostragem aleatória simples. Sempre Z, nunca T.</li>
 <li><b>Amostra pequena + X não-normal = não dá IC.</b> Nem o T salva, falta a normalidade de X̄.</li>
 </ul>
 
-<h2>10 · Interpretação do IC (conceitual)</h2>
+<h2>9 · Interpretação do IC (conceitual)</h2>
 <div class="key">
 <b class="true">Certo:</b> "γ% dos intervalos construídos assim contêm μ", ou "γ% de probabilidade de o intervalo conter μ" (foco no procedimento).<br>
 <b class="false">Errado:</b> "γ% de chance de μ estar nesse IC específico" (μ é FIXO, não tem distribuição). P(X̄ está no IC) = 100%, não γ%.
 </div>
 
-<h2>11 · Z vs T: a regra</h2>
+<h2>10 · Z vs T: a regra</h2>
 <div class="key"><b>"Se você puser S, ponha T."</b> T é sempre tecnicamente correto, para qualquer n. Z só com σ conhecido (ou n &gt; 50 como aproximação). gl = n − 1 sempre, para IC de média.</div>
 
-<h2>12 · Os 10 erros que custam ponto</h2>
+<h2>11 · Os 10 erros que custam ponto</h2>
 <div class="warn">
 <b>1.</b> Passar variância onde o Excel quer desvio (tira a raiz).&nbsp;
 <b>2.</b> Esquecer que DIST.NORM.N dá a área à ESQUERDA (direita = 1 menos).&nbsp;
