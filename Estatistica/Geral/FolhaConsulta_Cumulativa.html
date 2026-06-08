@@ -4,262 +4,233 @@
 <meta charset="UTF-8">
 <title>Folha de Consulta Cumulativa · Estatística I</title>
 <style>
-  @page { size: A4; margin: 6mm 7mm 6mm 7mm; }
+  @page { size: A4; margin: 5mm 6mm; }
   * { box-sizing: border-box; }
-  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 7.4pt; line-height: 1.16; color: #000; margin: 0; }
-  h1 { font-size: 10.5pt; margin: 0 0 2px 0; padding: 2px 6px; background: #000; color: #fff; }
-  h1 .pg { float: right; font-weight: 400; font-size: 7.5pt; opacity: 0.8; }
-  h2 { font-size: 8pt; background: #000; color: #fff; padding: 1.5px 5px; margin: 4px 0 2px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
-  h3 { font-size: 7.5pt; margin: 2px 0 1px 0; font-weight: 700; border-bottom: 0.5px solid #444; padding-bottom: 0.5px; }
-  table { border-collapse: collapse; width: 100%; margin: 1px 0; font-size: 6.9pt; page-break-inside: avoid; }
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 7.3pt; line-height: 1.15; color: #000; margin: 0; }
+  h1 { font-size: 10pt; margin: 0 0 3px 0; padding: 2px 6px; background: #000; color: #fff; }
+  h1 .pg { float: right; font-weight: 400; font-size: 7pt; opacity: 0.8; }
+  .sheet { column-count: 2; column-gap: 7px; }
+  .sec { break-inside: avoid; page-break-inside: avoid; margin-bottom: 3px; }
+  h2 { font-size: 7.8pt; background: #000; color: #fff; padding: 1.5px 5px; margin: 0 0 2px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; }
+  h3 { font-size: 7.4pt; margin: 2px 0 1px 0; font-weight: 700; }
+  table { border-collapse: collapse; width: 100%; margin: 1px 0; font-size: 6.8pt; }
   th, td { border: 0.4px solid #999; padding: 1px 3px; text-align: left; vertical-align: top; }
   th { background: #ddd; font-weight: 700; }
-  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 6.8pt; }
-  pre { background: #f3f3f3; border-left: 2px solid #333; padding: 2px 4px; margin: 1.5px 0; white-space: pre-wrap; page-break-inside: avoid; }
-  .formula { background: #fff8d6; border: 0.5px solid #b58c00; padding: 2px 5px; margin: 1.5px 0; font-family: "SF Mono", Menlo, monospace; font-size: 7.1pt; page-break-inside: avoid; line-height: 1.3; }
-  .key { background: #e9f3ff; border-left: 2px solid #1f6fb2; padding: 1.5px 4px; margin: 1.5px 0; font-size: 7pt; }
-  .warn { background: #ffe9e3; border-left: 2px solid #c0392b; padding: 1.5px 4px; margin: 1.5px 0; font-size: 7pt; }
-  .col2 { column-count: 2; column-gap: 7px; }
-  .col3 { column-count: 3; column-gap: 7px; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 6.7pt; }
+  pre { background: #f3f3f3; border-left: 2px solid #333; padding: 2px 4px; margin: 1.5px 0; white-space: pre-wrap; }
+  .formula { background: #fff8d6; border: 0.5px solid #b58c00; padding: 2px 5px; margin: 1.5px 0; font-family: "SF Mono", Menlo, monospace; font-size: 7pt; line-height: 1.3; }
+  .key { background: #e9f3ff; border-left: 2px solid #1f6fb2; padding: 1.5px 4px; margin: 1.5px 0; font-size: 6.95pt; }
+  .warn { background: #ffe9e3; border-left: 2px solid #c0392b; padding: 1.5px 4px; margin: 1.5px 0; font-size: 6.95pt; }
   .true { color: #1a7d3b; font-weight: 700; }
   .false { color: #c0392b; font-weight: 700; }
-  .pagebreak { page-break-before: always; }
   ul { margin: 1px 0 1px 12px; padding: 0; }
-  ol { margin: 1px 0 1px 14px; padding: 0; }
+  ol { margin: 1px 0 1px 13px; padding: 0; }
   li { margin: 0.3px 0; }
   p { margin: 1px 0; }
-  .symbol { font-family: "Times New Roman", serif; font-style: italic; font-size: 7.5pt; }
-  .compact td, .compact th { padding: 0.5px 2px; }
+  .symbol { font-family: "Times New Roman", serif; font-style: italic; font-size: 7.4pt; }
   b { font-weight: 700; }
 </style>
 </head>
 <body>
 
-<!-- ===================== PÁGINA 1 ===================== -->
-<h1>Folha de Consulta Cumulativa · Estatística I <span class="pg">1/4 · Probabilidade e variáveis discretas</span></h1>
+<h1>Folha de Consulta Cumulativa · Estatística I <span class="pg">probabilidade · discretas · contínuas · Normal · amostragem · IC · proporção</span></h1>
 
+<div class="sheet">
+
+<div class="sec">
 <h2>1 · Probabilidade básica</h2>
-<div class="col2">
-<div>
-<b>União</b>&nbsp; P(A∪B) = P(A) + P(B) − P(A∩B). Disjuntos: P(A∩B) = 0.<br>
-<b>Complementar</b>&nbsp; P(A) = 1 − P(não A). Use quando o contrário for mais fácil ("ao menos um").<br>
-</div>
-<div>
-<b>Condicional</b>&nbsp; P(A|B) = P(A∩B) / P(B). Restringe o total ao grupo B.<br>
-<b>Independentes</b>&nbsp; P(A∩B) = P(A)·P(B).<br>
-<b>Tabela</b>&nbsp; prob = parte/total. Na condicional, o denominador vira o total da linha/coluna.
-</div>
+<b>União</b> P(A∪B) = P(A)+P(B)−P(A∩B); disjuntos P(A∩B)=0. <b>Complementar</b> P(A)=1−P(não A), use quando o contrário é mais fácil. <b>Condicional</b> P(A|B)=P(A∩B)/P(B), restringe ao grupo B. <b>Independentes</b> P(A∩B)=P(A)·P(B). <b>Tabela:</b> prob = parte/total; na condicional o denominador vira o total da linha/coluna.
 </div>
 
+<div class="sec">
 <h2>2 · Variável aleatória discreta</h2>
 <div class="formula">
-PMF válida: Σ P(x) = 1 e P(x) ≥ 0.&nbsp; Falta uma prob? = 1 − soma das outras.<br>
-E(X) = μ = Σ x·P(x)&nbsp; |&nbsp; Var(X) = σ² = Σ(x−μ)²·P(x) = E(X²) − [E(X)]²&nbsp; |&nbsp; DP = √Var
+PMF válida: Σ P(x)=1, P(x)≥0. Falta uma? = 1 − soma das outras.<br>
+E(X)=μ=Σ x·P(x)&nbsp; |&nbsp; Var=σ²=Σ(x−μ)²·P(x)=E(X²)−[E(X)]²&nbsp; |&nbsp; DP=√Var
 </div>
-<div class="key"><b>Risco</b> (finanças) = menor desvio padrão. Maior retorno esperado NÃO implica menor risco; compara pelo DP. E(X) teórico ≠ X̄ amostral (o enunciado pode dar os dois pra confundir).</div>
+<div class="key"><b>Risco</b> = menor desvio padrão. Maior retorno esperado NÃO implica menor risco. E(X) teórico ≠ X̄ amostral.</div>
+</div>
 
+<div class="sec">
 <h2>3 · Transformação linear</h2>
-<div class="formula">
-C = a + bY&nbsp; ⟹&nbsp; E(C) = a + b·E(Y)&nbsp; |&nbsp; Var(C) = b²·Var(Y)&nbsp; |&nbsp; DP(C) = |b|·DP(Y)
+<div class="formula">C = a + bY ⟹ E(C)=a+b·E(Y) | Var(C)=b²·Var(Y) | DP(C)=|b|·DP(Y)</div>
+<div class="warn">A aditiva <b>a</b> some na variância; a multiplicativa <b>b</b> entra ao <b>quadrado</b>. Esquecer um dos dois é o erro clássico.</div>
 </div>
-<div class="warn">A constante aditiva <b>a</b> some na variância (deslocar não muda dispersão). A multiplicativa <b>b</b> entra ao <b>quadrado</b>. Esquecer um dos dois é o erro clássico.</div>
 
+<div class="sec">
 <h2>4 · Distribuição binomial</h2>
-<p><b>Quando:</b> n tentativas independentes, cada uma sucesso/fracasso com a mesma p, e você conta os sucessos.</p>
+<p><b>Quando:</b> n tentativas independentes, sucesso/fracasso com a mesma p, conta sucessos.</p>
 <div class="formula">
-P(X=k) = C(n,k)·p^k·(1−p)^(n−k)&nbsp; |&nbsp; C(n,k) = n!/[k!(n−k)!]<br>
-E(X) = n·p&nbsp; |&nbsp; Var(X) = n·p·(1−p)&nbsp; |&nbsp; DP = √(n·p·(1−p))
+P(X=k)=C(n,k)·p^k·(1−p)^(n−k)&nbsp; |&nbsp; C(n,k)=n!/[k!(n−k)!]<br>
+E(X)=n·p&nbsp; |&nbsp; Var=n·p·(1−p)&nbsp; |&nbsp; DP=√(n·p·(1−p))
 </div>
-<div class="col2">
 <pre>
-=DISTR.BINOM.N(k;n;p;FALSO)      P(X=k) pontual
-=DISTR.BINOM.N(k;n;p;VERDADEIRO) P(X≤k) acum.
-=COMBIN(n;k)                     C(n,k)
-=INV.BINOM(n;p;prob)             quantil
+=DISTR.BINOM.N(k;n;p;FALSO)      pontual P(X=k)
+=DISTR.BINOM.N(k;n;p;VERDADEIRO) acum.  P(X≤k)
+=COMBIN(n;k)   =INV.BINOM(n;p;prob) quantil
 </pre>
-<div>
-<b>Tradução de enunciado:</b><br>
-"ao menos 1" = 1 − P(X=0)<br>
-"ao menos k" = 1 − P(X ≤ k−1)<br>
-"no máximo k" = P(X ≤ k) acumulada<br>
-"exatamente k" = pontual (FALSO)
-</div>
-</div>
-<div class="key"><b>Quantil por tentativa</b> (quantos produzir): menor k com P(X≤k) ≥ meta. Liste k e a CDF ao lado, ache o primeiro que cruza. Ex: n=200, p=0,6, faltar ≤5% → 131 pratos.</div>
-
-<h2>5 · Distribuição de Poisson</h2>
-<div class="formula">
-P(X=k) = e^(−μ)·μ^k / k!&nbsp; |&nbsp; E(X) = Var(X) = μ&nbsp; |&nbsp; =DISTR.POISSON(k;μ;FALSO/VERDADEIRO)
+<b>Tradução:</b> "ao menos 1" = 1−P(X=0); "ao menos k" = 1−P(X≤k−1); "no máximo k" = P(X≤k); "exatamente k" = pontual.
+<div class="key"><b>Quantil por tentativa:</b> menor k com P(X≤k)≥meta. Ex: n=200, p=0,6, faltar ≤5% → 131.</div>
 </div>
 
-<!-- ===================== PÁGINA 2 ===================== -->
-<div class="pagebreak"></div>
-<h1>Folha de Consulta Cumulativa · Estatística I <span class="pg">2/4 · Variáveis contínuas e Normal</span></h1>
+<div class="sec">
+<h2>5 · Poisson</h2>
+<div class="formula">P(X=k)=e^(−μ)·μ^k/k! | E(X)=Var(X)=μ | =DISTR.POISSON(k;μ;0/1)</div>
+</div>
 
+<div class="sec">
 <h2>6 · Variável contínua: a ideia</h2>
-<div class="key">Probabilidade = <b>área</b> sob a fdp, não a altura. P(X = c) = 0 sempre. P(a&lt;X&lt;b) = P(a≤X≤b) (o sinal não importa). Área total sob a fdp = 1.</div>
-
-<h2>7 · Uniforme contínua  U(a, b)</h2>
-<div class="formula">
-fdp = 1/(b−a) em [a,b]&nbsp; |&nbsp; P(c &lt; X &lt; d) = (d−c)/(b−a)<br>
-E(X) = (a+b)/2&nbsp; |&nbsp; Var(X) = (b−a)²/12
+<div class="key">Probabilidade = <b>área</b> sob a fdp, não a altura. P(X=c)=0 sempre. P(a&lt;X&lt;b)=P(a≤X≤b). Área total = 1.</div>
 </div>
 
+<div class="sec">
+<h2>7 · Uniforme contínua  U(a,b)</h2>
+<div class="formula">fdp=1/(b−a) em [a,b] | P(c&lt;X&lt;d)=(d−c)/(b−a) | E=(a+b)/2 | Var=(b−a)²/12</div>
+</div>
+
+<div class="sec">
 <h2>8 · Exponencial (média μ)</h2>
 <div class="formula">
-f(x) = (1/μ)·e^(−x/μ), x ≥ 0&nbsp; |&nbsp; E(X) = μ, σ = μ, Var = μ²<br>
-P(X &gt; k) = EXP(−k/μ)&nbsp; |&nbsp; P(X ≤ k) = 1 − EXP(−k/μ)
+f(x)=(1/μ)e^(−x/μ), x≥0 | E=μ, σ=μ, Var=μ²<br>
+P(X&gt;k)=EXP(−k/μ) | P(X≤k)=1−EXP(−k/μ)
+</div>
 </div>
 
+<div class="sec">
 <h2>9 · Distribuição Normal</h2>
-<div class="formula">
-X ~ N(μ, σ²)&nbsp; |&nbsp; Z = (X − μ)/σ → N(0,1)&nbsp; |&nbsp; volta: X = μ + Z·σ
-</div>
-<div class="col2">
+<div class="formula">X ~ N(μ,σ²) | Z=(X−μ)/σ → N(0,1) | volta: X=μ+Z·σ</div>
 <pre>
-P(X&lt;a)     = DIST.NORM.N(a;μ;σ;1)
-P(X&gt;a)     = 1 − DIST.NORM.N(a;μ;σ;1)
-P(a&lt;X&lt;b)   = DIST.NORM.N(b;μ;σ;1)
-             − DIST.NORM.N(a;μ;σ;1)
+P(X&lt;a)    = DIST.NORM.N(a;μ;σ;1)
+P(X&gt;a)    = 1 − DIST.NORM.N(a;μ;σ;1)
+P(a&lt;X&lt;b)  = DIST.NORM.N(b;μ;σ;1) − DIST.NORM.N(a;μ;σ;1)
+INVERSO   = INV.NORM.N(p_acum;μ;σ)
+  P(X&gt;k)=5% → passa 0,95 (acum. à esquerda, não 0,05)
 </pre>
-<pre>
-INVERSO (área → valor):
- valor = INV.NORM.N(p_acum;μ;σ)
- P(X&gt;k)=5% → passa 0,95
- (acumulada à esquerda, não 0,05)
-</pre>
+<div class="key">σ é desvio, NÃO variância (deu variância, tira a raiz). Empírica: ±1σ≈68%, ±2σ≈95%, ±3σ≈99,7%.</div>
+<div class="warn"><b>Dois eventos independentes:</b> prob de cada pela Normal e <b>multiplica</b>. <b>Quantidade esperada</b> = probabilidade × total.</div>
 </div>
-<div class="key">σ é desvio, NÃO variância (deu variância, tira a raiz). Regra empírica: μ±1σ ≈ 68%, μ±2σ ≈ 95%, μ±3σ ≈ 99,7%.</div>
-<div class="warn"><b>Dois eventos independentes:</b> calcula a probabilidade de cada um pela Normal e <b>multiplica</b>. &nbsp; <b>Quantidade esperada</b> = probabilidade × total (arredonda só se pedir quantidade inteira).</div>
 
-<!-- ===================== PÁGINA 3 ===================== -->
-<div class="pagebreak"></div>
-<h1>Folha de Consulta Cumulativa · Estatística I <span class="pg">3/4 · Amostragem e intervalos de confiança</span></h1>
-
+<div class="sec">
 <h2>10 · Distribuição amostral da média</h2>
-<div class="formula">
-E(X̄) = μ&nbsp; |&nbsp; Var(X̄) = σ²/n&nbsp; |&nbsp; DP(X̄) = σ/√n (erro padrão)&nbsp; |&nbsp; X~N(μ,σ²) ⟹ X̄~N(μ,σ²/n)
+<div class="formula">E(X̄)=μ | Var(X̄)=σ²/n | DP(X̄)=σ/√n (erro padrão) | X~N ⟹ X̄~N(μ,σ²/n)</div>
+<div class="warn"><b>Hierarquia:</b> σ (indivíduos na pop) · S (indivíduos numa amostra) · σ/√n (entre médias). 1 observação usa σ; média de n usa σ/√n. Pra metade do erro, quadruplica n.</div>
 </div>
-<div class="warn"><b>Hierarquia de desvios:</b> σ (indivíduos na pop) · S (indivíduos numa amostra) · σ/√n (entre médias amostrais). Pergunta sobre 1 observação usa σ; sobre média de n usa σ/√n. Erro cai com √n: pra metade do erro, quadruplica n.</div>
 
+<div class="sec">
 <h2>11 · Teorema do Limite Central</h2>
-<div class="key"><b>n &gt; 30 ⟹ X̄ ≈ Normal</b>, qualquer que seja o formato de X. Age sobre a média X̄, NUNCA sobre o indivíduo X. <b>Soma → média:</b> P(X₁+…+Xₙ &gt; k) = P(X̄ &gt; k/n).</div>
+<div class="key"><b>n &gt; 30 ⟹ X̄ ≈ Normal</b>, qualquer formato de X. Age sobre X̄, nunca sobre o X individual. <b>Soma → média:</b> P(ΣXᵢ &gt; k) = P(X̄ &gt; k/n).</div>
+</div>
 
+<div class="sec">
 <h2>12 · Amostragem e vieses</h2>
 <ul>
-<li><b>Aleatória simples (AAS):</b> cada elemento tem a mesma chance. Estimador não viesado, E(p̂) = p.</li>
-<li><b>Voluntária / site:</b> não probabilística, sofre viés de autosseleção (só responde quem quer).</li>
-<li><b>Amostra grande NÃO conserta plano ruim.</b> 1000 respostas viesadas continuam viesadas. Pra contestar uma pesquisa, ataca a coleta, não o tamanho.</li>
+<li><b>Aleatória simples (AAS):</b> mesma chance pra cada um. Estimador não viesado, E(p̂)=p.</li>
+<li><b>Voluntária/site:</b> não probabilística, viés de autosseleção.</li>
+<li><b>Amostra grande NÃO conserta plano ruim.</b> Pra contestar pesquisa, ataca a coleta, não o tamanho.</li>
 </ul>
+</div>
 
+<div class="sec">
 <h2>13 · IC para a média</h2>
 <div class="formula">
-σ conhecido:&nbsp; X̄ ± Z<sub>α/2</sub> · σ/√n<br>
-σ desconhecido:&nbsp; X̄ ± T<sub>α/2, n−1</sub> · S/√n&nbsp; (gl = n−1)
+σ conhecido: X̄ ± Z<sub>α/2</sub>·σ/√n<br>
+σ desconhecido: X̄ ± T<sub>α/2,n−1</sub>·S/√n&nbsp; (gl=n−1)
 </div>
-<div class="col2">
-<div class="key"><b>"Se puser S, ponha T."</b> T sempre correto; Z só com σ conhecido (ou n &gt; 50 aprox). T obrigatório se n ≤ 50.</div>
-<div class="key"><b>Achar o outro limite por simetria:</b> IC = [a ; K] e X̄ no centro ⟹ <b>K = 2·X̄ − a</b>. Ex: IC=[10;K], X̄=30 → K=50.</div>
-</div>
+<div class="key"><b>"Se puser S, ponha T."</b> T sempre correto; Z só com σ conhecido (ou n&gt;50 aprox); T obrigatório se n≤50.</div>
+<div class="key"><b>Achar o outro limite (simetria):</b> IC=[a;K], X̄ no centro ⟹ <b>K = 2·X̄ − a</b>. Ex: [10;K], X̄=30 → K=50.</div>
 <pre>
-Z = INV.NORM.P.N(1−α/2)   ·   T = INV.T(1−α/2;n−1)   ·   atalho E = INT.CONFIANÇA.NORM/T(α; σ ou S; n)  [recebe α]
+Z = INV.NORM.P.N(1 − α/2)
+T = INV.T(1 − α/2 ; n−1)
+E atalho = INT.CONFIANÇA.NORM/T(α; σ ou S; n)  [recebe α]
 </pre>
+</div>
 
-<h2>14 · IC para proporção + tamanho de amostra</h2>
+<div class="sec">
+<h2>14 · IC proporção + tamanho de amostra</h2>
 <div class="formula">
-IC proporção:&nbsp; p̂ ± Z<sub>α/2</sub> · √( p̂(1−p̂)/n )&nbsp; <b>(sempre Z)</b>. Condição: n·p̂ ≥ 5 e n·(1−p̂) ≥ 5.<br>
-n média = ( Z<sub>α/2</sub>·σ / E )²&nbsp; |&nbsp; n prop = Z<sub>α/2</sub>²·0,25/E² (sem p̂)&nbsp; ou&nbsp; Z<sub>α/2</sub>²·p̂(1−p̂)/E² (com p̂)
+IC proporção: p̂ ± Z<sub>α/2</sub>·√(p̂(1−p̂)/n)&nbsp; <b>(sempre Z)</b>. Cond: n·p̂≥5 e n·(1−p̂)≥5.<br>
+n média = (Z<sub>α/2</sub>·σ/E)²&nbsp; |&nbsp; n prop = Z<sub>α/2</sub>²·0,25/E² (sem p̂) ou Z<sub>α/2</sub>²·p̂(1−p̂)/E² (com p̂)
 </div>
-<div class="warn">n sempre arredonda <b>PARA CIMA</b>. "Margem de 2 pontos" = E = <b>0,02</b>, não 2.</div>
+<div class="warn">n arredonda <b>PARA CIMA</b>. "Margem de 2 pontos" = E = <b>0,02</b>, não 2.</div>
+</div>
 
-<h2>15 · Interpretação do IC (conceitual)</h2>
+<div class="sec">
+<h2>15 · Interpretação do IC</h2>
 <div class="key">
-<b class="true">Certo:</b> "γ% dos intervalos construídos assim contêm μ" (propriedade do procedimento).<br>
-<b class="false">Errado:</b> "γ% de chance de μ estar nesse IC" (μ é FIXO, sem distribuição). P(X̄ está no IC) = 100%, não γ%.
+<b class="true">Certo:</b> "γ% dos intervalos construídos contêm μ" (procedimento).<br>
+<b class="false">Errado:</b> "γ% de chance de μ estar nesse IC" (μ é fixo). P(X̄ no IC) = 100%.
+</div>
 </div>
 
-<!-- ===================== PÁGINA 4 ===================== -->
-<div class="pagebreak"></div>
-<h1>Folha de Consulta Cumulativa · Estatística I <span class="pg">4/4 · Decisão, Excel e armadilhas</span></h1>
-
+<div class="sec">
 <h2>16 · Árvore de decisão geral</h2>
 <pre>
-1. A variável é DISCRETA (conta casos) ou CONTÍNUA (mede)?
-   DISCRETA → tabela (E,Var) · binomial (n tentativas s/f) · Poisson (contagem por intervalo)
-   CONTÍNUA → uniforme · exponencial (espera) · Normal (sino)
-
-2. É INFERÊNCIA (estimar parâmetro a partir de amostra)?
-   PROPORÇÃO?  SIM → Z + √(p̂(1−p̂)/n)
-               NÃO → MÉDIA:  σ dado? SIM → Z
-                                     NÃO (só S) → n>50 ? Z aprox  |  n≤50 ? T (gl=n−1)
-   X̄ é Normal?  X normal pelo enunciado → qualquer n
-                n>30 → TLC salva
-                senão → IC INVÁLIDO
+DISCRETA? → tabela(E,Var) · binomial · Poisson
+CONTÍNUA? → uniforme · exponencial · Normal
+INFERÊNCIA (estimar parâmetro)?
+  PROPORÇÃO → Z + √(p̂(1−p̂)/n)
+  MÉDIA: σ dado → Z
+         só S  → n&gt;50: Z aprox
+                 n≤50: T (gl=n−1)
+  X̄ normal? X normal → qq n
+            n&gt;30 → TLC
+            senão → INVÁLIDO
 </pre>
+</div>
 
-<h2>17 · Roteiro mecânico (IC e Normal)</h2>
+<div class="sec">
+<h2>17 · Roteiro mecânico</h2>
 <ol>
-<li>Tipo: área/valor da Normal · média · proporção · tamanho de amostra · conceitual.</li>
-<li>Inventário: tem n, X̄ ou p̂, σ ou S, γ, E? O que falta?</li>
-<li>Z ou T: tem σ → Z. Só S → T (obrigatório se n ≤ 50).</li>
-<li>X̄ normal? X normal pelo enunciado OU n &gt; 30. Senão, IC inválido.</li>
-<li>α/2 → crítico. Erro padrão: σ/√n, S/√n, ou √(p̂(1−p̂)/n).</li>
-<li>E = crítico · erro padrão → IC = estimativa ± E. Pediu n? Inverte e arredonda pra cima.</li>
-<li>No Excel, vincula células e nunca arredonda no meio do cálculo.</li>
+<li>Tipo: área/valor, média, proporção, n, conceitual.</li>
+<li>Inventário: n, X̄ ou p̂, σ ou S, γ, E. O que falta?</li>
+<li>Z ou T: tem σ → Z; só S → T (obrig. se n≤50).</li>
+<li>X̄ normal? X normal OU n&gt;30. Senão, inválido.</li>
+<li>α/2 → crítico. Erro padrão: σ/√n, S/√n, √(p̂(1−p̂)/n).</li>
+<li>E = crítico · erro padrão → IC = estimativa ± E.</li>
+<li>Pediu n? Inverte e arredonda pra cima. No Excel, não arredonda no meio.</li>
 </ol>
+</div>
 
+<div class="sec">
 <h2>18 · Excel consolidado</h2>
-<div class="col3">
 <pre>
 DISCRETAS
-E(X)=SOMARPRODUTO(val;prob)
-Var=E(X²)−E(X)²
-COMBIN(n;k)
-DISTR.BINOM.N(k;n;p;0/1)
-INV.BINOM(n;p;prob)
-DISTR.POISSON(k;μ;0/1)
+E(X)=SOMARPRODUTO(val;prob) · Var=E(X²)−E(X)²
+COMBIN(n;k) · DISTR.BINOM.N(k;n;p;0/1)
+INV.BINOM(n;p;prob) · DISTR.POISSON(k;μ;0/1)
 </pre>
 <pre>
 NORMAL
-DIST.NORM.N(x;μ;σ;1)
-DIST.NORM.P.N(z;1)
-INV.NORM.N(p_ac;μ;σ)
-INV.NORM.P.N(1−α/2)
+DIST.NORM.N(x;μ;σ;1) · DIST.NORM.P.N(z;1)
+INV.NORM.N(p_ac;μ;σ) · INV.NORM.P.N(1−α/2)
 γ de Z = 2*DIST.NORM.P.N(Z;1)−1
 </pre>
 <pre>
 IC e DADOS
-INV.T(1−α/2;n−1)
-INV.T.BC(α;n−1)
-INT.CONFIANÇA.NORM(α;σ;n)
-INT.CONFIANÇA.T(α;S;n)
-X̄=MÉDIA() · S=DESVPAD.A()
-σ=DESVPAD.P() · ARREDONDAR.PARA.CIMA(x;0)
+INV.T(1−α/2;n−1) · INV.T.BC(α;n−1)
+INT.CONFIANÇA.NORM(α;σ;n) · .T(α;S;n)
+X̄=MÉDIA() · S=DESVPAD.A() · σ=DESVPAD.P()
+ARREDONDAR.PARA.CIMA(x;0)
 p̂=CONT.SE(int;"sim")/CONT.NÚM(int)
 </pre>
 </div>
 
+<div class="sec">
 <h2>19 · Suposições para o IC valer</h2>
 <ul>
-<li><b>IC de média:</b> X̄ normal (X já normal em qualquer n, OU n &gt; 30 pelo TLC) + amostragem aleatória simples.</li>
-<li><b>IC de proporção:</b> n·p̂ ≥ 5 e n·(1−p̂) ≥ 5 + AAS. Amostra pequena + X não-normal = não dá IC.</li>
+<li><b>Média:</b> X̄ normal (X normal em qualquer n, OU n&gt;30 TLC) + AAS.</li>
+<li><b>Proporção:</b> n·p̂≥5 e n·(1−p̂)≥5 + AAS. Amostra pequena + X não-normal = não dá IC.</li>
 </ul>
-
-<h2>20 · Pegadinhas e checklist final</h2>
-<div class="warn">
-<b>1.</b> Variância onde o Excel quer desvio (tira a raiz).&nbsp;
-<b>2.</b> DIST.NORM.N dá a área à ESQUERDA (direita = 1 menos).&nbsp;
-<b>3.</b> INV.NORM.N pede a acumulada, não a cauda (P(X&gt;k)=5% → 0,95).&nbsp;
-<b>4.</b> σ no lugar de σ/√n quando a pergunta é sobre a média de n.&nbsp;
-<b>5.</b> Z com σ desconhecido e n pequeno (era T).&nbsp;
-<b>6.</b> gl = n em vez de n − 1.&nbsp;
-<b>7.</b> Transformação linear: esquecer b² na variância, ou que a some.&nbsp;
-<b>8.</b> "Ao menos k" binomial = 1 − P(X ≤ k−1), não 1 − P(X ≤ k).&nbsp;
-<b>9.</b> "Margem de 2 pontos" = E = 0,02; porcentagem no Excel é 0,20, não 20.&nbsp;
-<b>10.</b> Não arredondar o tamanho de amostra pra cima.&nbsp;
-<b>11.</b> Confundir μ (fixo) com X̄ (aleatório) no conceitual.
 </div>
-<div class="key"><b>Checklist antes de cada questão:</b> média, proporção, indivíduo ou contagem? · desvio populacional conhecido? · independente (multiplica)? · "ao menos / no máximo"? · porcentagem em decimal? &nbsp;|&nbsp; <b>Regra de ouro:</b> "se puser S, ponha T".</div>
 
+<div class="sec">
+<h2>20 · Pegadinhas e checklist</h2>
+<div class="warn">
+<b>1.</b> Variância onde o Excel quer desvio (tira a raiz). <b>2.</b> DIST.NORM.N dá a ESQUERDA (direita = 1 menos). <b>3.</b> INV.NORM.N pede a acumulada, não a cauda (P(X&gt;k)=5%→0,95). <b>4.</b> σ no lugar de σ/√n na média de n. <b>5.</b> Z com σ desconhecido e n pequeno (era T). <b>6.</b> gl=n em vez de n−1. <b>7.</b> Transf. linear: esquecer b² ou que a some. <b>8.</b> "Ao menos k" = 1−P(X≤k−1). <b>9.</b> "2 pontos" = E=0,02; % no Excel é 0,20. <b>10.</b> n não arredondado pra cima. <b>11.</b> μ (fixo) vs X̄ (aleatório) no conceitual.
+</div>
+<div class="key"><b>Checklist:</b> média, proporção, indivíduo ou contagem? · σ conhecido? · independente (multiplica)? · "ao menos / no máximo"? · % em decimal? &nbsp;|&nbsp; <b>Regra de ouro: "se puser S, ponha T".</b></div>
+</div>
+
+</div>
 </body>
 </html>
