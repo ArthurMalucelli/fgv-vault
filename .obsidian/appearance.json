@@ -1,12 +1,13 @@
 {
-  "baseFontSize": 16,
+  "baseFontSize": 14,
   "theme": "obsidian",
-  "translucency": false,
+  "translucency": true,
   "interfaceFontFamily": "",
   "textFontFamily": "",
   "monospaceFontFamily": "",
   "showViewHeader": true,
   "nativeMenus": true,
   "cssTheme": "Cupertino",
-  "accentColor": "#113a69"
+  "accentColor": "#113a69",
+  "baseFontSizeAction": false
 }
