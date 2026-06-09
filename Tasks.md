@@ -37,6 +37,7 @@ Marcar como feita: clica no checkbox ou troca `[ ]` por `[x]`.
 <!-- A skill adiciona tasks aqui automaticamente quando processa transcript -->
 
 - [ ] Prova final OC (unificada, 15h) #oc 📅 2026-06-11 🔺
+- [ ] Prova final Produtos Financeiros (cumulativa pós-parcial: listas 4/6/7/8/9/10, sem amortização) #pf 📅 2026-06-10 🔺
 - [ ] Entrega trabalho final OC: PDF dos slides + link do vídeo (até 14h59) #oc 📅 2026-06-01 🔺
 - [x] Último exercício OC: análise EBIT/Reclame Aqui via GenAI (escolher loja, classificar elogios/reclamações por categoria, texto analítico ligando a prioridades competitivas, upload Word no E-Class até 16h40) #oc ⏫ 📅 2026-05-18 ✅ 2026-05-24
 - [x] Exercício individual E-Class letra 15: Ishikawa + Pareto + PDCA (até 23h59) #oc ⏫ 📅 2026-05-10 ✅ 2026-05-24
