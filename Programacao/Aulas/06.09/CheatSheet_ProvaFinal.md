@@ -8,7 +8,7 @@ tags: [resumo, prova, cheatsheet, programacao]
 
 # Cheat Sheet, Prova Final de Programação
 
-Base: 3 provas (`FinalFunProg202501`, `FinalFunProg202502`, `prova_simulado_202502`) na mesma pasta. As três têm o **mesmo esqueleto**: 5 questões, sempre os mesmos 5 tipos. Domine os 5 moldes e você fecha a prova. Treine resolvendo as 3 provas sozinho, este arquivo é o gabarito de **padrão**, não de resposta.
+Base: 3 finais individuais (`FinalFunProg202501`, `FinalFunProg202502`, `prova_simulado_202502`) + o gabarito da atividade em grupo (`AGP2025_GABARITO`, análise de dados), todos na mesma pasta. O professor sinalizou que a final pode ser **mista**: programação básica E análise de dados. Por isso o sheet tem duas camadas: os **5 arquétipos** dos finais (Q1 a Q5) e um **bloco extra de pandas-análise** (estilo AGP). Domine os moldes e você fecha. Este arquivo é gabarito de **padrão**, não de resposta: treine resolvendo sozinho.
 
 ## Mapa de pontos (onde investir tempo)
 
@@ -20,7 +20,7 @@ Base: 3 provas (`FinalFunProg202501`, `FinalFunProg202502`, `prova_simulado_2025
 | Q4 | Manipular [[DataFrame]] | 2,0 a 2,5 | Por rubrica |
 | Q5 | Parsear strings num laço | 3,0 | Por etapa |
 
-Q3 + Q4 + Q5 = 7 a 8 pontos nos três de código. É onde o jogo é ganho. Q1/Q2 são rápidos: responde, justifica, segue.
+Q3 + Q4 + Q5 = 7 a 8 pontos nos três de código. É onde o jogo é ganho. Q1/Q2 são rápidos: responde, justifica, segue. Se a final puxar análise de dados, o peso migra pras questões de `groupby`/`pivot`/`merge` (bloco extra no fim): mesma lógica, o grosso do ponto está em manipular o DataFrame certo.
 
 ---
 
@@ -231,6 +231,74 @@ Pedido `"Cliente001,Produto002,250"` para `Cliente001 - Produto002 - 250 unidade
 
 ---
 
+## Bloco extra, análise de dados com pandas (estilo AGP, pode cair junto)
+
+Aqui o pandas opera no DataFrame **inteiro de uma vez** (vetorizado), sem `for`. Discriminador rápido: se a questão te dá um dataset grande e pede média/ranking/cruzamento, é este bloco. Se te dá uma lista de strings pra processar item a item, é a Q5 (laço).
+
+### Carregar e explorar
+CSV brasileiro exige `sep` e `decimal`, senão o número vem como texto e toda conta quebra:
+```python
+import pandas as pd
+df = pd.read_csv("postos_sp_2025.csv", sep=";", decimal=",")
+
+df.shape                                              # (n_linhas, n_colunas)
+list(df.columns)                                      # nomes das colunas
+df["Produto"].value_counts()                          # conta cada categoria
+df["Valor de Venda"].agg(["min", "mean", "max"]).round(2)   # 3 stats numa operação só
+```
+
+### Criar coluna derivada (vetorizado, sem laço)
+```python
+df["Total"] = df["Preço"] * df["Quantidade"]          # cálculo entre colunas
+
+# data "DD/MM/AAAA" -> "AAAA-MM" fatiando a coluna toda com .str[] (verificado):
+df["Mes"] = df["Data da Coleta"].str[6:10] + "-" + df["Data da Coleta"].str[3:5]
+# alternativa datetime:
+# df["Mes"] = pd.to_datetime(df["Data da Coleta"], dayfirst=True).dt.to_period("M").astype(str)
+```
+Esse `.str[6:10]` é a versão vetorizada do `s[6:8]` que você usa no laço da Q5. Mesma ideia de [[Fatiamento lógico]], aplicada na coluna inteira.
+
+### Agrupar, resumir, rankear
+```python
+df.groupby("Bandeira")["Margem"].mean().sort_values(ascending=False)   # ranking
+df.groupby("Produto")["Valor"].agg(["mean", "max"])                    # vários stats por grupo
+serie.sort_values().head(5)                                            # top 5 menores
+```
+
+### pivot_table (cada valor de uma coluna vira uma coluna)
+```python
+comparacao = df.pivot_table(index=["Municipio", "Mes"],
+                            columns="Produto",
+                            values="Valor de Venda",
+                            aggfunc="mean").reset_index()
+comparacao.columns.name = None        # limpa o rótulo "Produto" do cabeçalho
+```
+
+### merge (cruzar dois DataFrames pelas chaves em comum)
+```python
+dados = pd.merge(postos, distribuicao, on=["Municipio", "Mes", "Produto"])
+```
+
+### Classificar sem if (vetorizado)
+```python
+df["Razao"] = df["ETANOL"] / df["GASOLINA"]
+df["Vantajoso"] = (df["Razao"] <= 0.708).replace({True: "Etanol", False: "Gasolina"})
+# alternativa robusta: np.where(df["Razao"] <= 0.708, "Etanol", "Gasolina")
+ge = df[df["Produto"].isin(["GASOLINA", "ETANOL"])]   # filtrar vários valores de uma vez
+```
+
+**O que zera ponto na análise:**
+- CSV brasileiro: faltar `decimal=","` faz o número virar texto e toda conta quebra. `sep=";"` separa as colunas certas.
+- `pivot_table` / `groupby` sem `.reset_index()` devolve índice multinível em vez de colunas comuns.
+- `merge` tem que usar TODAS as chaves certas. Faltar uma (ex: `Produto`) cruza gasolina com preço de etanol e multiplica linhas.
+- `.agg(["min","mean","max"])` resolve numa operação só. Se a questão pede "uma única operação", três chamadas separadas perdem ponto.
+- `<=` vs `<` no limiar muda a classificação (verificado: `0.708 <= 0.708` é `True`). Lê o enunciado.
+- É tudo vetorizado: usar `for` aqui geralmente é o caminho errado.
+- Interpretação: quando pede análise (qual município, qual bandeira, decisão de investimento), os dados sozinhos não decidem. Cite o que eles NÃO capturam (custos da franquia, volume real, risco, concorrência). É onde mora o meio ponto.
+- Amostra pequena engana: uma "maior margem" baseada em 22 registros é frágil. Se notar, comente em vez de só responder o literal.
+
+---
+
 ## Kit de sobrevivência (cola rápida)
 
 | Preciso | Código |
@@ -239,9 +307,17 @@ Pedido `"Cliente001,Produto002,250"` para `Cliente001 - Produto002 - 250 unidade
 | Validar inteiro | `if texto.isdigit():` |
 | Normalizar texto | `texto.upper()` / `.lower()` / `.strip()` |
 | Carregar planilha / csv | `pd.read_excel("a.xlsx")` / `pd.read_csv("a.csv")` |
+| Carregar CSV brasileiro | `pd.read_csv("a.csv", sep=";", decimal=",")` |
 | Trocar valor condicional | `df.loc[df["col"]==x, "alvo"] = v` |
 | Criar coluna | `df["nova"] = df["a"] * df["b"]` |
 | Somar coluna | `df["col"].sum()` |
+| Vários stats de uma vez | `df["col"].agg(["min","mean","max"])` |
+| Contar categorias | `df["col"].value_counts()` |
+| Média por grupo (ranking) | `df.groupby("g")["v"].mean().sort_values(ascending=False)` |
+| Fatiar coluna de texto | `df["col"].str[6:10]` |
+| Filtrar vários valores | `df["col"].isin(["A","B"])` |
+| Reorganizar linhas×colunas | `df.pivot_table(index=..., columns=..., values=..., aggfunc="mean").reset_index()` |
+| Cruzar dois DataFrames | `pd.merge(a, b, on=["chave1","chave2"])` |
 | Pegar 1 célula filtrada | `df.loc[df["id"]==x, "col"].values[0]` |
 | Existe valor na coluna? | `x in df["col"].values` |
 | Separar string | `"a,b,c".split(",")` |
@@ -252,12 +328,14 @@ Pedido `"Cliente001,Produto002,250"` para `Cliente001 - Produto002 - 250 unidade
 
 - Preencha a Q0 (nome, turma `AE_`, código) sem apagar os `#` nem o texto pré-existente.
 - Ordem sugerida: Q1 e Q2 primeiro (conceito, rápido, 2 pontos), depois Q5 (3 pontos), depois Q3 e Q4. Se travar na Q1/Q2 (sem parcial), não insista, volta depois.
+- Discriminador de questão: dataset grande pedindo média/ranking/cruzamento é pandas vetorizado (bloco extra), não laço. Lista de strings pra processar item a item é Q5 (laço). Saber qual é qual já é meio caminho.
 - Q3 e Q4 sem parcial dentro da rubrica: melhor **um** cenário 100% certo que vários meio certos. Teste o exemplo dado E um caso de borda (faixa limite, estado fora da lista, id inexistente).
 - Não tente rodar nada com URL: a internet da prova é bloqueada. Use os arquivos locais.
 - Código tem que servir pra qualquer cenário, nunca hardcode o exemplo do enunciado.
 
 ## Pra fixar
 
+**Programação básica:**
 - [[input]]
 - [[Condicional]]
 - [[loc]]
@@ -266,3 +344,13 @@ Pedido `"Cliente001,Produto002,250"` para `Cliente001 - Produto002 - 250 unidade
 - [[split]]
 - [[isdigit]]
 - [[Fatiamento lógico]]
+
+**Análise de dados:**
+- [[read_csv]]
+- [[value_counts]]
+- [[groupby]]
+- [[agg]]
+- [[pivot_table]]
+- [[merge]]
+- [[isin]]
+- [[str accessor]]
