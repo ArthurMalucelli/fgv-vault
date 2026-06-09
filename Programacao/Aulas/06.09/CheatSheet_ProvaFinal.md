@@ -10,6 +10,8 @@ tags: [resumo, prova, cheatsheet, programacao]
 
 Base: 3 finais individuais (`FinalFunProg202501`, `FinalFunProg202502`, `prova_simulado_202502`) + o gabarito da atividade em grupo (`AGP2025_GABARITO`, análise de dados), todos na mesma pasta. O professor sinalizou que a final pode ser **mista**: programação básica E análise de dados. Por isso o sheet tem duas camadas: os **5 arquétipos** dos finais (Q1 a Q5) e um **bloco extra de pandas-análise** (estilo AGP). Domine os moldes e você fecha. Este arquivo é gabarito de **padrão**, não de resposta: treine resolvendo sozinho.
 
+> **Pra treinar:** `SimuladoFinalCompleto.ipynb` (mesma pasta) cobre os 5 arquétipos + a camada de análise, com saídas esperadas verificadas pra auto-conferência. Gabarito comentado em `SimuladoFinalCompleto_GABARITO.ipynb`, só abrir depois de tentar.
+
 ## Mapa de pontos (onde investir tempo)
 
 | Questão | Tipo | Pontos | Pontuação parcial? |
