@@ -7,5 +7,6 @@
   "monospaceFontFamily": "",
   "showViewHeader": true,
   "nativeMenus": true,
-  "cssTheme": "GitHub Theme"
+  "cssTheme": "Cupertino",
+  "accentColor": "#113a69"
 }
