@@ -36,6 +36,7 @@ Marcar como feita: clica no checkbox ou troca `[ ]` por `[x]`.
 
 <!-- A skill adiciona tasks aqui automaticamente quando processa transcript -->
 
+- [ ] Prova final Programação (notebook Jupyter, 5 questões: conceito, ler pandas, if+validação, DataFrame, parse de strings) #prog 📅 2026-06-10 🔺
 - [ ] Prova final OC (unificada, 15h) #oc 📅 2026-06-11 🔺
 - [ ] Prova final Produtos Financeiros (cumulativa pós-parcial: listas 4/6/7/8/9/10, sem amortização) #pf 📅 2026-06-10 🔺
 - [ ] Entrega trabalho final OC: PDF dos slides + link do vídeo (até 14h59) #oc 📅 2026-06-01 🔺
