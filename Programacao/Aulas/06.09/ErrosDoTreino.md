@@ -37,6 +37,15 @@ Vírgula em Python cria **tupla**: `x / 1000 * 1,2` vira `(x/1000*1, 2)`. Decima
 **9. Q4C, `IndentationError: unexpected indent`.**
 Um espaço a mais antes de `imc` dentro do bloco do `if`. Linhas do mesmo bloco começam TODAS na mesma coluna. Quando o erro fala de indentação, é espaço, não lógica: seleciona o bloco e alinha com `Cmd+[` / `Cmd+]`.
 
+**10. Q4C, print colando string e variável: `print("Paciente" input_id, ...)`.**
+SyntaxError. Saída formatada é caso de f-string: `print(f"Paciente {input_id} (IMC: {imc:.1f}) – Risco: {risco}")`. O `f` liga o modo, `{}` avalia variável, resto é literal. Montar formato exato com vírgulas de print não funciona (espaços sobrando).
+
+**11. Q4C, coluna inteira onde era a linha do paciente.**
+`pacientes["fumante"] == "sim"` compara a COLUNA (1000 valores) e dá `ValueError: truth value of a Series is ambiguous` dentro do if. Depois do `.iloc[0]`, todos os dados do paciente vêm de `linha[...]`, nunca de `pacientes[...]`. Tabela = todo mundo; linha = o paciente.
+
+**12. Q4C, `and` onde o enunciado diz "OU" (regra 3).**
+Com `and`, jovem obeso não-fumante caía em risco baixo. Traduzir conectivo do enunciado literalmente: OU = `or`, E = `and`, e a ordem das regras é a prioridade do `elif`.
+
 ## Dúvidas tiradas (conceitos pra fixar)
 
 **`print()` vs auto-display no Jupyter:** célula de notebook exibe sozinha só a ÚLTIMA expressão. Script `.py` não exibe nada sem print. Pra prova: usa `print` sempre que o enunciado pedir "apresente/imprima", e obrigatório quando precisa mostrar mais de uma coisa na mesma célula.
@@ -51,12 +60,23 @@ Um espaço a mais antes de `imc` dentro do bloco do `if`. Linhas do mesmo bloco 
 
 **O que é `.iloc[0]`:** filtro devolve TABELA (mesmo com 1 linha só); `.iloc[0]` pega a linha na POSIÇÃO 0 dessa tabela como Series. `iloc` = por posição física, `loc` = por nome do índice (a linha filtrada mantém o índice original, então `.loc[0]` quebraria). Cadeia: filtrar → tabela; `.iloc[0]` → linha; `linha["col"]` → valor.
 
+**Texto + variável no print, os 3 jeitos:** Python não tem justaposição (`"texto" variavel` é SyntaxError; tudo precisa de vírgula, operador ou estar numa string só).
+
+```python
+print("Paciente", x, "(IMC:", imc, ")")    # vírgulas: espaço automático entre args, suja formato exato
+print("Paciente " + str(x))                # +: exige str() em tudo
+print(f"Paciente {x} (IMC: {imc:.1f})")    # f-string: controle total, USAR ESTE
+```
+
+Anatomia do f-string: `f` antes das aspas liga o modo; `{}` avalia variável/expressão; resto sai literal. `{imc:.1f}` = "imc com 1 casa decimal" (antes do `:` o quê, depois o como). Mesmo mecanismo de `{total:.2f}`. Em formato exato, f-string é o único dos 3 que serve.
+
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
 
 ## Padrões recorrentes (o meta-erro)
 
 - **TODO input() nasce string (3 ocorrências hoje).** A primeira pergunta depois de qualquer input: "converto pra quê?". Comparação ou conta com número exige `int()`/`float()` na mesma linha.
+- **Aplicar só o primeiro conserto da lista e re-rodar (2 ocorrências: Q3 e Q4C).** Correção é checklist: aplicar TODAS, riscando uma a uma, depois rodar. Na prova: conferir cada exigência do enunciado contra o código, item a item.
 - **Achar que método altera a variável in place.** Strings são imutáveis: `int()`, `.upper()`, `.replace()`, `.split()` retornam valor novo. Sempre atribuir.
 - **Testar só o caminho feliz.** Os bugs sobreviveram a 2 rodadas porque o teste era sempre o mesmo input confortável.
 - **Tradução literal da fala pra lógica.** "Não é D nem N" não vira `!= "D" or "N"`. Montar a tabela mental: cada lado do `and`/`or` precisa ser comparação completa.
