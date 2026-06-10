@@ -76,6 +76,11 @@ Anatomia do f-string: `f` antes das aspas liga o modo; `{}` avalia variável/exp
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
 
+**As 3 ferramentas de análise, traduzidas do Excel:**
+- `pivot_table` = Tabela Dinâmica: `index`=Linhas, `columns`=Colunas, `values`=Valores, `aggfunc`=Resumir por. Fechar com `.reset_index()` + `columns.name = None`.
+- `merge` = PROCV com N chaves: `pd.merge(a, b, on=["chave1", "chave2"])`. Chave faltando multiplica linhas; teste = shape preservado.
+- `groupby` = Tabela Dinâmica de uma medida: `df.groupby("grupo")["valor"].mean().sort_values(ascending=False)` = ranking pronto.
+
 **Fatiar coluna de texto: acessor `.str`.** `df["col"].str[0:3]` = o `s[0:3]` de string solta, aplicado em cada linha. Fatia com `:` SÓ existe dentro de colchetes (`(0:3)` é SyntaxError; `.pos()` não existe). `.str` também dá `.str.upper()`, `.str.replace()` etc. Comparar com coluna numérica exige `.astype(str)` ("163" != 163).
 
 **Vários stats numa operação: `.agg(["min", "mean", "max"]).round(2)`.** Lista escolhe as funções; uma chamada só (exigência típica de enunciado). `.describe()` é o primo que cospe tudo sem escolher. Funciona em coluna e em `groupby` também.
