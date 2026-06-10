@@ -73,6 +73,10 @@ Anatomia do f-string: `f` antes das aspas liga o modo; `{}` avalia variável/exp
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
 
+**Indexação de lista, `partes[0]`:** lista é fila de caixinhas numeradas DO ZERO. `split` = Texto para Colunas do Excel: `"Ana,8.5".split(",")` → `["Ana", "8.5"]`, onde `partes[0]` é "Ana" e `partes[1]` é "8.5". Batizar (`nome = partes[0]`) é opcional mas evita trocar campo. Mesmo zero de `meses[int(mes)-1]` e `.iloc[0]`: Python conta tudo do 0. Atalho: `loja, nota, valor = reg.split("|")` batiza os 3 de uma vez.
+
+**Padrão ACUMULADOR (o esqueleto da Q5, 3,0 pts em toda prova):** acumuladores nascem zerados FORA do laço; crescem DENTRO (`contador += 1`, `total += valor`); o print de cada item fica dentro, o totalizador fica DEPOIS do laço, sem indentação (indentado = imprime a cada item). Dentro do laço a ordem é: split → batizar pedaços → converter numérico (`float`/`int`, split devolve str) → acumular → print do item.
+
 ## Padrões recorrentes (o meta-erro)
 
 - **TODO input() nasce string (3 ocorrências hoje).** A primeira pergunta depois de qualquer input: "converto pra quê?". Comparação ou conta com número exige `int()`/`float()` na mesma linha.
