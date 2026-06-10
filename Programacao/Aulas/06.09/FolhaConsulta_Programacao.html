@@ -78,6 +78,15 @@
 </div>
 
 <div class="nobreak">
+<h2>3b · LAÇOS: FOR vs WHILE</h2>
+<pre>for t in range(3):    # nº de voltas CONHECIDO antes
+for item in lista:    # visita cada item da coleção
+while saldo >= 4:     # repete ENQUANTO a condição valer
+    saldo -= 4        # algo muda a cada volta</pre>
+<div class="warn">⚠ Ambos rodam; o MAIS apropriado (justifica!): quantidade fixa antes do laço = <code>for</code> · "enquanto tiver/der/valer" = <code>while</code>. "R$40 dá 10 tentativas" é isca: saldo é variável, a regra de parada é condição, não contagem.</div>
+</div>
+
+<div class="nobreak">
 <h2>4 · CRIAR / LER DATAFRAME</h2>
 <table>
 <tr><td class="c"><code>import pandas as pd</code></td><td>sempre primeiro</td></tr>
@@ -90,7 +99,7 @@
   "time":   ["Palmeiras", "Flamengo"],
   "pontos": [68, 68]})   # do zero: dict
                          # chave=coluna, lista=valores</pre>
-<div class="warn">⚠ Teste pós-leitura: <code>df.dtypes</code>. Coluna de valor tem que ser <code>float64/int64</code>; se <code>object</code> = virou texto, faltou <code>decimal=","</code>.</div>
+<div class="warn">⚠ Teste pós-leitura: <code>df.dtypes</code>. Coluna de valor tem que ser <code>float64/int64</code>; se <code>object</code> = virou texto, faltou <code>decimal=","</code>. Arquivos da prova ficam na MESMA pasta do notebook: caminho = SÓ o nome do arquivo.</div>
 </div>
 
 <div class="nobreak">
@@ -214,7 +223,7 @@ else:
 
 <!-- ==================== VERSO ==================== -->
 <div class="page">
-<h1>TEUS 21 ERROS DO TREINO <span class="meta">· o que VOCÊ erra, na ordem do que mais repete · 09.06, véspera</span></h1>
+<h1>TEUS ERROS DO TREINO <span class="meta">· o que VOCÊ erra, na ordem do que mais repete · noite 09.06 + ensaio 10.06</span></h1>
 <div class="cols2">
 
 <div class="nobreak">
@@ -272,6 +281,15 @@ else:
 </div>
 
 <div class="nobreak">
+<h2>ENSAIO DA MANHÃ (5 furos novos, 10.06)</h2>
+<div class="erro"><b>Questão em branco (Q1, valia 1,0 e estava na folha).</b> Varredura final OBRIGATÓRIA: rolar o notebook inteiro; nenhuma célula de resposta vazia; Q0 preenchida.</div>
+<div class="erro"><b>Resposta em texto rodou como código → SyntaxError.</b> Em célula de código, TODA linha de prosa começa com <code>#</code>.</div>
+<div class="erro"><b>Direção do ajuste: reajuste/aumento = <code>+=</code> · desconto/redução = <code>-=</code>.</b> O módulo da diferença pode coincidir e esconder o erro: confere o <code>head()</code> depois da troca.</div>
+<div class="erro"><b>"Entre A (inclusive) e B (inclusive)" = <code>x &gt;= A and x &lt;= B</code>.</b> Invertido (<code>&lt;=A and &gt;=B</code>) nada satisfaz. Typo em variável só explode no ramo não testado: rodar UMA entrada de CADA categoria/estado.</div>
+<div class="erro"><b>Preço via input = <code>float()</code>, nunca <code>int()</code>.</b> E se o enunciado pede 3 valores na saída (original, final, diferença), imprime os 3: faltar 1 = rubrica inteira zero.</div>
+</div>
+
+<div class="nobreak">
 <h2>⚡ PROTOCOLO DE PROVA</h2>
 <table>
 <tr><td class="c"><b>0.</b> Q0 primeiro</td><td>nome, turma AE_, código; não apagar os #</td></tr>
@@ -284,6 +302,7 @@ else:
 <tr><td class="c"><b>7.</b> Variáveis dadas</td><td>usa <code>reajuste</code>/<code>mes</code> do enunciado, NUNCA hardcode do exemplo ("deve funcionar pra qualquer cenário")</td></tr>
 <tr><td class="c"><b>8.</b> Formato exato</td><td>copia travessão/símbolo do enunciado; <code>{x:.2f}</code> quando pedir casas; confere espaço por espaço</td></tr>
 <tr><td class="c"><b>9.</b> Antes de entregar</td><td>Restart & Run All: roda tudo de cima a baixo sem erro?</td></tr>
+<tr><td class="c"><b>10.</b> Varredura final</td><td>nenhuma resposta em branco · Q0 preenchida · prosa comentada com # · saídas com :.2f · linha em branco do modelo copiada</td></tr>
 </table>
 </div>
 
