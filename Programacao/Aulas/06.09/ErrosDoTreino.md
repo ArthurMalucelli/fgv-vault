@@ -46,6 +46,9 @@ SyntaxError. Saída formatada é caso de f-string: `print(f"Paciente {input_id} 
 **12. Q4C, `and` onde o enunciado diz "OU" (regra 3).**
 Com `and`, jovem obeso não-fumante caía em risco baixo. Traduzir conectivo do enunciado literalmente: OU = `or`, E = `and`, e a ordem das regras é a prioridade do `elif`.
 
+**21. B2, laço manual com 3 contadores onde a resposta era `value_counts()` (1 linha, já entregue).**
+Reflexo Excel de fazer na mão. Dentro do laço, ainda comparou a COLUNA inteira no if (3ª aparição do Series-ambiguous; o `for i in coluna` entrega o VALOR no `i`, compara com `i`) e usou literal errado ("Potes" vs "Pote", string é exata). Regra de triagem da análise: escreveu `for` na Parte B, para e pergunta "qual ferramenta pandas faz isso?". Contagem = value_counts; média por grupo = groupby; troca filtrada = .loc.
+
 ## Dúvidas tiradas (conceitos pra fixar)
 
 **`print()` vs auto-display no Jupyter:** célula de notebook exibe sozinha só a ÚLTIMA expressão. Script `.py` não exibe nada sem print. Pra prova: usa `print` sempre que o enunciado pedir "apresente/imprima", e obrigatório quando precisa mostrar mais de uma coisa na mesma célula.
@@ -72,6 +75,8 @@ Anatomia do f-string: `f` antes das aspas liga o modo; `{}` avalia variável/exp
 
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
+
+**Vários stats numa operação: `.agg(["min", "mean", "max"]).round(2)`.** Lista escolhe as funções; uma chamada só (exigência típica de enunciado). `.describe()` é o primo que cospe tudo sem escolher. Funciona em coluna e em `groupby` também.
 
 **Contar categorias: `value_counts()` (uma linha, todas de uma vez).** `df["col"].value_counts()` → tabela valor→contagem, ordenada. Não fazer máscara por categoria (3× o trabalho). Trio que confunde: `.value_counts()` = contagem por categoria; `.nunique()` = quantas distintas (número); `.unique()` = quais (lista). Pegadinha: `.count()` em máscara conta NÃO-NULOS (tudo), não os True; True se conta com `.sum()`.
 
