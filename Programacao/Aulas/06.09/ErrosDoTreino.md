@@ -38,6 +38,8 @@ Vírgula em Python cria **tupla**: `x / 1000 * 1,2` vira `(x/1000*1, 2)`. Decima
 
 **`print()` vs auto-display no Jupyter:** célula de notebook exibe sozinha só a ÚLTIMA expressão. Script `.py` não exibe nada sem print. Pra prova: usa `print` sempre que o enunciado pedir "apresente/imprima", e obrigatório quando precisa mostrar mais de uma coisa na mesma célula.
 
+**Float binário, o `3.5999999999999996`:** o computador não representa `1.2` exato em binário, então `3.0 * 1.2` sai com resíduo. NÃO é erro de lógica. Se aparecer na prova, não entra em pânico nem "conserta" a conta: formata a saída com `f"{x:.2f}"` ou `round(x, 2)` e segue.
+
 ## Padrões recorrentes (o meta-erro)
 
 - **Achar que método altera a variável in place.** Strings são imutáveis: `int()`, `.upper()`, `.replace()`, `.split()` retornam valor novo. Sempre atribuir.
