@@ -11,9 +11,7 @@
   .page:last-child { page-break-after: auto; }
   h1 { font-size: 11px; border-bottom: 2px solid #111; margin-bottom: 3px; padding-bottom: 1px; }
   h2 { font-size: 8.6px; background: #111; color: #fff; padding: 1px 4px; margin: 4px 0 2px; border-radius: 2px; }
-  h3 { font-size: 8.2px; margin: 3px 0 1px; text-decoration: underline; }
   .cols3 { column-count: 3; column-gap: 8px; column-rule: 1px solid #ccc; }
-  .cols2 { column-count: 2; column-gap: 10px; column-rule: 1px solid #ccc; }
   .nobreak { break-inside: avoid; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 2px; }
   td { vertical-align: top; padding: 0.5px 2px; border-bottom: 0.5px solid #e3e3e3; }
@@ -21,22 +19,21 @@
   code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 7.6px; }
   code { background: #f0f0f0; padding: 0 2px; border-radius: 2px; }
   pre { background: #f4f4f4; border: 0.5px solid #ccc; border-radius: 3px; padding: 3px 4px; margin: 2px 0 3px; line-height: 1.3; white-space: pre; }
-  .warn { background: #fff3cd; border-left: 3px solid #b8860b; padding: 2px 4px; margin: 2px 0; }
+  .warn { background: #fff3cd; border-left: 3px solid #b8860b; padding: 2px 4px; margin: 2px 0; break-inside: avoid; }
   .erro { background: #fdecea; border-left: 3px solid #c0392b; padding: 2px 4px; margin: 2px 0 3px; break-inside: avoid; }
   .erro b { color: #c0392b; }
-  .ok { color: #1e7e34; font-weight: 600; }
   .meta { font-size: 7.4px; color: #555; }
 </style>
 </head>
 <body>
 
-<!-- ==================== FRENTE ==================== -->
+<!-- ==================== FRENTE: PYTHON ==================== -->
 <div class="page">
-<h1>DICIONÁRIO PYTHON + PANDAS <span class="meta">· Prova Final Programação · Arthur · 10.06.2026</span></h1>
+<h1>PYTHON <span class="meta">· Prova Final Programação · Arthur · 10.06.2026 · (verso: PANDAS)</span></h1>
 <div class="cols3">
 
 <div class="nobreak">
-<h2>1 · FUNÇÕES (envolvem o valor)</h2>
+<h2>P1 · FUNÇÕES (envolvem o valor)</h2>
 <table>
 <tr><td class="c"><code>int("123")</code> → <code>123</code></td><td>texto → inteiro; mata zero à esq. (<code>int("02")</code>→2)</td></tr>
 <tr><td class="c"><code>float("12.5")</code> → <code>12.5</code></td><td>texto → decimal (ponto, NUNCA vírgula)</td></tr>
@@ -45,264 +42,230 @@
 <tr><td class="c"><code>print(x, y)</code></td><td>mostra; vírgula põe espaço entre args</td></tr>
 <tr><td class="c"><code>len(x)</code></td><td>tamanho: lista, string, df (nº de linhas)</td></tr>
 <tr><td class="c"><code>round(x, 2)</code></td><td>arredonda em 2 casas</td></tr>
-<tr><td class="c"><code>sum(lista)</code> / <code>max</code> / <code>min</code></td><td>soma / maior / menor de uma lista</td></tr>
+<tr><td class="c"><code>sum(l)</code> / <code>max(l)</code> / <code>min(l)</code></td><td>soma / maior / menor de lista</td></tr>
 <tr><td class="c"><code>range(5)</code></td><td>0,1,2,3,4 (pra <code>for i in range(n)</code>)</td></tr>
-<tr><td class="c"><code>type(x)</code></td><td>debug: mostra o tipo da variável</td></tr>
+<tr><td class="c"><code>type(x)</code></td><td>debug: qual o tipo disso?</td></tr>
 </table>
-<div class="warn">⚠ Função RETORNA, não altera: sempre <code>x = int(x)</code>, nunca <code>int(x)</code> solto.</div>
+<div class="erro"><b>TEU ERRO Nº1 (5x):</b> função RETORNA, não altera. <code>int(x)</code> solto joga fora. SEMPRE <code>x = int(x)</code>. Depois de TODO input/split: "converto pra quê? atribuí?". Comparar/contar com <code>str</code> = TypeError ou False eterno (<code>"1" == 1</code> é False).</div>
+<div class="warn">⚠ Preço em input = <code>float()</code>, nunca <code>int()</code> (centavos quebram <code>int("10.5")</code>).</div>
 </div>
 
 <div class="nobreak">
-<h2>2 · MÉTODOS DE STRING (.depois)</h2>
+<h2>P2 · STRINGS (.depois do valor)</h2>
 <table>
 <tr><td class="c"><code>s.split("|")</code></td><td>corta → LISTA de str (converter números!)</td></tr>
 <tr><td class="c"><code>s.upper()</code> / <code>s.lower()</code></td><td>MAIÚSCULA / minúscula (atribuir!)</td></tr>
 <tr><td class="c"><code>s.strip()</code></td><td>tira espaços das pontas</td></tr>
 <tr><td class="c"><code>s.isdigit()</code></td><td>True só se TUDO é dígito ("12.3", "-5", "12 " → False)</td></tr>
 <tr><td class="c"><code>s.replace("a","b")</code></td><td>troca todas as ocorrências</td></tr>
-<tr><td class="c"><code>s[0:4]</code></td><td>fatia: posições 0,1,2,3 (fim NÃO entra)</td></tr>
-<tr><td class="c"><code>s[6:8]+"/"+s[4:6]</code></td><td>remontar data fatiada</td></tr>
-<tr><td class="c"><code>"x" in s</code> / <code>in lista</code></td><td>contém?</td></tr>
+<tr><td class="c"><code>s[0:4]</code></td><td>fatia: posições 0,1,2,3 (fim NÃO entra; conta do 0)</td></tr>
+<tr><td class="c"><code>"x" in s</code> / <code>x in lista</code></td><td>contém?</td></tr>
 <tr><td class="c"><code>a, b, c = s.split("/")</code></td><td>desempacota: 1 nome por pedaço (nº igual!)</td></tr>
+<tr><td class="c"><code>partes[0]</code></td><td>caixinha 0 da lista (= coluna A do Texto p/ Colunas)</td></tr>
 </table>
+<div class="warn">⚠ Dois separadores num split NÃO existe: split em ESTÁGIOS (espaço primeiro separa os mundos, depois <code>/</code> abre a data). Campo opcional: só acessar <code>partes[1]</code> DENTRO de <code>if len(partes)==2:</code>.</div>
 </div>
 
 <div class="nobreak">
-<h2>3 · F-STRING (montar texto)</h2>
+<h2>P3 · F-STRING (montar texto)</h2>
 <table>
 <tr><td class="c"><code>f"Oi {nome}"</code></td><td><code>f</code> liga o modo; <code>{}</code> injeta variável</td></tr>
-<tr><td class="c"><code>f"{x:.2f}"</code></td><td>2 casas decimais (mata 3.59999…)</td></tr>
-<tr><td class="c"><code>f"{x:.1f}"</code></td><td>1 casa decimal</td></tr>
+<tr><td class="c"><code>f"{x:.2f}"</code> / <code>f"{x:.1f}"</code></td><td>2 casas / 1 casa decimal</td></tr>
 </table>
-<div class="warn">⚠ UMA string contínua. Sem <code>+</code>, sem <code>{}</code> fora do f"". Escreve a frase literal primeiro, depois põe as chaves nas variáveis. Caractere especial do enunciado (–): COPIA.</div>
+<div class="erro"><b>UMA string contínua.</b> Sem <code>+</code>, sem <code>{}</code> fora do f"". <code>"Paciente" x</code> (justaposição) = SyntaxError. Escreve a frase literal primeiro, depois envolve as variáveis com chaves. <code>3.5999…</code> não é bug: float binário, formata com <code>:.2f</code> e segue.</div>
 </div>
 
 <div class="nobreak">
-<h2>3b · LAÇOS: FOR vs WHILE</h2>
+<h2>P4 · CONDIÇÕES</h2>
+<table>
+<tr><td class="c"><code>==</code> <code>!=</code> <code>&gt;=</code> <code>&lt;=</code></td><td>comparar VALOR (nunca <code>is</code> / <code>is not</code>)</td></tr>
+<tr><td class="c"><code>x not in ["D","N"]</code></td><td>"nem D nem N" (o idioma certo)</td></tr>
+<tr><td class="c"><code>x != "D" and x != "N"</code></td><td>equivalente verboso (com != o conector é AND)</td></tr>
+<tr><td class="c"><code>x &gt;= A and x &lt;= B</code></td><td>"entre A e B (inclusive)": ≥ menor E ≤ maior</td></tr>
+</table>
+<div class="erro"><b><code>x != "D" or "N"</code> é SEMPRE True</b> ("N" sozinho é truthy). Cada lado do and/or = comparação completa. Enunciado: OU = <code>or</code>, E = <code>and</code>, literal. "Até X" INCLUI X (<code>&lt;=</code>): borda errada = rubrica inteira (sem parcial).</div>
+</div>
+
+<div class="nobreak">
+<h2>P5 · LAÇOS: FOR vs WHILE</h2>
 <pre>for t in range(3):    # nº de voltas CONHECIDO antes
 for item in lista:    # visita cada item da coleção
-while saldo >= 4:     # repete ENQUANTO a condição valer
+while saldo >= 4:     # repete ENQUANTO condição valer
     saldo -= 4        # algo muda a cada volta</pre>
-<div class="warn">⚠ Ambos rodam; o MAIS apropriado (justifica!): quantidade fixa antes do laço = <code>for</code> · "enquanto tiver/der/valer" = <code>while</code>. "R$40 dá 10 tentativas" é isca: saldo é variável, a regra de parada é condição, não contagem.</div>
+<div class="warn">⚠ Justificativa pronta: quantidade fixa antes do laço = <code>for</code> · "enquanto tiver/der" = <code>while</code>. "R$40 dá 10 tentativas" é isca: saldo é variável, parada é condição. Bloco fecha DESINDENTANDO (<code>return</code> é de função, não fecha laço). Dentro do laço o item é <code>i</code>, nunca a lista (split é na fruta, não na cesta).</div>
 </div>
 
 <div class="nobreak">
-<h2>4 · CRIAR / LER DATAFRAME</h2>
-<table>
-<tr><td class="c"><code>import pandas as pd</code></td><td>sempre primeiro</td></tr>
-<tr><td class="c"><code>df = pd.read_excel("a.xlsx")</code></td><td>planilha Excel</td></tr>
-<tr><td class="c"><code>pd.read_excel("a.xlsx", index_col=0)</code></td><td>1ª coluna vira índice</td></tr>
-<tr><td class="c"><code>pd.read_csv("a.csv")</code></td><td>CSV padrão (vírgula separa, ponto decimal)</td></tr>
-<tr><td class="c"><code>pd.read_csv("a.csv", sep=";", decimal=",")</code></td><td><b>CSV BRASILEIRO</b>: sem isso nº vira texto</td></tr>
-</table>
-<pre>df = pd.DataFrame({
-  "time":   ["Palmeiras", "Flamengo"],
-  "pontos": [68, 68]})   # do zero: dict
-                         # chave=coluna, lista=valores</pre>
-<div class="warn">⚠ Teste pós-leitura: <code>df.dtypes</code>. Coluna de valor tem que ser <code>float64/int64</code>; se <code>object</code> = virou texto, faltou <code>decimal=","</code>. Arquivos da prova ficam na MESMA pasta do notebook: caminho = SÓ o nome do arquivo.</div>
-</div>
-
-<div class="nobreak">
-<h2>5 · EXPLORAR</h2>
-<table>
-<tr><td class="c"><code>df.head()</code> / <code>df.tail()</code></td><td>5 primeiras / 5 últimas linhas (DF INTEIRO, todas col.)</td></tr>
-<tr><td class="c"><code>df.shape</code></td><td>(linhas, colunas), sem parênteses</td></tr>
-<tr><td class="c"><code>df.columns</code> / <code>list(df.columns)</code></td><td>nomes EXATOS das colunas (acento conta!)</td></tr>
-<tr><td class="c"><code>df.dtypes</code></td><td>tipo de cada coluna</td></tr>
-<tr><td class="c"><code>df.info()</code> / <code>df.describe()</code></td><td>resumo geral / stats completos</td></tr>
-</table>
-</div>
-
-<div class="nobreak">
-<h2>6 · SELECIONAR / FILTRAR / ALTERAR</h2>
-<table>
-<tr><td class="c"><code>df["col"]</code></td><td>uma coluna (Series)</td></tr>
-<tr><td class="c"><code>df["col"] == "SP"</code></td><td>MÁSCARA: True/False por linha (<code>!=</code> <code>>=</code> <code>&lt;</code>…)</td></tr>
-<tr><td class="c"><code>df[df["col"] == "SP"]</code></td><td>só as linhas True (tabela filtrada)</td></tr>
-<tr><td class="c"><code>df.loc[mask, "col"] = v</code></td><td><b>REGRA DE OURO</b> p/ trocar valor filtrado</td></tr>
-<tr><td class="c"><code>df.loc[mask, "col"] += 0.04</code></td><td>somar só nos filtrados</td></tr>
-<tr><td class="c"><code>df["nova"] = df["a"] * df["b"]</code></td><td>criar coluna (vetorizado, sem laço)</td></tr>
-<tr><td class="c"><code>linha = df[df["id"]==x].iloc[0]</code></td><td>UMA linha como ficha → <code>linha["col"]</code></td></tr>
-<tr><td class="c"><code>x in df["col"].values</code></td><td>existe? (SEM .values checa o índice!)</td></tr>
-<tr><td class="c"><code>df["col"].isin(["A","B"])</code></td><td>máscara: está na lista?</td></tr>
-<tr><td class="c"><code>df["col"].astype(str)</code></td><td>converte coluna (p/ comparar nº com texto)</td></tr>
-<tr><td class="c"><code>df["col"].str[0:3]</code></td><td>fatia cada linha (versão coluna do s[0:3])</td></tr>
-<tr><td class="c"><code>df["col"].str.upper()</code></td><td>.str dá os métodos de string na coluna</td></tr>
-</table>
-<div class="warn">⚠ NUNCA <code>df[df[...]==x]["col"] = v</code> (cópia, não altera). FutureWarning/Chained na prova: IGNORAR (enunciado manda).</div>
-</div>
-
-<div class="nobreak">
-<h2>7 · AGREGAR / CONTAR</h2>
-<table>
-<tr><td class="c"><code>df["col"].sum()</code> <code>.mean()</code> <code>.min()</code> <code>.max()</code></td><td>soma, média, mín, máx</td></tr>
-<tr><td class="c"><code>df["col"].agg(["min","mean","max"]).round(2)</code></td><td>vários stats em UMA operação</td></tr>
-<tr><td class="c"><code>df["col"].value_counts()</code></td><td>contagem POR categoria (tabela pronta)</td></tr>
-<tr><td class="c"><code>df["col"].nunique()</code> / <code>.unique()</code></td><td>QUANTAS distintas / QUAIS são</td></tr>
-<tr><td class="c"><code>mask.sum()</code></td><td>conta True (True=1); <code>.count()</code> = não-nulos, NÃO use</td></tr>
-<tr><td class="c"><code>serie.sort_values()</code></td><td>crescente; <code>ascending=False</code> = decrescente</td></tr>
-<tr><td class="c"><code>serie.head(5)</code></td><td>top 5 do ranking</td></tr>
-</table>
-</div>
-
-<div class="nobreak">
-<h2>8 · ANÁLISE (Excel → pandas)</h2>
-<table>
-<tr><td class="c"><code>df.groupby("g")["v"].mean()</code></td><td>média de v POR grupo (+<code>.sort_values(ascending=False)</code> = ranking)</td></tr>
-<tr><td class="c"><code>df.groupby("g")["v"].agg(["mean","max"])</code></td><td>vários stats por grupo</td></tr>
-<tr><td class="c"><code>pd.merge(a, b, on=["k1","k2"])</code></td><td>PROCV: traz colunas de b casando pelas chaves. Chave faltando MULTIPLICA linhas (teste: shape!)</td></tr>
-<tr><td class="c"><code>df.pivot_table(index="Estado", columns="Produto", values="Total", aggfunc="mean").reset_index()</code></td><td>Tabela Dinâmica: index=Linhas, columns=Colunas, values=Valores, aggfunc=Resumir por. <code>reset_index()</code> devolve coluna comum; <code>df.columns.name=None</code> limpa rótulo</td></tr>
-<tr><td class="c"><code>(df["m"] &lt; 0).replace({True:"prejuízo", False:"lucro"})</code></td><td>classificar sem if</td></tr>
-<tr><td class="c"><code>np.where(cond, "sim", "não")</code></td><td>idem (exige <code>import numpy as np</code>)</td></tr>
-</table>
-<div class="warn">⚠ TRIAGEM: dataset grande + média/ranking/cruzar = pandas SEM for. Lista de strings item a item = for + split. Escreveu <code>for</code> em análise? Pergunta: "qual ferramenta pandas faz isso?"</div>
-</div>
-
-<div class="nobreak">
-<h2>9 · ESQUELETOS</h2>
-<pre># VALIDAÇÃO (valida ANTES de converter!)
-d = input("Dist: ")
+<h2>P6 · ESQUELETO: VALIDAÇÃO + FAIXAS</h2>
+<pre>d = input("Dist: ")
 uf = input("UF: ").upper()
-if not d.isdigit() or uf not in ["D","N"]:
-    print("ERRO DE ENTRADA")
+if not d.isdigit() or uf not in ["SP","PR"]:
+    print("ERRO DE ENTRADA")   # valida ANTES do int()
 else:
     d = int(d)
-    if d &lt;= 2000:      # "até X" INCLUI X
+    if d &lt;= 2000:      # "até X" inclui X
         taxa = 5.0
     elif d &lt;= 8000:    # elif = faixa seguinte
-        taxa = d/1000 * 1.2   # 1.2 PONTO!
+        taxa = d/1000 * 1.2    # 1.2 PONTO! (1,2 = tupla)
     else:
         taxa = 25.0
-    if uf == "N":
+    if uf == "PR":
         taxa *= 2      # dobro vale p/ fixo tb
     print(f"R$ {taxa:.2f}")</pre>
-<pre># ACUMULADOR (Q5: lista de strings)
-cont = 0; total = 0          # zera FORA
+</div>
+
+<div class="nobreak">
+<h2>P7 · ESQUELETO: ACUMULADOR (Q5)</h2>
+<pre>cont = 0; total = 0          # zera FORA
 for item in lista:           # item = 1 string
-    partes = item.split("|") # da FRUTA, não da cesta
+    partes = item.split("|")
     valor = float(partes[2]) # converte E atribui
     cont += 1
     total += valor
-    print(f"... {partes[0]} ...")  # 1 por item
-print(f"{cont} x - Total: R$ {total:.2f}")  # FORA (desindenta = fecha o loop; return NÃO)</pre>
-<pre># DATA C/ CAMPO OPCIONAL (split em estágios)
-meses = ['janeiro','fevereiro','março','abril',
+    print(f"... {partes[0]} ...")   # 1 por item
+print(f"{cont} x - Total: R$ {total:.2f}")  # FORA</pre>
+</div>
+
+<div class="nobreak">
+<h2>P8 · ESQUELETO: DATA C/ CAMPO OPCIONAL</h2>
+<pre>meses = ['janeiro','fevereiro','março','abril',
  'maio','junho','julho','agosto','setembro',
  'outubro','novembro','dezembro']
 for reg in datas:
-    partes = reg.split(" ")           # grosso 1º
+    partes = reg.split(" ")          # grosso 1º
     dia, mes, ano = partes[0].split("/")
     txt = f"{int(dia)} de {meses[int(mes)-1]} de {ano}"
-    if len(partes) == 2:              # guarda!
+    if len(partes) == 2:             # guarda!
         h, m = partes[1].split(":")
         h = int(h); m = int(m)
         txt += " à 1 hora" if h==1 else f" às {h} horas"
         if m == 1:   txt += " e 1 minuto"
         elif m > 1:  txt += f" e {m} minutos"
-    print(txt)                        # m==0: omite</pre>
-<pre># BUSCA POR ID + ÁRVORE (ordem = prioridade)
-pid = int(input("id: "))          # int: coluna é nº!
+    print(txt)                       # m==0: omite
+# data junta: ano=s[0:4] mes=s[4:6] dia=s[6:8]</pre>
+</div>
+
+</div>
+</div>
+
+<!-- ==================== VERSO: PANDAS ==================== -->
+<div class="page">
+<h1>PANDAS <span class="meta">· sempre <code>import pandas as pd</code> · arquivos na MESMA pasta do notebook: caminho = só o nome</span></h1>
+<div class="cols3">
+
+<div class="nobreak">
+<h2>D1 · CRIAR / LER</h2>
+<table>
+<tr><td class="c"><code>df = pd.read_excel("a.xlsx")</code></td><td>planilha Excel</td></tr>
+<tr><td class="c"><code>pd.read_excel("a.xlsx", index_col=0)</code></td><td>1ª coluna vira índice</td></tr>
+<tr><td class="c"><code>pd.read_csv("a.csv")</code></td><td>CSV padrão (vírgula separa, ponto decimal)</td></tr>
+<tr><td class="c"><code>pd.read_csv("a.csv", sep=";", decimal=",")</code></td><td><b>CSV BRASILEIRO</b>: sem isso, nº vira texto</td></tr>
+</table>
+<pre>df = pd.DataFrame({
+  "time":   ["Palmeiras", "Flamengo"],
+  "pontos": [68, 68]})  # dict: chave=coluna</pre>
+<div class="warn">⚠ Teste pós-leitura: <code>df.dtypes</code> → valor tem que ser <code>float64/int64</code>; <code>object</code> = virou texto, faltou <code>decimal=","</code>. Confere o ARQUIVO certo da questão (MrPacoca ≠ pedidos).</div>
+</div>
+
+<div class="nobreak">
+<h2>D2 · EXPLORAR</h2>
+<table>
+<tr><td class="c"><code>df.head()</code> / <code>df.tail()</code></td><td>5 primeiras / últimas linhas (DF INTEIRO, todas col.)</td></tr>
+<tr><td class="c"><code>df.shape</code></td><td>(linhas, colunas), sem parênteses</td></tr>
+<tr><td class="c"><code>list(df.columns)</code></td><td>nomes EXATOS (acento conta; errado = KeyError)</td></tr>
+<tr><td class="c"><code>df.dtypes</code> / <code>df.info()</code></td><td>tipos / resumo</td></tr>
+<tr><td class="c"><code>df["col"].unique()</code></td><td>QUAIS valores existem ("Pote", não "Potes"!)</td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>D3 · FILTRAR / ALTERAR / 1 LINHA</h2>
+<table>
+<tr><td class="c"><code>df["col"]</code></td><td>uma coluna (Series)</td></tr>
+<tr><td class="c"><code>df["col"] == "SP"</code></td><td>MÁSCARA: True/False por linha</td></tr>
+<tr><td class="c"><code>df[df["col"] == "SP"]</code></td><td>só as linhas True (tabela filtrada)</td></tr>
+<tr><td class="c"><code>df.loc[mask, "col"] = v</code></td><td><b>REGRA DE OURO</b> p/ trocar valor filtrado</td></tr>
+<tr><td class="c"><code>df.loc[mask, "col"] += 0.04</code></td><td>somar só nos filtrados</td></tr>
+<tr><td class="c"><code>df["nova"] = df["a"] * df["b"]</code></td><td>criar coluna (vetorizado, sem laço)</td></tr>
+<tr><td class="c"><code>linha = df[df["id"]==x].iloc[0]</code></td><td>UMA linha como ficha → <code>linha["col"]</code></td></tr>
+<tr><td class="c"><code>x in df["col"].values</code></td><td>existe? SEM <code>.values</code> checa o ÍNDICE</td></tr>
+<tr><td class="c"><code>df["col"].isin(["A","B"])</code></td><td>máscara: está na lista?</td></tr>
+<tr><td class="c"><code>df["col"].astype(str)</code></td><td>converter coluna (nº ↔ texto p/ comparar)</td></tr>
+<tr><td class="c"><code>df["col"].str[0:3]</code> / <code>.str.upper()</code></td><td><code>.str</code> = métodos de string na coluna inteira (fatia SÓ em colchetes)</td></tr>
+</table>
+<div class="erro"><b>TABELA × LINHA × ITEM (3 crashes):</b> "<code>truth value of a Series is ambiguous</code>" = coluna inteira dentro de if. Depois do <code>.iloc[0]</code>, TUDO vem de <code>linha[...]</code>; dentro de loop, de <code>i</code>. df = todo mundo · linha = um registro.</div>
+<div class="erro"><b>DIREÇÃO:</b> reajuste/aumento = <code>+=</code> · desconto = <code>-=</code>. |diferença| pode coincidir e esconder o erro: confere <code>head()</code> após a troca. NUNCA <code>df[df[...]==x]["col"] = v</code> (cópia). FutureWarning/Chained: IGNORAR (enunciado manda).</div>
+</div>
+
+<div class="nobreak">
+<h2>D4 · AGREGAR / CONTAR</h2>
+<table>
+<tr><td class="c"><code>df["col"].sum()</code> <code>.mean()</code> <code>.min()</code> <code>.max()</code></td><td>soma, média, mín, máx</td></tr>
+<tr><td class="c"><code>df["col"].agg(["min","mean","max"]).round(2)</code></td><td>vários stats em UMA operação (exigência típica)</td></tr>
+<tr><td class="c"><code>df["col"].value_counts()</code></td><td>contagem POR categoria (NÃO fazer loop c/ contadores!)</td></tr>
+<tr><td class="c"><code>df["col"].nunique()</code></td><td>QUANTAS categorias distintas</td></tr>
+<tr><td class="c"><code>mask.sum()</code></td><td>conta True (True=1). <code>.count()</code> = não-nulos, NÃO use</td></tr>
+<tr><td class="c"><code>serie.sort_values(ascending=False)</code></td><td>decrescente; <code>.head(5)</code> = top 5</td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>D5 · ANÁLISE (Excel → pandas)</h2>
+<table>
+<tr><td class="c"><code>df.groupby("g")["v"].mean().sort_values(ascending=False)</code></td><td>Tabela Dinâmica de 1 medida = ranking por grupo</td></tr>
+<tr><td class="c"><code>df.groupby("g")["v"].agg(["mean","max"])</code></td><td>vários stats por grupo</td></tr>
+<tr><td class="c"><code>pd.merge(a, b, on=["k1","k2"])</code></td><td>PROCV por N chaves; chave faltando MULTIPLICA linhas (teste: shape!)</td></tr>
+<tr><td class="c"><code>df.pivot_table(index="Estado", columns="Produto", values="Total", aggfunc="mean").reset_index()</code></td><td>Tabela Dinâmica: index=Linhas, columns=Colunas, values=Valores, aggfunc=Resumir por. <code>df.columns.name=None</code> limpa rótulo</td></tr>
+<tr><td class="c"><code>(df["m"] &lt; 0).replace({True:"prejuízo", False:"lucro"})</code></td><td>classificar sem if</td></tr>
+<tr><td class="c"><code>np.where(cond, "sim", "não")</code></td><td>idem (<code>import numpy as np</code>)</td></tr>
+</table>
+<div class="warn">⚠ TRIAGEM: dataset grande + média/ranking/cruzar = pandas SEM <code>for</code>. Lista de strings item a item = <code>for</code> + split (lado PYTHON). Ranking liderado por grupo de amostra MÍNIMA = liderança frágil: olha o <code>value_counts()</code> antes de confiar.</div>
+</div>
+
+<div class="nobreak">
+<h2>D6 · ESQUELETO: BUSCA ID + ÁRVORE</h2>
+<pre>pid = int(input("id: "))   # int: coluna é nº!
 if pid not in df["id"].values:
     print("Paciente não encontrado")
 else:
     linha = df[df["id"]==pid].iloc[0]
     imc = linha["peso"]/linha["altura"]**2
     if linha["sist"] >= 140 or linha["diast"] >= 90:
-        r = "consulta imediata"     # regra 1 GANHA
+        r = "consulta imediata"   # regra 1 GANHA
     elif imc >= 30 and linha["fum"]=="sim":
-        r = "risco alto"
+        r = "risco alto"          # ordem elif = prioridade
     elif imc >= 30 or linha["idade"] >= 60:
-        r = "risco moderado"        # OU do enunciado = or
+        r = "risco moderado"      # OU do enunciado = or
     else:
         r = "risco baixo"
-    print(f"Paciente {pid} (IMC: {imc:.1f}) – Risco: {r}")</pre>
-</div>
-
-</div>
-</div>
-
-<!-- ==================== VERSO ==================== -->
-<div class="page">
-<h1>TEUS ERROS DO TREINO <span class="meta">· o que VOCÊ erra, na ordem do que mais repete · noite 09.06 + ensaio 10.06</span></h1>
-<div class="cols2">
-
-<div class="nobreak">
-<h2>O ERRO-MESTRE (5x na mesma noite)</h2>
-<div class="erro"><b>Conversão sem atribuir / input é str.</b> <code>int(x)</code> e <code>x.upper()</code> soltos NÃO mudam nada; <code>"1" == 1</code> é False; <code>"12"-1</code> e <code>"5"&lt;18</code> são TypeError; <code>meses[mes-1]</code> com mes str quebra.<br>
-<span class="ok">REGRA: depois de TODO input ou split, pergunta "converto pra quê?" e faz <code>x = int(x)</code> na MESMA linha. Função retorna, variável só muda com <code>=</code>.</span></div>
+    print(f"Paciente {pid} (IMC: {imc:.1f}) – Risco: {r}")
+# travessão – : COPIA do enunciado</pre>
 </div>
 
 <div class="nobreak">
-<h2>CONDIÇÕES (4 erros)</h2>
-<div class="erro"><b><code>is not</code> não compara valor.</b> String se compara com <code>==</code> / <code>!=</code>. O warning do Python te DIZ o conserto: lê.</div>
-<div class="erro"><b><code>x != "D" or "N"</code> é sempre True.</b> <code>"N"</code> sozinho é truthy. Cada lado do or/and precisa ser comparação COMPLETA. Idioma: <code>x not in ["D","N"]</code>. Com <code>!=</code> o conector é <code>and</code>.</div>
-<div class="erro"><b>Conectivo do enunciado traduzido errado.</b> "OU" = <code>or</code>, "E" = <code>and</code>, literal. E a ORDEM das regras é a prioridade do elif: regra 1 ganha da 2.</div>
-<div class="erro"><b>Borda: "até X" INCLUI X.</b> É <code>&lt;=</code>, não <code>&lt;</code>. Com <code>&lt;</code>, a entrada exata (2000, 8000, 15000) cai na faixa errada. Rubrica sem parcial: 3 bordas erradas = 1,5pt = zero.</div>
+<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
+<pre>total_pre = df["Total"].sum()          # guarda ANTES
+df["Preço Unitário"] = df["Total"]/df["Quantidade"]
+df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
+df["Total"] = df["Preço Unitário"]*df["Quantidade"]
+print(f"R$ {df['Total'].sum()-total_pre:.2f}")
+# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
 </div>
 
 <div class="nobreak">
-<h2>NÚMEROS (2)</h2>
-<div class="erro"><b><code>1,2</code> é TUPLA, não um-vírgula-dois.</b> Decimal é PONTO: <code>1.2</code>. Se imprimir <code>(3.0, 2)</code>, é vírgula perdida em conta.</div>
-<div class="erro"><b><code>3.5999999999999996</code> NÃO é bug teu.</b> Float binário não representa 1.2 exato. Não "conserta" a conta: formata com <code>{x:.2f}</code> e segue.</div>
-</div>
-
-<div class="nobreak">
-<h2>TABELA × LINHA × ITEM (3x o mesmo crash)</h2>
-<div class="erro"><b><code>ValueError: truth value of a Series is ambiguous</code> = você pôs a COLUNA inteira num if.</b><br>
-· Depois de <code>linha = df[...].iloc[0]</code>: TUDO do paciente vem de <code>linha["col"]</code>, nunca <code>df["col"]</code>.<br>
-· Dentro de <code>for i in coluna:</code> o valor da vez é <code>i</code>, compara com <code>i</code>.<br>
-<span class="ok">df = todo mundo · linha = um registro · i = o item da vez</span></div>
-<div class="erro"><b><code>in</code> sem <code>.values</code> checa o ÍNDICE.</b> Existência de valor: <code>x in df["col"].values</code>, com tipo batendo (int com int).</div>
-<div class="erro"><b><code>.count()</code> em máscara conta não-nulos (tudo), não os True.</b> Contar True = <code>mask.sum()</code>.</div>
-</div>
-
-<div class="nobreak">
-<h2>LAÇOS E STRINGS (5)</h2>
-<div class="erro"><b>Split na CESTA: <code>lista.split()</code> não existe.</b> O for entrega 1 item por volta; split é no item.</div>
-<div class="erro"><b>Dois separadores num split só não rola</b> (<code>"/" " "</code> vira "/ "). Split em ESTÁGIOS: espaço primeiro (separa mundos), barra depois (abre a data).</div>
-<div class="erro"><b>Campo opcional fora da guarda = IndexError.</b> <code>partes[1]</code> só existe se <code>len(partes)==2</code>; acessa SÓ dentro do if. (Gêmeo do "Paciente não encontrado".)</div>
-<div class="erro"><b><code>return</code> não fecha laço.</b> Bloco fecha DESINDENTANDO (volta à margem). return é só de função (def).</div>
-<div class="erro"><b>Misturar <code>+</code> com <code>{}</code> fora de f-string.</b> Escolhe UM método: f-string inteira. Justaposição (<code>"a" x</code>) não existe; literais adjacentes (<code>"a" "b"</code>) colam em silêncio.</div>
-</div>
-
-<div class="nobreak">
-<h2>PANDAS / MÉTODO (4)</h2>
-<div class="erro"><b>Laço manual com contadores onde era <code>value_counts()</code>.</b> Reflexo Excel de fazer na mão. Análise = 1 linha vetorizada (triagem da frente, seção 8).</div>
-<div class="erro"><b>Método inventado (<code>.pos()</code>) e fatia em parênteses.</b> Fatia (<code>0:3</code>) SÓ em colchetes. Não lembra o método? Olha a seção 6/7 da frente, não inventa.</div>
-<div class="erro"><b>Literal errado: "Potes" ≠ "Pote".</b> String é EXATA. Os valores reais saem de <code>df["col"].unique()</code> ou do head().</div>
-<div class="erro"><b>Trabalho duplicado nos 2 ramos do if/else.</b> O que é comum vem ANTES do if; o if só guarda a divergência.</div>
-</div>
-
-<div class="nobreak">
-<h2>LEITURA DE QUESTÃO (3)</h2>
-<div class="erro"><b><code>head()</code> mostra o DF INTEIRO (5 linhas, TODAS as colunas)</b>, não "a coluna". Precisão custa 0,33/bloco.</div>
-<div class="erro"><b>Multiplicador: <code>*0.85</code> = REDUZ 15%</b> (preço vira 85%). <code>*0.2</code> = vira 20% = reduz 80%. Lê o número antes de escrever a redução.</div>
-<div class="erro"><b>Responder Q2 em frase corrida única.</b> Rubrica é por bloco: responde em 3 linhas, 1 por bloco (carrega / opera / mostra).</div>
-</div>
-
-<div class="nobreak">
-<h2>ENSAIO DA MANHÃ (5 furos novos, 10.06)</h2>
-<div class="erro"><b>Questão em branco (Q1, valia 1,0 e estava na folha).</b> Varredura final OBRIGATÓRIA: rolar o notebook inteiro; nenhuma célula de resposta vazia; Q0 preenchida.</div>
-<div class="erro"><b>Resposta em texto rodou como código → SyntaxError.</b> Em célula de código, TODA linha de prosa começa com <code>#</code>.</div>
-<div class="erro"><b>Direção do ajuste: reajuste/aumento = <code>+=</code> · desconto/redução = <code>-=</code>.</b> O módulo da diferença pode coincidir e esconder o erro: confere o <code>head()</code> depois da troca.</div>
-<div class="erro"><b>"Entre A (inclusive) e B (inclusive)" = <code>x &gt;= A and x &lt;= B</code>.</b> Invertido (<code>&lt;=A and &gt;=B</code>) nada satisfaz. Typo em variável só explode no ramo não testado: rodar UMA entrada de CADA categoria/estado.</div>
-<div class="erro"><b>Preço via input = <code>float()</code>, nunca <code>int()</code>.</b> E se o enunciado pede 3 valores na saída (original, final, diferença), imprime os 3: faltar 1 = rubrica inteira zero.</div>
-</div>
-
-<div class="nobreak">
-<h2>⚡ PROTOCOLO DE PROVA</h2>
+<h2>⚡ PROTOCOLO (10 passos)</h2>
 <table>
 <tr><td class="c"><b>0.</b> Q0 primeiro</td><td>nome, turma AE_, código; não apagar os #</td></tr>
-<tr><td class="c"><b>1.</b> Triagem 60s</td><td>classifica as 5 questões: conceito / ler pandas / if+validação / DataFrame / parse em laço / análise</td></tr>
-<tr><td class="c"><b>2.</b> Ordem</td><td>Q1→Q2 (rápidas) → Q5 (3pts) → Q3 → Q4. Travou 10min: pula e volta</td></tr>
-<tr><td class="c"><b>3.</b> Antes do código</td><td><code>df.columns</code> + <code>df.head()</code>: nome EXATO das colunas e valores reais</td></tr>
-<tr><td class="c"><b>4.</b> Consertos em lote</td><td>achou 3 problemas? conserta os 3, DEPOIS roda. Não 1 por vez</td></tr>
-<tr><td class="c"><b>5.</b> Teste de fechamento</td><td>exemplo do enunciado + borda exata de cada faixa + caso de ERRO + os 2 períodos/categorias. SÓ aí "tá pronto"</td></tr>
-<tr><td class="c"><b>6.</b> Warnings</td><td>SyntaxWarning te DIZ o conserto; FutureWarning de pandas: ignora (enunciado manda)</td></tr>
-<tr><td class="c"><b>7.</b> Variáveis dadas</td><td>usa <code>reajuste</code>/<code>mes</code> do enunciado, NUNCA hardcode do exemplo ("deve funcionar pra qualquer cenário")</td></tr>
-<tr><td class="c"><b>8.</b> Formato exato</td><td>copia travessão/símbolo do enunciado; <code>{x:.2f}</code> quando pedir casas; confere espaço por espaço</td></tr>
-<tr><td class="c"><b>9.</b> Antes de entregar</td><td>Restart & Run All: roda tudo de cima a baixo sem erro?</td></tr>
-<tr><td class="c"><b>10.</b> Varredura final</td><td>nenhuma resposta em branco · Q0 preenchida · prosa comentada com # · saídas com :.2f · linha em branco do modelo copiada</td></tr>
+<tr><td class="c"><b>1.</b> Triagem 60s</td><td>cada questão: conceito / ler pandas / if+validação / DataFrame / parse em laço / análise</td></tr>
+<tr><td class="c"><b>2.</b> Ordem</td><td>Q1→Q2 → Q5 (3pts) → Q3 → Q4. Travou 10min: pula e volta</td></tr>
+<tr><td class="c"><b>3.</b> Antes do código</td><td><code>df.columns</code> + <code>head()</code>: nomes e valores REAIS</td></tr>
+<tr><td class="c"><b>4.</b> Consertos em LOTE</td><td>achou 3 problemas? conserta os 3, DEPOIS roda</td></tr>
+<tr><td class="c"><b>5.</b> Teste de fechamento</td><td>exemplo do enunciado + borda exata de cada faixa + caso de ERRO + UMA entrada de CADA categoria/estado</td></tr>
+<tr><td class="c"><b>6.</b> Warnings</td><td>SyntaxWarning DIZ o conserto; FutureWarning: ignora</td></tr>
+<tr><td class="c"><b>7.</b> Saída completa</td><td>pediu 3 valores? imprime os 3 (faltar 1 = rubrica zero)</td></tr>
+<tr><td class="c"><b>8.</b> Formato exato</td><td>copia símbolo do enunciado · <code>:.2f</code> · linha em branco do modelo</td></tr>
+<tr><td class="c"><b>9.</b> Run All</td><td>Restart & Run All sem erro (prosa em célula de código = TODA linha com #)</td></tr>
+<tr><td class="c"><b>10.</b> Varredura final</td><td>NENHUMA resposta em branco · Q0 preenchida</td></tr>
 </table>
 </div>
 
