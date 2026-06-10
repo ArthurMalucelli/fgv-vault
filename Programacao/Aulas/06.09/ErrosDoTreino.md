@@ -40,8 +40,16 @@ Vírgula em Python cria **tupla**: `x / 1000 * 1,2` vira `(x/1000*1, 2)`. Decima
 
 **Float binário, o `3.5999999999999996`:** o computador não representa `1.2` exato em binário, então `3.0 * 1.2` sai com resíduo. NÃO é erro de lógica. Se aparecer na prova, não entra em pânico nem "conserta" a conta: formata a saída com `f"{x:.2f}"` ou `round(x, 2)` e segue.
 
+**Criar coluna nova em DataFrame:** atribuição direta cria, `df["Nova"] = df["A"] * df["B"]`. Vetorizado, sem laço. Nome de coluna existente tem que ser EXATO (acento, maiúscula), senão `KeyError`; confere com `df.columns`.
+
+**Checar se valor existe numa coluna:** `x in df["col"].values`. O `.values` é obrigatório: sem ele o `in` checa o ÍNDICE, não o conteúdo. E o tipo tem que bater: input é `str`, coluna numérica exige `int(input(...))` antes, senão dá `False` sempre.
+
+**8. Q4C, `"1" in coluna de ints` deu Falha.**
+Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
+
 ## Padrões recorrentes (o meta-erro)
 
+- **TODO input() nasce string (3 ocorrências hoje).** A primeira pergunta depois de qualquer input: "converto pra quê?". Comparação ou conta com número exige `int()`/`float()` na mesma linha.
 - **Achar que método altera a variável in place.** Strings são imutáveis: `int()`, `.upper()`, `.replace()`, `.split()` retornam valor novo. Sempre atribuir.
 - **Testar só o caminho feliz.** Os bugs sobreviveram a 2 rodadas porque o teste era sempre o mesmo input confortável.
 - **Tradução literal da fala pra lógica.** "Não é D nem N" não vira `!= "D" or "N"`. Montar a tabela mental: cada lado do `and`/`or` precisa ser comparação completa.
