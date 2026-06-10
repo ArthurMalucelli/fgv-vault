@@ -34,6 +34,9 @@ Vírgula em Python cria **tupla**: `x / 1000 * 1,2` vira `(x/1000*1, 2)`. Decima
 **7. Q3, declarar vitória com UM teste.**
 "Agora foi" com só `1500 + d` testado, que não passa nem perto dos bugs restantes. Um caminho verde não valida os outros ramos. Protocolo: testar **cada faixa + cada borda exata + cada categoria** antes de seguir. Na prova: rodar o exemplo do enunciado E um caso de borda inventado.
 
+**9. Q4C, `IndentationError: unexpected indent`.**
+Um espaço a mais antes de `imc` dentro do bloco do `if`. Linhas do mesmo bloco começam TODAS na mesma coluna. Quando o erro fala de indentação, é espaço, não lógica: seleciona o bloco e alinha com `Cmd+[` / `Cmd+]`.
+
 ## Dúvidas tiradas (conceitos pra fixar)
 
 **`print()` vs auto-display no Jupyter:** célula de notebook exibe sozinha só a ÚLTIMA expressão. Script `.py` não exibe nada sem print. Pra prova: usa `print` sempre que o enunciado pedir "apresente/imprima", e obrigatório quando precisa mostrar mais de uma coisa na mesma célula.
@@ -43,6 +46,10 @@ Vírgula em Python cria **tupla**: `x / 1000 * 1,2` vira `(x/1000*1, 2)`. Decima
 **Criar coluna nova em DataFrame:** atribuição direta cria, `df["Nova"] = df["A"] * df["B"]`. Vetorizado, sem laço. Nome de coluna existente tem que ser EXATO (acento, maiúscula), senão `KeyError`; confere com `df.columns`.
 
 **Checar se valor existe numa coluna:** `x in df["col"].values`. O `.values` é obrigatório: sem ele o `in` checa o ÍNDICE, não o conteúdo. E o tipo tem que bater: input é `str`, coluna numérica exige `int(input(...))` antes, senão dá `False` sempre.
+
+**Selecionar UMA linha por chave e ler as células:** `linha = df[df["id"] == x].iloc[0]`, depois `linha["coluna"]`. O filtro devolve mini-DataFrame; `.iloc[0]` extrai a linha como Series. Pra saída formatada: decidir o resultado numa variável e dar UM print no final com f-string (`{imc:.1f}`); caractere especial do enunciado (travessão `–`) se copia, não se digita.
+
+**O que é `.iloc[0]`:** filtro devolve TABELA (mesmo com 1 linha só); `.iloc[0]` pega a linha na POSIÇÃO 0 dessa tabela como Series. `iloc` = por posição física, `loc` = por nome do índice (a linha filtrada mantém o índice original, então `.loc[0]` quebraria). Cadeia: filtrar → tabela; `.iloc[0]` → linha; `linha["col"]` → valor.
 
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
