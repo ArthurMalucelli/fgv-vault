@@ -79,6 +79,9 @@ Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `inpu
 
 ## Padrões recorrentes (o meta-erro)
 
+**17. Q5A, `return` solto pra "fechar" o laço.**
+`SyntaxError: 'return' outside function`. Bloco em Python fecha por DESINDENTAÇÃO: a primeira linha que volta à margem já está fora do laço. Não existe End/Next/fechamento. `return` é exclusivo de função (`def`), serve pra sair dela, nada a ver com loop.
+
 **16. Q5A, híbrido de `+` com `{}` fora de f-string.**
 `print("Nota"+ {numero} ...)` → SyntaxError. Chaves só injetam variável DENTRO de `f"..."`; soltas criam set. Regra: escolher UM método e ir até o fim. F-string = UMA string contínua, `f` na frente, chaves dentro das aspas, zero `+`. Segunda tropeçada em f-string do dia (ver erro 10): na prova, escrever o texto literal primeiro e só depois envolver as variáveis com chaves.
 
