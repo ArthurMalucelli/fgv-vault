@@ -73,6 +73,8 @@ Anatomia do f-string: `f` antes das aspas liga o modo; `{}` avalia variável/exp
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
 
+**CSV brasileiro: SEMPRE os dois parâmetros.** `pd.read_csv("arq.csv", sep=";", decimal=",")`. O `sep=";"` separa as colunas (sem ele: tudo numa coluna só); o `decimal=","` faz número virar número (sem ele: coluna numérica entra como TEXTO/object e toda conta depois quebra). Teste de sucesso: `df.dtypes` mostra `float64` na coluna de valor. Se mostrar `object`, faltou o `decimal`.
+
 **Split com DOIS separadores não existe: é split em estágios.** Corte grosso primeiro (`i.split(" ")` separa data de hora), fino depois (`partes[0].split("/")` abre a data). `len(partes)` vira o detector de registro com/sem hora; o campo opcional só se acessa dentro do `if len(...) == 2`. Bônus: `"/" " "` coladas viram `"/ "` (literais adjacentes concatenam em silêncio), por isso não deu syntax error, deu lista de 1 pedaço.
 
 **Indexação de lista, `partes[0]`:** lista é fila de caixinhas numeradas DO ZERO. `split` = Texto para Colunas do Excel: `"Ana,8.5".split(",")` → `["Ana", "8.5"]`, onde `partes[0]` é "Ana" e `partes[1]` é "8.5". Batizar (`nome = partes[0]`) é opcional mas evita trocar campo. Mesmo zero de `meses[int(mes)-1]` e `.iloc[0]`: Python conta tudo do 0. Atalho: `loja, nota, valor = reg.split("|")` batiza os 3 de uma vez.
