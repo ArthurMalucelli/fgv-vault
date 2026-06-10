@@ -46,6 +46,9 @@ SyntaxError. Saída formatada é caso de f-string: `print(f"Paciente {input_id} 
 **12. Q4C, `and` onde o enunciado diz "OU" (regra 3).**
 Com `and`, jovem obeso não-fumante caía em risco baixo. Traduzir conectivo do enunciado literalmente: OU = `or`, E = `and`, e a ordem das regras é a prioridade do `elif`.
 
+**22. AGP 1c, `"Produto" == "GASOLINA"` dentro do .loc (KeyError: False).**
+Literal == literal vale False ANTES de o pandas ver; .loc[False] procura linha chamada False. Máscara exige a COLUNA à esquerda: `df["col"] == "valor"`. Mesma pegadinha da alternativa errada da Q1C, agora digitada de verdade. Bônus: `.min` sem parênteses devolve o método, não o número; método se CHAMA com `()`.
+
 **21. B2, laço manual com 3 contadores onde a resposta era `value_counts()` (1 linha, já entregue).**
 Reflexo Excel de fazer na mão. Dentro do laço, ainda comparou a COLUNA inteira no if (3ª aparição do Series-ambiguous; o `for i in coluna` entrega o VALOR no `i`, compara com `i`) e usou literal errado ("Potes" vs "Pote", string é exata). Regra de triagem da análise: escreveu `for` na Parte B, para e pergunta "qual ferramenta pandas faz isso?". Contagem = value_counts; média por grupo = groupby; troca filtrada = .loc.
 

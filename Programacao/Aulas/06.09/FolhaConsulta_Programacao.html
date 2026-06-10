@@ -212,6 +212,20 @@ for reg in datas:
 <div class="col">
 
 <div class="nobreak">
+<h2>D3b · ANATOMIA DO .loc</h2>
+<pre>df.loc[ MÁSCARA , "coluna" ]
+        └ quais LINHAS    └ qual COLUNA</pre>
+<table>
+<tr><td class="c"><code>df.loc[df["UF"]=="SP", "Total"]</code></td><td>LER: a coluna, só nas linhas filtradas</td></tr>
+<tr><td class="c"><code>df.loc[df["UF"]=="SP", "Preço"] = 9</code></td><td>ESCREVER nos filtrados (<code>+=</code> soma, <code>*=</code> mult.)</td></tr>
+<tr><td class="c"><code>df.loc[mask]</code></td><td>sem vírgula: TODAS as colunas das linhas True</td></tr>
+<tr><td class="c"><code>(m1) &amp; (m2)</code> / <code>(m1) | (m2)</code></td><td>E / OU entre máscaras (cada uma entre parênteses)</td></tr>
+<tr><td class="c"><code>.loc</code> vs <code>.iloc[0]</code></td><td>loc = por nome/máscara · iloc = por POSIÇÃO (0 = primeira)</td></tr>
+</table>
+<div class="erro"><b>A máscara tem a COLUNA à esquerda:</b> <code>df["UF"] == "SP"</code>. Escrever <code>"UF" == "SP"</code> compara dois textos, vale <code>False</code>, e o .loc procura uma linha CHAMADA False → <code>KeyError: False</code>. Proibidas: <code>df[mask]["col"] = v</code> (cópia, não altera) · <code>df[mask, "col"]</code> (sem .loc, inválido) · método sem <code>()</code> não executa (<code>.min</code> ≠ <code>.min()</code>).</div>
+</div>
+
+<div class="nobreak">
 <h2>D4 · AGREGAR / CONTAR</h2>
 <table>
 <tr><td class="c"><code>df["col"].sum()</code> <code>.mean()</code> <code>.min()</code> <code>.max()</code></td><td>soma, média, mín, máx</td></tr>
@@ -237,15 +251,6 @@ for reg in datas:
 <div class="warn">⚠ TRIAGEM: dataset grande + média/ranking/cruzar = pandas SEM <code>for</code>. Lista de strings item a item = <code>for</code> + split (lado PYTHON). Ranking liderado por grupo de amostra MÍNIMA = liderança frágil: olha o <code>value_counts()</code> antes de confiar.</div>
 </div>
 
-<div class="nobreak">
-<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
-<pre>total_pre = df["Total"].sum()          # guarda ANTES
-df["Preço Unitário"] = df["Total"]/df["Quantidade"]
-df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
-df["Total"] = df["Preço Unitário"]*df["Quantidade"]
-print(f"R$ {df['Total'].sum()-total_pre:.2f}")
-# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
-</div>
 </div>
 <div class="col">
 
@@ -267,6 +272,16 @@ else:
         r = "risco baixo"
     print(f"Paciente {pid} (IMC: {imc:.1f}) – Risco: {r}")
 # travessão – : COPIA do enunciado</pre>
+</div>
+
+<div class="nobreak">
+<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
+<pre>total_pre = df["Total"].sum()          # guarda ANTES
+df["Preço Unitário"] = df["Total"]/df["Quantidade"]
+df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
+df["Total"] = df["Preço Unitário"]*df["Quantidade"]
+print(f"R$ {df['Total'].sum()-total_pre:.2f}")
+# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
 </div>
 
 <div class="nobreak">
