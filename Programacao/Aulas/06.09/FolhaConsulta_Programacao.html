@@ -154,6 +154,23 @@ for reg in datas:
 # data junta: ano=s[0:4] mes=s[4:6] dia=s[6:8]</pre>
 </div>
 
+<div class="nobreak">
+<h2>⚡ PROTOCOLO (10 passos)</h2>
+<table>
+<tr><td class="c"><b>0.</b> Q0 primeiro</td><td>nome, turma AE_, código; não apagar os #</td></tr>
+<tr><td class="c"><b>1.</b> Triagem 60s</td><td>cada questão: conceito / ler pandas / if+validação / DataFrame / parse em laço / análise</td></tr>
+<tr><td class="c"><b>2.</b> Ordem</td><td>Q1→Q2 → Q5 (3pts) → Q3 → Q4. Travou 10min: pula e volta</td></tr>
+<tr><td class="c"><b>3.</b> Antes do código</td><td><code>df.columns</code> + <code>head()</code>: nomes e valores REAIS</td></tr>
+<tr><td class="c"><b>4.</b> Consertos em LOTE</td><td>achou 3 problemas? conserta os 3, DEPOIS roda</td></tr>
+<tr><td class="c"><b>5.</b> Teste de fechamento</td><td>exemplo do enunciado + borda exata de cada faixa + caso de ERRO + UMA entrada de CADA categoria/estado</td></tr>
+<tr><td class="c"><b>6.</b> Warnings</td><td>SyntaxWarning DIZ o conserto; FutureWarning: ignora</td></tr>
+<tr><td class="c"><b>7.</b> Saída completa</td><td>pediu 3 valores? imprime os 3 (faltar 1 = rubrica zero)</td></tr>
+<tr><td class="c"><b>8.</b> Formato exato</td><td>copia símbolo do enunciado · <code>:.2f</code> · linha em branco do modelo</td></tr>
+<tr><td class="c"><b>9.</b> Run All</td><td>Restart & Run All sem erro (prosa em célula de código = TODA linha com #)</td></tr>
+<tr><td class="c"><b>10.</b> Varredura final</td><td>NENHUMA resposta em branco · Q0 preenchida</td></tr>
+</table>
+</div>
+
 </div>
 </div>
 </div>
@@ -163,6 +180,34 @@ for reg in datas:
 <h1>PANDAS <span class="meta">· sempre <code>import pandas as pd</code> · arquivos na MESMA pasta do notebook: caminho = só o nome</span></h1>
 <div class="cols3">
 <div class="col">
+
+<div class="nobreak">
+<h2>🧭 VERBO DA QUESTÃO → FERRAMENTA</h2>
+<table>
+<tr><td class="c">"só os que…" (filtrar)</td><td><code>df[df["col"] == x]</code></td></tr>
+<tr><td class="c">"troque/reajuste os que…"</td><td><code>df.loc[mask, "col"] =</code> / <code>+=</code></td></tr>
+<tr><td class="c">"média/total POR grupo"</td><td><code>groupby</code></td></tr>
+<tr><td class="c">"grade de X por Y"</td><td><code>pivot_table</code></td></tr>
+<tr><td class="c">"cruze as duas tabelas"</td><td><code>pd.merge(a, b, on=[…])</code></td></tr>
+<tr><td class="c">"quantos de cada"</td><td><code>value_counts()</code></td></tr>
+<tr><td class="c">"existe tal valor?"</td><td><code>x in df["col"].values</code></td></tr>
+<tr><td class="c">"a linha do id X"</td><td><code>df[df["id"]==x].iloc[0]</code></td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>D0 · O MODELO: 2 OBJETOS + MÁSCARA</h2>
+<table>
+<tr><td class="c"><b>DataFrame</b></td><td>a TABELA inteira (linhas × colunas)</td></tr>
+<tr><td class="c"><b>Series</b></td><td>UMA coluna (ou linha extraída via <code>.iloc[0]</code>, ou resultado de groupby)</td></tr>
+</table>
+<pre>MÁSCARA = coluna de True/False de uma comparação
+df["UF"]          df["UF"] == "SP"
+ SP                True   ┐ df[mask] mantém
+ RJ                False  │ as True (= filtro
+ SP                True   ┘ do Excel)</pre>
+<div class="warn">⚠ Pergunta-reflexo antes de cada linha: "o que tenho na mão: tabela, coluna ou valor?" · "truth value of a Series is ambiguous" = coluna INTEIRA onde ia UM valor → usa <code>linha["col"]</code> ou o <code>i</code> do loop.</div>
+</div>
 
 <div class="nobreak">
 <h2>D1 · CRIAR / LER</h2>
@@ -190,6 +235,18 @@ for reg in datas:
 </div>
 
 <div class="nobreak">
+<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
+<pre>total_pre = df["Total"].sum()          # guarda ANTES
+df["Preço Unitário"] = df["Total"]/df["Quantidade"]
+df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
+df["Total"] = df["Preço Unitário"]*df["Quantidade"]
+print(f"R$ {df['Total'].sum()-total_pre:.2f}")
+# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
+</div>
+</div>
+<div class="col">
+
+<div class="nobreak">
 <h2>D3 · FILTRAR / ALTERAR / 1 LINHA</h2>
 <table>
 <tr><td class="c"><code>df["col"]</code></td><td>uma coluna (Series)</td></tr>
@@ -208,9 +265,6 @@ for reg in datas:
 <div class="erro"><b>DIREÇÃO:</b> reajuste/aumento = <code>+=</code> · desconto = <code>-=</code>. |diferença| pode coincidir e esconder o erro: confere <code>head()</code> após a troca. NUNCA <code>df[df[...]==x]["col"] = v</code> (cópia). FutureWarning/Chained: IGNORAR (enunciado manda).</div>
 </div>
 
-</div>
-<div class="col">
-
 <div class="nobreak">
 <h2>D3b · ANATOMIA DO .loc</h2>
 <pre>df.loc[ MÁSCARA , "coluna" ]
@@ -225,6 +279,10 @@ for reg in datas:
 <div class="erro"><b>A máscara tem a COLUNA à esquerda:</b> <code>df["UF"] == "SP"</code>. Escrever <code>"UF" == "SP"</code> compara dois textos, vale <code>False</code>, e o .loc procura uma linha CHAMADA False → <code>KeyError: False</code>. Proibidas: <code>df[mask]["col"] = v</code> (cópia, não altera) · <code>df[mask, "col"]</code> (sem .loc, inválido) · método sem <code>()</code> não executa (<code>.min</code> ≠ <code>.min()</code>).</div>
 </div>
 
+
+</div>
+<div class="col">
+
 <div class="nobreak">
 <h2>D4 · AGREGAR / CONTAR</h2>
 <table>
@@ -235,6 +293,7 @@ for reg in datas:
 <tr><td class="c"><code>mask.sum()</code></td><td>conta True (True=1). <code>.count()</code> = não-nulos, NÃO use</td></tr>
 <tr><td class="c"><code>serie.sort_values(ascending=False)</code></td><td>decrescente; <code>.head(5)</code> = top 5</td></tr>
 <tr><td class="c"><code>df["col"].describe()</code></td><td>pacote completo: count, mean, std, min, quartis, max</td></tr>
+<tr><td class="c"><code>df.sort_values("col", ascending=False)</code></td><td>ordena a TABELA inteira por uma coluna</td></tr>
 </table>
 </div>
 
@@ -248,11 +307,13 @@ for reg in datas:
 <tr><td class="c"><code>(df["m"] &lt; 0).replace({True:"prejuízo", False:"lucro"})</code></td><td>classificar sem if</td></tr>
 <tr><td class="c"><code>np.where(cond, "sim", "não")</code></td><td>idem (<code>import numpy as np</code>)</td></tr>
 </table>
+<pre>groupby = SEPARA → APLICA → JUNTA
+  SP→[.05,.07]→.06 │ RJ→[.04]→.04  (grupo no índice)
+  2 chaves = 1 linha por COMBINAÇÃO existente
+reset_index: rótulo da margem → coluna comum
+  MG ETANOL│.09  →  0│MG│ETANOL│.09 (margem vira 0,1,2)</pre>
 <div class="warn">⚠ TRIAGEM: dataset grande + média/ranking/cruzar = pandas SEM <code>for</code>. Lista de strings item a item = <code>for</code> + split (lado PYTHON). Ranking liderado por grupo de amostra MÍNIMA = liderança frágil: olha o <code>value_counts()</code> antes de confiar.</div>
 </div>
-
-</div>
-<div class="col">
 
 <div class="nobreak">
 <h2>D6 · ESQUELETO: BUSCA ID + ÁRVORE</h2>
@@ -274,32 +335,7 @@ else:
 # travessão – : COPIA do enunciado</pre>
 </div>
 
-<div class="nobreak">
-<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
-<pre>total_pre = df["Total"].sum()          # guarda ANTES
-df["Preço Unitário"] = df["Total"]/df["Quantidade"]
-df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
-df["Total"] = df["Preço Unitário"]*df["Quantidade"]
-print(f"R$ {df['Total'].sum()-total_pre:.2f}")
-# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
-</div>
 
-<div class="nobreak">
-<h2>⚡ PROTOCOLO (10 passos)</h2>
-<table>
-<tr><td class="c"><b>0.</b> Q0 primeiro</td><td>nome, turma AE_, código; não apagar os #</td></tr>
-<tr><td class="c"><b>1.</b> Triagem 60s</td><td>cada questão: conceito / ler pandas / if+validação / DataFrame / parse em laço / análise</td></tr>
-<tr><td class="c"><b>2.</b> Ordem</td><td>Q1→Q2 → Q5 (3pts) → Q3 → Q4. Travou 10min: pula e volta</td></tr>
-<tr><td class="c"><b>3.</b> Antes do código</td><td><code>df.columns</code> + <code>head()</code>: nomes e valores REAIS</td></tr>
-<tr><td class="c"><b>4.</b> Consertos em LOTE</td><td>achou 3 problemas? conserta os 3, DEPOIS roda</td></tr>
-<tr><td class="c"><b>5.</b> Teste de fechamento</td><td>exemplo do enunciado + borda exata de cada faixa + caso de ERRO + UMA entrada de CADA categoria/estado</td></tr>
-<tr><td class="c"><b>6.</b> Warnings</td><td>SyntaxWarning DIZ o conserto; FutureWarning: ignora</td></tr>
-<tr><td class="c"><b>7.</b> Saída completa</td><td>pediu 3 valores? imprime os 3 (faltar 1 = rubrica zero)</td></tr>
-<tr><td class="c"><b>8.</b> Formato exato</td><td>copia símbolo do enunciado · <code>:.2f</code> · linha em branco do modelo</td></tr>
-<tr><td class="c"><b>9.</b> Run All</td><td>Restart & Run All sem erro (prosa em célula de código = TODA linha com #)</td></tr>
-<tr><td class="c"><b>10.</b> Varredura final</td><td>NENHUMA resposta em branco · Q0 preenchida</td></tr>
-</table>
-</div>
 
 </div>
 </div>
