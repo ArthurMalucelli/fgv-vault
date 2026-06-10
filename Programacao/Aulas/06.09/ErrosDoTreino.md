@@ -73,6 +73,8 @@ Anatomia do f-string: `f` antes das aspas liga o modo; `{}` avalia variável/exp
 **8. Q4C, `"1" in coluna de ints` deu Falha.**
 Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `input()` devolveu `"1"` e `"1" == 1` é False, então o `in` nunca acha. Conserto: `int(input(...))` na mesma linha. Aconteceu MINUTOS depois do aviso explícito: é o teu erro número 1, checar input ANTES de qualquer comparação.
 
+**Contar categorias: `value_counts()` (uma linha, todas de uma vez).** `df["col"].value_counts()` → tabela valor→contagem, ordenada. Não fazer máscara por categoria (3× o trabalho). Trio que confunde: `.value_counts()` = contagem por categoria; `.nunique()` = quantas distintas (número); `.unique()` = quais (lista). Pegadinha: `.count()` em máscara conta NÃO-NULOS (tudo), não os True; True se conta com `.sum()`.
+
 **CSV brasileiro: SEMPRE os dois parâmetros.** `pd.read_csv("arq.csv", sep=";", decimal=",")`. O `sep=";"` separa as colunas (sem ele: tudo numa coluna só); o `decimal=","` faz número virar número (sem ele: coluna numérica entra como TEXTO/object e toda conta depois quebra). Teste de sucesso: `df.dtypes` mostra `float64` na coluna de valor. Se mostrar `object`, faltou o `decimal`.
 
 **Split com DOIS separadores não existe: é split em estágios.** Corte grosso primeiro (`i.split(" ")` separa data de hora), fino depois (`partes[0].split("/")` abre a data). `len(partes)` vira o detector de registro com/sem hora; o campo opcional só se acessa dentro do `if len(...) == 2`. Bônus: `"/" " "` coladas viram `"/ "` (literais adjacentes concatenam em silêncio), por isso não deu syntax error, deu lista de 1 pedaço.
