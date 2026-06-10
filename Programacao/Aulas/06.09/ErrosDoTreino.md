@@ -81,6 +81,15 @@ Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `inpu
 
 ## Padrões recorrentes (o meta-erro)
 
+**19. Q5B, `meses_do_ano[mes-1]` com `mes` ainda string.**
+QUINTA ocorrência do str-sem-converter (Q1A, Q3, Q4C, Q5A, Q5B). `"12" - 1` é TypeError. Índice de lista exige int: `meses_do_ano[int(mes) - 1]`. O `int()` também mata zero à esquerda (`"03"` → 3).
+
+**20. Q5B, trabalho duplicado nos dois ramos do if/else.**
+Abrir a data acontecia igual nos DOIS ramos. O que é comum aos caminhos vem ANTES do if; o if só guarda a divergência (a hora opcional). Menos código = menos superfície pra typo.
+
+**18. Q5B, `horas = partes[1]` fora da guarda do `len`.**
+IndexError no primeiro registro sem hora: `partes[1]` não existe quando o split devolveu 1 pedaço. Campo OPCIONAL só se acessa dentro do `if len(partes) == 2:`. Mesmo princípio do "Paciente não encontrado" da 4C: confirmar que existe ANTES de usar.
+
 **17. Q5A, `return` solto pra "fechar" o laço.**
 `SyntaxError: 'return' outside function`. Bloco em Python fecha por DESINDENTAÇÃO: a primeira linha que volta à margem já está fora do laço. Não existe End/Next/fechamento. `return` é exclusivo de função (`def`), serve pra sair dela, nada a ver com loop.
 
