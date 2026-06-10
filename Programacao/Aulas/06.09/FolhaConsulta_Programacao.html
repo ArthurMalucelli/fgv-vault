@@ -11,7 +11,9 @@
   .page:last-child { page-break-after: auto; }
   h1 { font-size: 11px; border-bottom: 2px solid #111; margin-bottom: 3px; padding-bottom: 1px; }
   h2 { font-size: 8.6px; background: #111; color: #fff; padding: 1px 4px; margin: 4px 0 2px; border-radius: 2px; }
-  .cols3 { column-count: 3; column-gap: 8px; column-rule: 1px solid #ccc; }
+  .cols3 { display: flex; gap: 8px; }
+  .col { flex: 1 1 0; min-width: 0; border-right: 1px solid #ccc; padding-right: 6px; }
+  .col:last-child { border-right: none; padding-right: 0; }
   .nobreak { break-inside: avoid; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 2px; }
   td { vertical-align: top; padding: 0.5px 2px; border-bottom: 0.5px solid #e3e3e3; }
@@ -31,6 +33,7 @@
 <div class="page">
 <h1>PYTHON <span class="meta">· Prova Final Programação · Arthur · 10.06.2026 · (verso: PANDAS)</span></h1>
 <div class="cols3">
+<div class="col">
 
 <div class="nobreak">
 <h2>P1 · FUNÇÕES (envolvem o valor)</h2>
@@ -65,6 +68,9 @@
 </table>
 <div class="warn">⚠ Dois separadores num split NÃO existe: split em ESTÁGIOS (espaço primeiro separa os mundos, depois <code>/</code> abre a data). Campo opcional: só acessar <code>partes[1]</code> DENTRO de <code>if len(partes)==2:</code>.</div>
 </div>
+
+</div>
+<div class="col">
 
 <div class="nobreak">
 <h2>P3 · F-STRING (montar texto)</h2>
@@ -114,6 +120,9 @@ else:
     print(f"R$ {taxa:.2f}")</pre>
 </div>
 
+</div>
+<div class="col">
+
 <div class="nobreak">
 <h2>P7 · ESQUELETO: ACUMULADOR (Q5)</h2>
 <pre>cont = 0; total = 0          # zera FORA
@@ -147,11 +156,13 @@ for reg in datas:
 
 </div>
 </div>
+</div>
 
 <!-- ==================== VERSO: PANDAS ==================== -->
 <div class="page">
 <h1>PANDAS <span class="meta">· sempre <code>import pandas as pd</code> · arquivos na MESMA pasta do notebook: caminho = só o nome</span></h1>
 <div class="cols3">
+<div class="col">
 
 <div class="nobreak">
 <h2>D1 · CRIAR / LER</h2>
@@ -197,6 +208,9 @@ for reg in datas:
 <div class="erro"><b>DIREÇÃO:</b> reajuste/aumento = <code>+=</code> · desconto = <code>-=</code>. |diferença| pode coincidir e esconder o erro: confere <code>head()</code> após a troca. NUNCA <code>df[df[...]==x]["col"] = v</code> (cópia). FutureWarning/Chained: IGNORAR (enunciado manda).</div>
 </div>
 
+</div>
+<div class="col">
+
 <div class="nobreak">
 <h2>D4 · AGREGAR / CONTAR</h2>
 <table>
@@ -206,6 +220,7 @@ for reg in datas:
 <tr><td class="c"><code>df["col"].nunique()</code></td><td>QUANTAS categorias distintas</td></tr>
 <tr><td class="c"><code>mask.sum()</code></td><td>conta True (True=1). <code>.count()</code> = não-nulos, NÃO use</td></tr>
 <tr><td class="c"><code>serie.sort_values(ascending=False)</code></td><td>decrescente; <code>.head(5)</code> = top 5</td></tr>
+<tr><td class="c"><code>df["col"].describe()</code></td><td>pacote completo: count, mean, std, min, quartis, max</td></tr>
 </table>
 </div>
 
@@ -221,6 +236,18 @@ for reg in datas:
 </table>
 <div class="warn">⚠ TRIAGEM: dataset grande + média/ranking/cruzar = pandas SEM <code>for</code>. Lista de strings item a item = <code>for</code> + split (lado PYTHON). Ranking liderado por grupo de amostra MÍNIMA = liderança frágil: olha o <code>value_counts()</code> antes de confiar.</div>
 </div>
+
+<div class="nobreak">
+<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
+<pre>total_pre = df["Total"].sum()          # guarda ANTES
+df["Preço Unitário"] = df["Total"]/df["Quantidade"]
+df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
+df["Total"] = df["Preço Unitário"]*df["Quantidade"]
+print(f"R$ {df['Total'].sum()-total_pre:.2f}")
+# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
+</div>
+</div>
+<div class="col">
 
 <div class="nobreak">
 <h2>D6 · ESQUELETO: BUSCA ID + ÁRVORE</h2>
@@ -243,16 +270,6 @@ else:
 </div>
 
 <div class="nobreak">
-<h2>D7 · ESQUELETO: REAJUSTE + DIFERENÇA</h2>
-<pre>total_pre = df["Total"].sum()          # guarda ANTES
-df["Preço Unitário"] = df["Total"]/df["Quantidade"]
-df.loc[df["Mês"]==mes, "Preço Unitário"] += reajuste
-df["Total"] = df["Preço Unitário"]*df["Quantidade"]
-print(f"R$ {df['Total'].sum()-total_pre:.2f}")
-# usa as VARIÁVEIS dadas, nunca os nº do exemplo</pre>
-</div>
-
-<div class="nobreak">
 <h2>⚡ PROTOCOLO (10 passos)</h2>
 <table>
 <tr><td class="c"><b>0.</b> Q0 primeiro</td><td>nome, turma AE_, código; não apagar os #</td></tr>
@@ -269,6 +286,7 @@ print(f"R$ {df['Total'].sum()-total_pre:.2f}")
 </table>
 </div>
 
+</div>
 </div>
 </div>
 
