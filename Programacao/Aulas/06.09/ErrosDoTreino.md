@@ -79,7 +79,19 @@ Mesmo erro do input-é-string, TERCEIRA ocorrência do dia (Q1A, Q3, Q4C). `inpu
 
 ## Padrões recorrentes (o meta-erro)
 
-- **TODO input() nasce string (3 ocorrências hoje).** A primeira pergunta depois de qualquer input: "converto pra quê?". Comparação ou conta com número exige `int()`/`float()` na mesma linha.
+**16. Q5A, híbrido de `+` com `{}` fora de f-string.**
+`print("Nota"+ {numero} ...)` → SyntaxError. Chaves só injetam variável DENTRO de `f"..."`; soltas criam set. Regra: escolher UM método e ir até o fim. F-string = UMA string contínua, `f` na frente, chaves dentro das aspas, zero `+`. Segunda tropeçada em f-string do dia (ver erro 10): na prova, escrever o texto literal primeiro e só depois envolver as variáveis com chaves.
+
+**13. Q5A, split na LISTA em vez do item do laço: `registros.split("|")`.**
+`AttributeError: 'list' object has no attribute 'split'`. O `for i in registros` entrega UM registro por vez no `i`; dentro do laço se trabalha com `i`, nunca com a lista inteira. Split é da fruta, não da cesta.
+
+**14. Q5A, `float(valor)` solto, QUARTA ocorrência do conversão-sem-atribuir.**
+Q1A, Q3, Q4C, Q5A. Conversão devolve valor novo: `valor = float(partes[2])`. Sem isso o `total += valor` estoura TypeError.
+
+**15. Q5A, esqueceu os dois prints do padrão acumulador.**
+Print do item DENTRO do laço, totalizadora FORA (depois dele). Juntos valem 1,5 da rubrica. Acumular sem mostrar não pontua.
+
+- **TODO input()/conversão nasce string até atribuir (4 ocorrências hoje).** A primeira pergunta depois de qualquer input ou split: "converto pra quê, e atribuí?". Comparação ou conta com número exige `valor = int(...)`/`float(...)` na mesma linha.
 - **Aplicar só o primeiro conserto da lista e re-rodar (2 ocorrências: Q3 e Q4C).** Correção é checklist: aplicar TODAS, riscando uma a uma, depois rodar. Na prova: conferir cada exigência do enunciado contra o código, item a item.
 - **Achar que método altera a variável in place.** Strings são imutáveis: `int()`, `.upper()`, `.replace()`, `.split()` retornam valor novo. Sempre atribuir.
 - **Testar só o caminho feliz.** Os bugs sobreviveram a 2 rodadas porque o teste era sempre o mesmo input confortável.
