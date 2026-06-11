@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Folha 2, Banco Questão → Resposta</title>
+<style>
+  @page { size: A4; margin: 7mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: 9.2px; line-height: 1.28; color: #111; }
+  .page { width: 100%; page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 13px; border-bottom: 2px solid #111; margin-bottom: 3px; padding-bottom: 1px; }
+  h2 { font-size: 9.6px; background: #111; color: #fff; padding: 1px 4px; margin: 4px 0 2px; border-radius: 2px; }
+  .q { font-weight: 700; background: #e8eef7; border-left: 3px solid #2c5aa0; padding: 1px 4px; margin: 3px 0 1px; }
+  .cols3 { display: flex; gap: 8px; }
+  .col { flex: 1 1 0; min-width: 0; border-right: 1px solid #ccc; padding-right: 6px; }
+  .col:last-child { border-right: none; padding-right: 0; }
+  .nobreak { break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 2px; table-layout: fixed; }
+  td { vertical-align: top; padding: 0.5px 2px; border-bottom: 0.5px solid #e3e3e3; overflow-wrap: anywhere; }
+  td.c { width: 47%; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 8.4px; }
+  code { background: #f0f0f0; padding: 0 2px; border-radius: 2px; word-break: break-all; }
+  pre { background: #f4f4f4; border: 0.5px solid #ccc; border-radius: 3px; padding: 3px 4px; margin: 1px 0 3px; line-height: 1.3; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .warn { background: #fff3cd; border-left: 3px solid #b8860b; padding: 2px 4px; margin: 2px 0; break-inside: avoid; }
+  .meta { font-size: 8.2px; color: #555; }
+</style>
+</head>
+<body>
+
+<!-- ==================== FRENTE ==================== -->
+<div class="page">
+<h1>FOLHA 2 · QUESTÃO → RESPOSTA · PYTHON <span class="meta">· acha o enunciado parecido, copia o molde, troca nomes/valores pelos DELE</span></h1>
+<div class="cols3">
+<div class="col">
+
+<div class="nobreak">
+<h2>R1 · "ESTE PROGRAMA GERA ERRO…"</h2>
+<div class="q">"Em qual linha, por que, e como consertar?"</div>
+<pre># O erro está na linha da COMPARAÇÃO/CONTA
+# (não na linha do input!). Resposta-modelo:
+# "O erro é gerado na linha N, onde se
+# compara/calcula com a variável vinda de
+# input(). input() sempre retorna texto (str),
+# e comparar/operar str com int gera TypeError.
+# Conserto: converter na entrada:
+# x = int(input(...))  (ou float se decimal)"</pre>
+</div>
+
+<div class="nobreak">
+<h2>R2 · "FOR OU WHILE? JUSTIFIQUE"</h2>
+<div class="q">Dois cenários: nº fixo vs depende de condição</div>
+<pre># "Caso A: for, porque o número de repetições
+# é conhecido ANTES do laço começar (N vezes).
+# Caso B: while, porque a repetição depende de
+# uma condição reavaliada a cada volta (enquanto
+# saldo/estoque permitir); o total de vezes não
+# é fixado de antemão."
+# Isca: "R$40 dá 10" parece contagem, mas saldo
+# é variável → condição → while.</pre>
+</div>
+
+<div class="nobreak">
+<h2>R3 · "ASSINALE AS CORRETAS (.loc)"</h2>
+<div class="q">Trocar/ajustar valores filtrados, 5 alternativas</div>
+<pre># CERTAS (2 formas equivalentes):
+df.loc[df["Ano"]==2026, "Valor"] *= 0.9
+df.loc[df["Ano"]==2026, "Valor"] = (
+    df.loc[df["Ano"]==2026, "Valor"] * 0.9)
+# ERRADAS e por quê:
+# df[mask]["Valor"] = …   → cópia (chained)
+# df[mask, "Valor"]       → sem .loc, inválido
+# "Ano"==2026             → literal, vale False
+# df[df[Ano]…]            → sem aspas: NameError
+# "2026" vs 2026          → texto ≠ número</pre>
+</div>
+
+<div class="nobreak">
+<h2>R4 · "O QUE ESTE PROGRAMA FAZ?"</h2>
+<div class="q">Ler código pandas (3 blocos = 3×0,33)</div>
+<pre># Responde em 3 LINHAS, uma por bloco:
+# "1) Importa o pandas e carrega a planilha X
+# num dataframe.
+# 2) Nas linhas onde [coluna]==[valor], troca/
+# multiplica [coluna-alvo] por [fator] — preço
+# passa a ser N% do original (= reduz 100-N%).
+# 3) Imprime as 5 (ou 10) primeiras linhas do
+# dataframe INTEIRO (todas as colunas)."
+# *0.85 = reduz 15% · *0.2 = vira 20% (reduz 80%)
+# len(série filtrada) = QUANTOS, não quais</pre>
+</div>
+
+</div>
+<div class="col">
+
+<div class="nobreak">
+<h2>R5 · INPUT + VALIDAÇÃO + FAIXAS</h2>
+<div class="q">"Valide (int + categoria); erro → ERRO DE ENTRADA; senão calcule por faixa, adicional condicional"</div>
+<pre>x = input("Valor: ")
+cat = input("Categoria: ").upper()
+if not x.isdigit() or cat not in ["A","B","C"]:
+    print("ERRO DE ENTRADA")
+else:
+    x = int(x)
+    if x &lt;= 10000:        # "até X" inclui X
+        v = (x/1000) * 0.98
+    elif x &lt;= 50000:
+        v = (x/1000) * 0.74
+    elif x &lt;= 100000:
+        v = (x/1000) * 0.42
+    else:
+        v = 100            # fixo
+    if cat in ["B","C"]:
+        v *= 2             # dobro vale p/ fixo tb
+    print(f"R$ {v:.2f}")</pre>
+</div>
+
+<div class="nobreak">
+<h2>R6 · DESCONTO ANINHADO + 3 SAÍDAS</h2>
+<div class="q">"Desconto por ESTADO e por FAIXA do valor; apresente original, final e diferença"</div>
+<pre>uf = input("Estado: ")
+q = int(input("Quantidade: "))
+p = float(input("Preço unitário: "))  # FLOAT!
+valor = q * p
+if uf == "SP":
+    pct = 0.09 if valor &lt; 3000 else 0.065
+elif uf == "RJ":
+    pct = 0.10 if valor &lt; 2600 else 0.08
+else:
+    if valor &gt;= 1000 and valor &lt;= 1900:
+        pct = 0.08
+    else:
+        pct = 0.06
+final = valor * (1 - pct)
+print(f"Original: R$ {valor:.2f}")
+print(f"Com desconto: R$ {final:.2f}")
+print(f"Diferença: R$ {valor - final:.2f}")
+# pediu 3 valores → imprime os TRÊS</pre>
+</div>
+
+<div class="nobreak">
+<h2>R7 · JOGO COM SALDO (while)</h2>
+<div class="q">"Repete enquanto tiver dinheiro/estoque"</div>
+<pre>saldo = int(input("Saldo: "))
+tentativas = 0
+while saldo &gt;= 4:      # enquanto dá pra pagar
+    saldo -= 4         # paga
+    tentativas += 1
+print(f"{tentativas} tentativas, sobrou {saldo}")</pre>
+</div>
+
+</div>
+<div class="col">
+
+<div class="nobreak">
+<h2>R8 · LISTA DE STRINGS → IMPRIMIR + TOTAL</h2>
+<div class="q">"Mostre cada item no formato X e o total" (Q5 clássica)</div>
+<pre>cont = 0
+total = 0
+for item in lista:
+    partes = item.split(",")   # ou "|", "#", ";"
+    a = partes[0]
+    b = partes[1]
+    v = float(partes[2])       # int se inteiro
+    cont += 1
+    total += v
+    print(f"{a} - {b} - {v} unidades")
+print()                        # linha em branco
+print(f"{cont} pedidos - {total:.2f} unidades")
+# total inteiro? usa int() e imprime sem :.2f</pre>
+</div>
+
+<div class="nobreak">
+<h2>R9 · DATA JUNTA → dd/mm/aaaa</h2>
+<div class="q">"20251119 dentro da string → 19/11/2025"</div>
+<pre>data = partes[2]          # "20251119"
+ano = data[0:4]
+mes = data[4:6]
+dia = data[6:8]
+print(f"{dia}/{mes}/{ano} - {valor}")</pre>
+</div>
+
+<div class="nobreak">
+<h2>R10 · DATA POR EXTENSO (c/ hora opcional)</h2>
+<div class="q">"DD/MM/YYYY [HH:MM] → 2 de outubro de 2025 às 10 horas"</div>
+<pre># esqueleto completo na FOLHA 1, P8.
+# Núcleo: partes = reg.split(" ") →
+# len(partes)==2 detecta hora;
+# meses[int(mes)-1]; singular/plural:
+# h==1 "à 1 hora" / f"às {h} horas"
+# m==0 omite / m==1 "e 1 minuto" / f"e {m} minutos"
+# YYYY-MM-DD? inverte: ano,mes,dia = .split("-")</pre>
+</div>
+
+<div class="nobreak">
+<h2>R11 · CONTAR/MAIOR DENTRO DO LAÇO</h2>
+<div class="q">"Quantos itens atendem X" / "qual o maior valor"</div>
+<pre>cont = 0
+maior = 0
+for item in lista:
+    v = float(item.split(",")[2])
+    if v &gt; 1000:          # a condição DELE
+        cont += 1
+    if v &gt; maior:         # rastreia o máximo
+        maior = v
+print(f"{cont} acima de 1000; maior: {maior}")</pre>
+</div>
+
+<div class="warn">⚠ Em TODA Q5: funciona pra QUALQUER lista (nada de fixar 4); converter o numérico do split; totalizadora FORA do laço; conferir formato caractere a caractere (espaços, hífen, linha em branco).</div>
+
+</div>
+</div>
+</div>
+
+<!-- ==================== VERSO ==================== -->
+<div class="page">
+<h1>FOLHA 2 · PEDIDO → CÓDIGO · PANDAS <span class="meta">· antes de tudo: <code>df.columns</code> e <code>df.head()</code> (nomes EXATOS e valores reais)</span></h1>
+<div class="cols3">
+<div class="col">
+
+<div class="nobreak">
+<h2>E1 · EXPLORAR / CONTAR</h2>
+<table>
+<tr><td class="c">"quantas linhas e colunas"</td><td><code>df.shape</code></td></tr>
+<tr><td class="c">"liste as colunas"</td><td><code>list(df.columns)</code></td></tr>
+<tr><td class="c">"quantos registros de cada tipo"</td><td><code>df["Produto"].value_counts()</code></td></tr>
+<tr><td class="c">"quantos tipos diferentes"</td><td><code>df["Produto"].nunique()</code></td></tr>
+<tr><td class="c">"quais são os valores"</td><td><code>df["Produto"].unique()</code></td></tr>
+<tr><td class="c">"mostre as 5 primeiras"</td><td><code>df.head()</code> (10: <code>head(10)</code>)</td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>E2 · FILTRAR</h2>
+<table>
+<tr><td class="c">"só os de SP"</td><td><code>df[df["Estado"] == "SP"]</code></td></tr>
+<tr><td class="c">"acima de 5000"</td><td><code>df[df["Total"] &gt;= 5000]</code></td></tr>
+<tr><td class="c">"SP ou RJ"</td><td><code>df[df["Estado"].isin(["SP","RJ"])]</code></td></tr>
+<tr><td class="c">"SP E acima de 5000"</td><td><code>df[(df["Estado"]=="SP") &amp; (df["Total"]&gt;5000)]</code></td></tr>
+<tr><td class="c">"quantos atendem"</td><td><code>(df["Total"] &gt; 5000).sum()</code> ou <code>len(df[mask])</code></td></tr>
+<tr><td class="c">"qual % atende"</td><td><code>(mask.sum() / len(df)) * 100</code></td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>E3 · RESUMIR UMA COLUNA</h2>
+<table>
+<tr><td class="c">"some / média / maior / menor"</td><td><code>df["Total"].sum()</code> <code>.mean()</code> <code>.max()</code> <code>.min()</code></td></tr>
+<tr><td class="c">"mín, média e máx em UMA operação"</td><td><code>df["Total"].agg(["min","mean","max"]).round(2)</code></td></tr>
+<tr><td class="c">"resumo completo"</td><td><code>df["Total"].describe()</code></td></tr>
+<tr><td class="c">"média só dos de SP"</td><td><code>df.loc[df["UF"]=="SP", "Total"].mean()</code></td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>E4 · BUSCAR UM REGISTRO (id)</h2>
+<pre>pid = int(input("id: "))     # tipo = o da coluna!
+if pid not in df["id"].values:
+    print("Não encontrado")
+else:
+    linha = df[df["id"]==pid].iloc[0]
+    print(f"… {linha['nome']} … {linha['idade']}")
+# árvore de decisão completa: FOLHA 1, D6</pre>
+</div>
+
+</div>
+<div class="col">
+
+<div class="nobreak">
+<h2>E5 · ALTERAR / CRIAR COLUNA</h2>
+<table>
+<tr><td class="c">"troque o valor dos selecionados"</td><td><code>df.loc[df["Cod"]==cod, "Preço"] = novo</code> (variáveis do input!)</td></tr>
+<tr><td class="c">"reajuste de +0,04 só de dezembro"</td><td><code>df.loc[df["Mês"]==mes, "Preço"] += reajuste</code></td></tr>
+<tr><td class="c">"desconto de 10% nos de SP"</td><td><code>df.loc[df["UF"]=="SP", "Preço"] *= 0.9</code></td></tr>
+<tr><td class="c">"crie coluna com o total"</td><td><code>df["Total"] = df["Preço"] * df["Qtd"]</code></td></tr>
+<tr><td class="c">"calcule o preço unitário"</td><td><code>df["Preço Unit"] = df["Total"] / df["Qtd"]</code></td></tr>
+<tr><td class="c">"classifique lucro/prejuízo"</td><td><code>(df["M"]&lt;0).replace({True:"prejuízo", False:"lucro"})</code></td></tr>
+<tr><td class="c">"coluna mês da data texto"</td><td><code>df["Data"].str[6:10] + "-" + df["Data"].str[3:5]</code> (DD/MM/AAAA→AAAA-MM)</td></tr>
+<tr><td class="c">"prefixo do código"</td><td><code>df["Cod"].str[0:3]</code></td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>E6 · FATURAMENTO ANTES × DEPOIS</h2>
+<div class="q">"diferença com e sem o reajuste"</div>
+<pre>total_pre = df["Total"].sum()        # guarda ANTES
+df["Preço Unit"] = df["Total"]/df["Qtd"]
+df.loc[df["Mês"]==mes, "Preço Unit"] += reajuste
+df["Total"] = df["Preço Unit"] * df["Qtd"]
+dif = df["Total"].sum() - total_pre
+print(f"Diferença: R$ {dif:.2f}")
+# reajuste/aumento = +=  · desconto = -=</pre>
+</div>
+
+<div class="nobreak">
+<h2>E7 · "MÉDIA/TOTAL POR GRUPO" (groupby)</h2>
+<table>
+<tr><td class="c">"média de preço por estado"</td><td><code>df.groupby("Estado")["Preço"].mean()</code></td></tr>
+<tr><td class="c">"…ordenado / ranking"</td><td><code>….sort_values(ascending=False)</code></td></tr>
+<tr><td class="c">"QUAL estado tem a maior média"</td><td><code>df.groupby("Estado")["Preço"].mean().idxmax()</code></td></tr>
+<tr><td class="c">"por estado E produto"</td><td><code>df.groupby(["Estado","Produto"])["Preço"].mean().reset_index()</code></td></tr>
+<tr><td class="c">"vários stats por grupo"</td><td><code>df.groupby("Estado")["Preço"].agg(["mean","max"])</code></td></tr>
+<tr><td class="c">"top 5 / 5 menores"</td><td><code>serie.sort_values(ascending=False).head(5)</code> · menores: <code>sort_values().head(5)</code></td></tr>
+</table>
+</div>
+
+</div>
+<div class="col">
+
+<div class="nobreak">
+<h2>E8 · "GRADE DE X POR Y" (pivot_table)</h2>
+<div class="q">"preço médio por município e mês, um produto por coluna"</div>
+<pre>tab = df.pivot_table(
+    index=["Municipio", "Mes"],  # Linhas
+    columns="Produto",           # vira colunas
+    values="Valor",              # o que resumir
+    aggfunc="mean").reset_index()
+tab.columns.name = None
+# 1 chave só no index? sem a lista: index="UF"</pre>
+</div>
+
+<div class="nobreak">
+<h2>E9 · "CRUZE AS DUAS TABELAS" (merge)</h2>
+<pre>dados = pd.merge(pedidos, custos,
+                 on=["Código", "Mês"])  # TODAS
+                 # as chaves em comum!
+# teste: dados.shape preserva as linhas?
+# depois: dados["Margem"] = (
+#     dados["Venda"] - dados["Custo"])</pre>
+</div>
+
+<div class="nobreak">
+<h2>E10 · CARREGAR (antes de tudo)</h2>
+<table>
+<tr><td class="c">Excel</td><td><code>pd.read_excel("a.xlsx")</code> (+<code>index_col=0</code> se 1ª col = índice)</td></tr>
+<tr><td class="c">CSV brasileiro</td><td><code>pd.read_csv("a.csv", sep=";", decimal=",")</code></td></tr>
+<tr><td class="c">conferir</td><td><code>df.dtypes</code> → valor tem que ser float64/int64</td></tr>
+</table>
+</div>
+
+<div class="nobreak">
+<h2>E11 · QUESTÃO INTERPRETATIVA (modelo)</h2>
+<div class="q">"o líder do ranking é confiável? / dá pra decidir só com isso?"</div>
+<pre># Molde de resposta (adapta os colchetes):
+# "Pela letra do enunciado, a resposta é [X].
+# Porém [X] tem apenas [N] registros (ver
+# value_counts): amostra pequena, média frágil
+# a outliers. Entre os grupos com volume
+# relevante, [Y] lidera.
+# Além disso, os dados NÃO capturam: custos
+# [da franquia/logísticos], impostos, volume
+# real, concorrência local e risco. A decisão
+# exige comparar a métrica LÍQUIDA desses
+# fatores, não a margem bruta isolada."</pre>
+</div>
+
+<div class="warn">⚠ Roteiro: 1) acha o VERBO do pedido → seção desta folha; 2) copia o molde; 3) troca coluna/valores pelos do enunciado (df.columns!); 4) roda; 5) confere com head()/shape antes de seguir.</div>
+
+</div>
+</div>
+</div>
+
+</body>
+</html>
