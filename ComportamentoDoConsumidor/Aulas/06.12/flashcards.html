@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcards · CDC Prova Final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0d10;
+    --card: #15171c;
+    --card-back: #191b14;
+    --line: #262931;
+    --txt: #e9e6df;
+    --dim: #8b8e96;
+    --amber: #e3a13c;
+    --red: #c96a5e;
+    --green: #7fa86c;
+    --serif: "Fraunces", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: radial-gradient(1200px 800px at 50% -10%, #14161c 0%, var(--bg) 60%);
+    color: var(--txt);
+    font-family: var(--mono);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--amber); width: 0%; transition: width .3s ease; z-index: 5; }
+  header {
+    width: 100%; max-width: 760px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 22px 20px 0;
+    font-size: 12px; color: var(--dim); letter-spacing: .04em;
+  }
+  header b { color: var(--amber); font-weight: 500; }
+  select {
+    background: var(--card); color: var(--txt); border: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px; padding: 7px 10px; border-radius: 7px; cursor: pointer;
+  }
+  select:focus-visible, button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  main { width: 100%; max-width: 760px; padding: 26px 20px 120px; flex: 1; }
+
+  #stage { perspective: 1400px; cursor: pointer; }
+  #inner {
+    display: grid; transition: transform .55s cubic-bezier(.2,.7,.2,1); transform-style: preserve-3d;
+    min-height: 360px;
+  }
+  #stage.flipped #inner { transform: rotateY(180deg); }
+  .face {
+    grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border: 1px solid var(--line); border-radius: 16px;
+    padding: 46px 40px 56px; display: flex; flex-direction: column; gap: 22px;
+    box-shadow: 0 24px 60px -28px rgba(0,0,0,.85);
+  }
+  .face.front { background: linear-gradient(160deg, #181a20 0%, var(--card) 70%); }
+  .face.back  { background: linear-gradient(160deg, #1c1e16 0%, var(--card-back) 70%); transform: rotateY(180deg); }
+  .tag {
+    align-self: flex-start; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+    padding: 4px 10px; border-radius: 99px;
+  }
+  .face.back .tag { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+  .q { font-family: var(--serif); font-weight: 650; font-size: clamp(22px, 3.4vw, 30px); line-height: 1.3; }
+  .a { font-family: var(--serif); font-weight: 500; font-size: clamp(19px, 2.8vw, 25px); line-height: 1.45; color: #f0eee6; }
+  .hint { margin-top: auto; font-size: 11px; color: var(--dim); letter-spacing: .05em; }
+  .num {
+    position: absolute; right: 26px; bottom: 14px; font-family: var(--serif);
+    font-size: 84px; font-weight: 650; color: rgba(233,230,223,.045); user-select: none;
+  }
+  .face { position: relative; overflow: hidden; }
+
+  #controls { display: flex; gap: 12px; justify-content: center; margin-top: 26px; height: 52px; }
+  #controls button {
+    font-family: var(--mono); font-size: 14px; letter-spacing: .03em;
+    padding: 14px 28px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--txt); cursor: pointer;
+    opacity: 0; pointer-events: none; transform: translateY(6px);
+    transition: opacity .25s ease .15s, transform .25s ease .15s, border-color .15s;
+  }
+  #stage.flipped ~ #controls button { opacity: 1; pointer-events: auto; transform: none; }
+  #btn-wrong:hover { border-color: var(--red); color: var(--red); }
+  #btn-right:hover { border-color: var(--green); color: var(--green); }
+  kbd {
+    font-size: 10px; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 5px; color: var(--dim); margin-left: 8px;
+  }
+
+  #done { display: none; text-align: center; padding-top: 30px; }
+  #done h2 { font-family: var(--serif); font-weight: 650; font-size: 44px; margin-bottom: 8px; }
+  #done .sub { color: var(--dim); font-size: 13px; margin-bottom: 30px; }
+  #done .score { color: var(--amber); }
+  #wrong-list {
+    text-align: left; max-width: 560px; margin: 0 auto 30px; font-size: 13px;
+    color: var(--dim); line-height: 1.5;
+  }
+  #wrong-list li { margin-bottom: 8px; list-style: none; padding-left: 18px; position: relative; }
+  #wrong-list li::before { content: "✗"; color: var(--red); position: absolute; left: 0; }
+  #done button {
+    font-family: var(--mono); font-size: 14px; padding: 14px 26px; margin: 0 6px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--card);
+    color: var(--txt); cursor: pointer;
+  }
+  #btn-review { border-color: color-mix(in srgb, var(--amber) 55%, transparent); color: var(--amber); }
+  #done button:hover { border-color: var(--amber); }
+
+  footer {
+    position: fixed; bottom: 0; width: 100%; text-align: center; padding: 14px;
+    font-size: 11px; color: var(--dim); background: linear-gradient(transparent, var(--bg) 45%);
+    letter-spacing: .04em;
+  }
+  @media (max-width: 540px) {
+    .face { padding: 30px 24px 44px; }
+    #inner { min-height: 420px; }
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<header>
+  <div>CDC · prova 13h · <b id="count">0/0</b> · <span id="missed">0 erradas</span></div>
+  <select id="deck-filter" aria-label="Filtrar grupo"></select>
+</header>
+
+<main>
+  <div id="stage" aria-live="polite">
+    <div id="inner">
+      <div class="face front">
+        <span class="tag" id="f-tag"></span>
+        <div class="q" id="f-text"></div>
+        <div class="hint">clique ou espaço pra virar</div>
+        <div class="num" id="f-num"></div>
+      </div>
+      <div class="face back">
+        <span class="tag">resposta</span>
+        <div class="a" id="b-text"></div>
+        <div class="num" id="b-num"></div>
+      </div>
+    </div>
+  </div>
+  <div id="controls">
+    <button id="btn-wrong">errei <kbd>1</kbd></button>
+    <button id="btn-right">acertei <kbd>2</kbd></button>
+  </div>
+
+  <div id="done">
+    <h2><span class="score" id="score"></span></h2>
+    <div class="sub" id="done-sub"></div>
+    <ul id="wrong-list"></ul>
+    <button id="btn-review">revisar erradas</button>
+    <button id="btn-restart">recomeçar</button>
+  </div>
+</main>
+
+<footer>espaço vira · 1 errei · 2 acertei</footer>
+
+<script>
+const CARDS = [
+  // Regras de decisão
+  {g:"Regras de decisão", f:"Regra: “tem que ter X E Y E Z; falhou em um, já era”", v:"CONJUNTIVA. Lógica AND: corte mínimo em todos os critérios, de uma vez, sem ordem. Sobrevivem as “sem defeito”."},
+  {g:"Regras de decisão", f:"Regra: “basta ser excepcional em UM critério-chave”", v:"DISJUNTIVA. Lógica OR: um pico de excelência salva. Sobrevivem as “especialistas”."},
+  {g:"Regras de decisão", f:"Regra: “o critério mais importante decide; empatou, desce pro próximo”", v:"LEXICOGRÁFICA. Ranking pelo critério nº 1, desempate no nº 2. Ordem de dicionário."},
+  {g:"Regras de decisão", f:"Regra: “primeiro corto por A; dos que sobraram, corto por B…”", v:"EBA (eliminação por aspectos). Peneira em rodadas, na ordem de importância, até sobrar um."},
+  {g:"Regras de decisão", f:"A única regra COMPENSATÓRIA e a fórmula dela", v:"Fishbein / aditiva: A = Σ (peso × nota). Fraqueza num atributo compensada por força em outro. Alto envolvimento."},
+  {g:"Regras de decisão", f:"Conjuntiva vs EBA, em 4 palavras", v:"FOTO vs FILME. Conjuntiva: requisitos simultâneos sem ordem. EBA: rodadas sequenciais por importância (“dos que sobraram…”)."},
+  {g:"Regras de decisão", f:"Lexicográfica vs EBA (ambas ordenam por importância)", v:"Lexicográfica ESCOLHE O MELHOR no critério (ranking). EBA ELIMINA POR CORTE mínimo (peneira)."},
+
+  // Hierarquias CAB
+  {g:"Hierarquias CAB", f:"Pesquisou 3 semanas → formou opinião → comprou. Hierarquia e ordem?", v:"PADRÃO (alto envolvimento): C → A → B. Pensa, sente, faz."},
+  {g:"Hierarquias CAB", f:"Comprou por impulso → amou ao usar → recomenda. Hierarquia e ordem?", v:"DISSONÂNCIA-ATRIBUIÇÃO: B → A → C. Afeto DEPOIS da compra, cognição (racionalizar) por último."},
+  {g:"Hierarquias CAB", f:"Compra por conveniência, sem opinião; preferência fraca após meses de uso", v:"BAIXO ENVOLVIMENTO. Comportamento antes de atitude consistente; atitude morna só com o uso."},
+  {g:"Hierarquias CAB", f:"Emoção como motor ANTES da compra (show, perfume, gelato)", v:"EXPERIENCIAL (hedônica): A → B → C. Sente, faz, pensa."},
+  {g:"Hierarquias CAB", f:"Experiencial vs dissonância-atribuição: o teste decisivo", v:"ONDE está o afeto na linha do tempo: ANTES da compra = experiencial; DEPOIS (“descobriu que gosta”) = dissonância-atribuição."},
+
+  // Esquemas de reforço
+  {g:"Esquemas de reforço", f:"Liquidação de janeiro, happy hour de quinta. Esquema?", v:"INTERVALO FIXO. Tempo previsível: pico de comportamento perto da hora, vale depois."},
+  {g:"Esquemas de reforço", f:"Cliente oculto, fiscalização surpresa. Esquema?", v:"INTERVALO VARIÁVEL. Tempo imprevisível: comportamento constante (tem que estar sempre bem)."},
+  {g:"Esquemas de reforço", f:"Cartão fidelidade “10 cafés”, milhagem. Esquema?", v:"RAZÃO (proporção) FIXA. N ações conhecidas: acelera perto do prêmio."},
+  {g:"Esquemas de reforço", f:"Caça-níquel, loot box, scroll infinito. Esquema?", v:"RAZÃO (proporção) VARIÁVEL. Número imprevisível de ações."},
+  {g:"Esquemas de reforço", f:"Qual esquema gera MAIOR resistência à extinção e maior taxa de resposta?", v:"RAZÃO VARIÁVEL. A imprevisibilidade mantém o comportamento ativo (efeito jogo)."},
+  {g:"Esquemas de reforço", f:"Intervalo vs razão: o discriminador", v:"O que destrava o prêmio: o RELÓGIO (intervalo) ou o CONTADOR de ações (razão)? Depois: previsível = fixo, imprevisível = variável."},
+
+  // Conflitos motivacionais
+  {g:"Conflitos motivacionais", f:"Carro de luxo: status atrai, preço assusta. Conflito?", v:"APROXIMAÇÃO-EVITAÇÃO: o MESMO objeto com valência positiva e negativa. No Maslow: estima (4) vs segurança (2)."},
+  {g:"Conflitos motivacionais", f:"Duas viagens boas, só dá pra fazer uma. Conflito e consequência?", v:"APROXIMAÇÃO-APROXIMAÇÃO. Pós-escolha: dissonância cognitiva, resolvida valorizando a escolhida."},
+  {g:"Conflitos motivacionais", f:"Pagar conserto caro do carro velho vs assumir 60 prestações", v:"EVITAÇÃO-EVITAÇÃO: duas opções indesejáveis, obrigado a escolher uma."},
+  {g:"Conflitos motivacionais", f:"Método de 2 passos pra classificar qualquer conflito", v:"Conta OBJETOS e SINAIS: 2 positivos = A-A · 1 objeto com 2 sinais = A-E · 2 negativos = E-E."},
+
+  // Percepção
+  {g:"Percepção", f:"Decidiu trocar de celular → vê anúncio de smartphone em todo lugar", v:"VIGILÂNCIA PERCEPTIVA: a necessidade ativa abre o filtro pro estímulo relevante."},
+  {g:"Percepção", f:"Fumante manuseia o maço todo dia e não registra o aviso sanitário", v:"DEFESA PERCEPTIVA: bloqueio do estímulo ameaçador antes da consciência."},
+  {g:"Percepção", f:"O letreiro da esquina sumiu da tua percepção. Nome e antídoto?", v:"ADAPTAÇÃO (repetição apaga o estímulo). Antídoto do marketing: CONTRASTE (tamanho, cor, posição, novidade)."},
+  {g:"Percepção", f:"Vigilância e defesa vs adaptação: a diferença de natureza", v:"Vigilância/defesa são MOTIVACIONAIS (o que quero/temo). Adaptação é MECÂNICA (exposição repetida, sem motivação)."},
+  {g:"Percepção", f:"Lei de Weber: fórmula e a pegadinha clássica", v:"ΔI / I = k. O j.n.d. é PROPORCIONAL ao estímulo original. “Constante absoluta” = alternativa errada."},
+  {g:"Percepção", f:"Percepção subliminar: existe? funciona?", v:"EXISTE como fenômeno psicológico (abaixo do limiar absoluto). Eficácia comercial NÃO comprovada."},
+  {g:"Percepção", f:"Os 3 princípios Gestalt e o princípio-mãe", v:"Complementação (fechamos o incompleto) · figura-fundo (flecha da FedEx) · similaridade (agrupamos o parecido). O todo ≠ soma das partes."},
+  {g:"Percepção", f:"Limiar absoluto vs limiar diferencial", v:"Absoluto: mínimo DETECTÁVEL num canal. Diferencial (j.n.d.): menor DIFERENÇA detectável entre dois estímulos."},
+
+  // Atitudes
+  {g:"Atitudes", f:"Pasta anticárie pra evitar dentista. Função da atitude?", v:"UTILITÁRIA: maximizar recompensa, evitar punição concreta."},
+  {g:"Atitudes", f:"Camiseta de ONG ambiental no dia a dia. Função?", v:"EXPRESSIVA DE VALOR: comunicar autoconceito e valores (AIO: atividades, interesses, opiniões)."},
+  {g:"Atitudes", f:"Relógio de luxo pra aplacar a insegurança no cargo novo. Função?", v:"EGO-DEFENSIVA: proteger o ego de ameaça externa ou insegurança interna."},
+  {g:"Atitudes", f:"“Carro japonês é confiável” como regra que organiza escolhas. Função?", v:"CONHECIMENTO: dar ordem e estrutura, simplificar decisões."},
+  {g:"Atitudes", f:"Expressiva de valor vs ego-defensiva (o par que confunde)", v:"Expressiva: MOSTRAR pra fora o que eu sou. Ego-defensiva: COMPENSAR/esconder o que temo ser."},
+  {g:"Atitudes", f:"3 níveis de comprometimento com a atitude, do raso ao profundo", v:"CONDESCENDÊNCIA (incentivo externo) → IDENTIFICAÇÃO (pertencer ao grupo) → INTERNALIZAÇÃO (valor próprio, resiste a pressão)."},
+  {g:"Atitudes", f:"Usa o app só enquanto tem cashback. Nível de comprometimento?", v:"CONDESCENDÊNCIA: some quando o incentivo some."},
+  {g:"Atitudes", f:"Fishbein: de onde vêm as notas e os pesos? E que tipo de atributo vale?", v:"De PESQUISA com consumidores reais da categoria (nunca da diretoria). Atributo tem que ser ESPECÍFICO: “qualidade” sozinho não vale."},
+
+  // Riscos percebidos
+  {g:"Riscos percebidos", f:"“O que VÃO pensar de mim?” Qual risco?", v:"SOCIAL: tribunal externo. Típico de bens visíveis e simbólicos (roupa, carro)."},
+  {g:"Riscos percebidos", f:"Culpa antecipada por gastar com um luxo pessoal. Qual risco?", v:"PSICOLÓGICO: tribunal interno. Reduz com “você merece” e justificativa funcional."},
+  {g:"Riscos percebidos", f:"“E se o curso caro não me ensinar nada?” Qual risco e como reduzir?", v:"FUNCIONAL: não cumprir a função. Reduz com demo, reviews, teste de 30 dias."},
+  {g:"Riscos percebidos", f:"Relação entre risco percebido e envolvimento", v:"Quanto MAIOR o risco percebido, MAIOR o envolvimento na decisão."},
+
+  // Aprendizagem & memória
+  {g:"Aprendizagem & memória", f:"Condicionamento clássico vs operante: 3 contrastes", v:"Involuntário vs voluntário · associação de estímulos vs consequências · Pavlov (marca = EC) vs Skinner (reforço)."},
+  {g:"Aprendizagem & memória", f:"Reforço negativo vs punição", v:"Reforço negativo FORTALECE o comportamento (evita algo ruim: seguro, desodorante). Punição ENFRAQUECE."},
+  {g:"Aprendizagem & memória", f:"Efeito halo: o que é e que estratégias sustenta?", v:"GENERALIZAÇÃO DE ESTÍMULO (estímulos parecidos com o EC evocam a mesma resposta). Base de: extensão de marca, licenciamento, embalagem semelhante."},
+  {g:"Aprendizagem & memória", f:"Conjunto evocado vs conjunto de consideração", v:"Evocado: as marcas que o consumidor LEMBRA. Consideração: o subconjunto que ele CONSIDERARIA COMPRAR."},
+  {g:"Aprendizagem & memória", f:"Estímulo destoante grava mais. Nome do efeito?", v:"VON RESTORFF. Novidade/contraste melhora recall. (E familiaridade extrema REDUZ recall.)"},
+
+  // Decisão & papéis
+  {g:"Decisão & papéis", f:"Reconhecimento de necessidade vs de oportunidade", v:"Necessidade: estado REAL piorou (quebrou, acabou). Oportunidade: estado IDEAL subiu (viu padrão superior). Propaganda consegue elevar o ideal."},
+  {g:"Decisão & papéis", f:"As 5 etapas do processo de decisão", v:"Reconhecimento do problema → busca de informações → avaliação de alternativas → compra → avaliação pós-compra."},
+  {g:"Decisão & papéis", f:"Os 5 papéis de compra", v:"Iniciador · guardião (filtra a informação) · influenciador · comprador · usuário. Podem ser pessoas DIFERENTES."},
+  {g:"Decisão & papéis", f:"Lealdade vs inércia (recompra idêntica nas duas!)", v:"Lealdade: recompra + ATITUDE FORTE (recusa promoção). Inércia: recompra por preguiça, qualquer cupom rouba. A diferença está na atitude, não no comportamento."},
+  {g:"Decisão & papéis", f:"Estratégias de redução de risco agem em qual etapa?", v:"AVALIAÇÃO DE ALTERNATIVAS: operam nos critérios e pesos que o consumidor já aplica. Tráfego (busca) não é conversão."},
+
+  // Fundamentos
+  {g:"Fundamentos", f:"As 5 orientações da gestão de marketing, em ordem", v:"Produção → produto → vendas → MARKETING (parte da necessidade) → societal (bem-estar de longo prazo)."},
+  {g:"Fundamentos", f:"Orientação de vendas vs orientação de marketing", v:"Vendas: EMPURRAR o que já se produz. Marketing: PRODUZIR o que o mercado-alvo precisa."},
+  {g:"Fundamentos", f:"Por que as ferrovias morreram, segundo Levitt?", v:"MIOPIA EM MARKETING: definiram o negócio pelo PRODUTO (trens) e não pela NECESSIDADE (transporte). Hollywood: cinema vs entretenimento."},
+  {g:"Fundamentos", f:"Sheth & Uslay: qual foi a virada da definição de marketing (1985 → 2004)?", v:"Do paradigma da TROCA pro da CRIAÇÃO DE VALOR. Papéis separados (usuário, pagador, comprador), valor em uso, co-criação."},
+
+  // Persuasão
+  {g:"Persuasão", f:"Amostra grátis / brinde ativa qual princípio?", v:"RECIPROCIDADE: recebemos, retribuímos."},
+  {g:"Persuasão", f:"“Últimas unidades”, contador regressivo", v:"ESCASSEZ: o raro vale mais."},
+  {g:"Persuasão", f:"“9 em 10 dentistas recomendam” vs “o mais vendido do Brasil”", v:"AUTORIDADE (quem SABE) vs CONSENSO/prova social (a manada). Afeição é o terceiro vizinho: quem a gente GOSTA."},
+  {g:"Persuasão", f:"Teste grátis que vira assinatura explora qual princípio?", v:"COERÊNCIA: pequenos compromissos puxam grandes; evitamos nos contradizer."},
+];
+
+let deck = [], pos = 0, wrong = [], rightCount = 0, reviewing = false;
+
+const $ = id => document.getElementById(id);
+const stage = $("stage"), done = $("done");
+
+function groups() { return [...new Set(CARDS.map(c => c.g))]; }
+
+function buildFilter() {
+  const sel = $("deck-filter");
+  sel.innerHTML = `<option value="*">tudo (${CARDS.length})</option>` +
+    groups().map(g => `<option value="${g}">${g.toLowerCase()} (${CARDS.filter(c => c.g === g).length})</option>`).join("");
+  sel.onchange = () => start();
+}
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function start(customDeck) {
+  const filter = $("deck-filter").value;
+  deck = customDeck ? [...customDeck] :
+    CARDS.map((c, i) => i).filter(i => filter === "*" || CARDS[i].g === filter);
+  shuffle(deck);
+  pos = 0; wrong = []; rightCount = 0; reviewing = !!customDeck;
+  done.style.display = "none";
+  stage.style.display = ""; $("controls").style.display = "";
+  render();
+}
+
+function render() {
+  const c = CARDS[deck[pos]];
+  stage.classList.remove("flipped");
+  // swap content after the unflip starts so the answer doesn't leak
+  setTimeout(() => {
+    $("f-tag").textContent = c.g;
+    $("f-text").textContent = c.f;
+    $("b-text").textContent = c.v;
+    $("f-num").textContent = $("b-num").textContent = String(pos + 1).padStart(2, "0");
+  }, stage.dataset.virgin ? 150 : 0);
+  stage.dataset.virgin = "1";
+  $("count").textContent = `${pos + 1}/${deck.length}${reviewing ? " · revisão" : ""}`;
+  $("missed").textContent = `${wrong.length} errada${wrong.length === 1 ? "" : "s"}`;
+  $("bar").style.width = (pos / deck.length * 100) + "%";
+}
+
+function flip() { stage.classList.toggle("flipped"); }
+
+function answer(ok) {
+  if (!stage.classList.contains("flipped")) return;
+  if (ok) rightCount++; else wrong.push(deck[pos]);
+  if (pos + 1 < deck.length) { pos++; render(); }
+  else finish();
+}
+
+function finish() {
+  $("bar").style.width = "100%";
+  stage.style.display = "none"; $("controls").style.display = "none";
+  done.style.display = "block";
+  $("score").textContent = `${rightCount}/${deck.length}`;
+  $("done-sub").textContent = wrong.length === 0
+    ? "rodada limpa. vai pra prova."
+    : `${wrong.length} pra revisar antes das 13h:`;
+  $("wrong-list").innerHTML = wrong.map(i => `<li>${CARDS[i].f}</li>`).join("");
+  $("btn-review").style.display = wrong.length ? "" : "none";
+  $("btn-review").textContent = `revisar erradas (${wrong.length})`;
+}
+
+stage.onclick = flip;
+$("btn-wrong").onclick = e => { e.stopPropagation(); answer(false); };
+$("btn-right").onclick = e => { e.stopPropagation(); answer(true); };
+$("btn-review").onclick = () => start(wrong);
+$("btn-restart").onclick = () => start();
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.code === "Space") { e.preventDefault(); done.style.display === "block" ? null : flip(); }
+  if (e.key === "1") answer(false);
+  if (e.key === "2") answer(true);
+});
+
+buildFilter();
+start();
+</script>
+</body>
+</html>
