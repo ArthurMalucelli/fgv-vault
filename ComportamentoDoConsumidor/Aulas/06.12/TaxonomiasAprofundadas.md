@@ -120,3 +120,69 @@ Ponto de prova: papéis em pessoas DIFERENTES (criança usa, mãe compra, pai pa
 - **Coerência**: pequenos compromissos puxam grandes; teste grátis vira assinatura.
 - **Afeição**: influencer carismático, vendedor simpático. (vs autoridade: **gostar vs saber**.)
 - **Consenso (prova social)**: "mais vendido", reviews, fila.
+
+# Segunda camada (complementos)
+
+## [[Pirâmide de Maslow]]: níveis e críticas
+
+Fisiológicas → segurança → sociais → estima → autorrealização (satisfaz o de baixo antes de subir). O MESMO produto pode mirar níveis diferentes (carro como segurança, status ou família).
+
+Críticas (caem em prova): um produto satisfaz **várias necessidades ao mesmo tempo** · ordem **culturalmente enviesada** · **falta validação empírica**. Kaufman: veleiro (barco = segurança, vela = crescimento; navegação, não escada).
+
+## Teoria do impulso vs teoria da expectativa
+
+- **Impulso**: biológica; tensão desagradável → comportamento REDUZ tensão (homeostase). O desconforto **empurra**.
+- **Expectativa**: cognitiva; comportamento **puxado** pela expectativa de resultado desejável.
+
+Discriminador: empurrado pelo desconforto vs puxado pelo prêmio.
+
+## 3 fatores de [[Envolvimento]] (etapa 1 da atividade Sofia)
+
+- **Pessoais**: renda, frequência de uso, autoconceito.
+- **Situacionais**: recorrência, ticket, urgência (presente eleva).
+- **Do objeto**: diferenciação real, complexidade, risco da categoria.
+
+Em prova: "classifique o envolvimento e justifique" pede os três fatores.
+
+## Priming
+
+Propriedade do estímulo que **ativa um esquema** e direciona a interpretação. Verde = natural; música francesa empurra vinho francês; preço em 9 = barato. Mora na INTERPRETAÇÃO do processo perceptivo, não na atenção.
+
+## ENC, EC e RC ([[Condicionamento Clássico]])
+
+- **ENC**: dispara resposta inata (comida → salivação).
+- **EC**: neutro que aprende por **pareamento repetido**; em marketing, a marca.
+- **RC**: resposta disparada pelo EC sozinho (logo → prazer).
+
+Cadeia: ENC → resposta inata · ENC+EC repetidos · EC sozinho → RC.
+
+## Piaget: 4 estágios
+
+Sensório-motor (0-2) · pré-operacional (2-7: UMA dimensão por vez, não distingue propaganda de conteúdo) · operatório concreto (7-11) · formal (12+: entende intenção persuasiva). Fundamenta a discussão de propaganda infantil.
+
+## Recall: o que melhora e o que piora
+
+Melhora: **marca pioneira**, **congruência de humor**, **Von Restorff** (destoante), **nostalgia**. Piora (contra-intuitivo de prova): **familiaridade extrema** (para de prestar atenção).
+
+## Dissonância cognitiva
+
+Desconforto quando atitude e comportamento se contradizem. Resolve: mudar atitude, mudar comportamento ou buscar respaldo. Marketing: propaganda **pós-compra** reassegura; no conflito A-A, o consumidor valoriza a escolhida.
+
+## Teoria do julgamento social
+
+Atitude existente = frame. Informação nova cai na **latitude de aceitação** (assimilada) ou de **rejeição** (contrastada). Mensagem muito distante não persuade: mudança eficaz é incremental.
+
+## Teoria do equilíbrio
+
+Tríade **eu · objeto · terceiro**; buscamos consistência nos 3 vínculos. Gosto da celebridade + ela endossa = gosto da marca. Escândalo da celebridade desequilibra CONTRA a marca.
+
+## 6 tipos de poder social
+
+- **Referência**: quero SER como você (ídolo).
+- **Legítimo**: a posição autoriza (médico, farda).
+- **De informação**: você TEM a informação (reviewer).
+- **De expertise**: você SABE mais (especialista).
+- **De recompensa**: pode premiar (pontos, bônus).
+- **Coercitivo**: pode punir (multa). Curto prazo, gera ressentimento.
+
+Discriminadores: referência vs expertise = **querer ser vs reconhecer que sabe**. Legítimo vs expertise = **posição vs conhecimento**.
