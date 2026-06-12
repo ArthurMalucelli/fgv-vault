@@ -107,8 +107,40 @@ Distinções finas que derrubam:
 - [[Fair Trade]] (Starbucks): pagar preço justo em vez de esmagar pequeno produtor. [[Logística Reversa]]: descarte volta pra cadeia (alumínio >97% reciclado no Brasil).
 - [[Dieselgate]]: cobre os TRÊS pilares, não só o E. Fraude de software (11M carros, NOx 40x acima, US$30bi+ em multas, ações -40%).
 - Lucro vs sustentabilidade é FALSA dicotomia: a aula bate nisso. [[Movimento anti-ESG]] existe (Trump) e é relevante.
+- [[Acordo de Paris]]: limite de 1,5°C de aquecimento global, e já estamos chegando nesse patamar.
 
-## 6. Kit dissertativa
+### Teoria da Mudança e terceiro setor (aula 08.05)
+- [[Teoria da Mudança]]: cadeia lógica e SEQUENCIAL: inputs → intervenções → públicos → outputs → resultados → impactos. Cada bloco depende do anterior funcionar.
+- A pegadinha é output vs resultado vs impacto. Output: produto imediato, quantitativo ("X jovens formados", "5 mil ONGs apoiadas"). Resultado: mudança de curto/médio prazo na vida de alguém ("jovens em emprego formal acima da média do território"), exige medição comparativa. Impacto: efeito estrutural de longo prazo ("pobreza extrema reduzida", "modelo vira política pública").
+- Sem resultado medido, output vira fim em si mesmo. Sem impacto de longo prazo, resultado é caridade pontual.
+- Caso da aula: Gerando Falcões (Edu Lyra). [[Terceiro setor]] profissionalizado: doações corporativas, dashboards de impacto, Universidade Falcons, Auçaí, Corre, [[Favela 3D]] (piloto em Poá).
+- [[Terceiro setor]]: organização privada SEM fins lucrativos com finalidade pública. Primeiro setor: Estado. Segundo: mercado. Moral da aula: administração profissional não é exclusividade de empresa.
+
+## 6. Do syllabus, sem aula gravada (cobre o flanco)
+
+**Níveis de gestão:**
+
+| Nível | Quem | Horizonte | Decisão típica |
+|---|---|---|---|
+| Estratégico | Alta direção | Longo prazo, organização inteira | Não-programadas, alta incerteza |
+| Tático | Gerência MÉDIA | Médio prazo, por departamento | Traduz estratégia em planos |
+| Operacional | Supervisão | Curto prazo, rotina | Programadas, repetitivas |
+
+Conexão com o texto da dissertativa: gerência intermediária = nível TÁTICO. Usar o termo pontua.
+
+**Habilidades do gestor (Katz):** técnica (domínio da tarefa, pesa na base), humana (lidar com gente, pesa em TODOS os níveis e é o coração do nível tático), conceitual (abstração, visão sistêmica, pesa no topo). Quanto mais sobe, menos técnica e mais conceitual. O "líder por acaso" do texto: promovido pela técnica, cobrado pela humana que nunca desenvolveu.
+
+**Papéis do gerente (Mintzberg), se a Simone citou:** interpessoais (símbolo, líder, ligação), informacionais (monitor, disseminador, porta-voz), decisórios (empreendedor, solucionador de conflitos, alocador de recursos, negociador).
+
+**Tipos de organização:** pública vs privada vs economia mista; com vs sem fins lucrativos; primeiro, segundo e terceiro setor; híbridos (negócio social: lucro + missão).
+
+**Shareholder vs stakeholder:** visão shareholder diz que a empresa existe pra maximizar valor ao acionista. Visão stakeholder diz que ela equilibra todos os afetados. ESG e a "falsa dicotomia" da aula 19.05 são o argumento pró-stakeholder.
+
+**Teoria da Contingência (fecho da linha do tempo):** não existe one best way. A estrutura certa depende de ambiente, tecnologia e tamanho. É a consequência prática do sistema aberto.
+
+**Estilos de liderança (clássico de intro, útil na dissertativa):** autocrático (decide sozinho), democrático (decide com o grupo), liberal/laissez-faire (delega e se ausenta). E liderança ≠ chefia: chefia vem do cargo (autoridade formal), liderança vem de influência aceita pelo grupo.
+
+## 7. Kit dissertativa
 
 Estrutura que pontua, pra qualquer questão:
 1. Nomeia a teoria e define em uma frase técnica.
@@ -130,8 +162,9 @@ Nunca parafraseia o texto sem teoria: a banca quer o nome do conceito explícito
 - Controle: NÃO é fiscalização punitiva. Ciclo: padrão → medição → comparação → correção. Bem feito vira clareza de expectativa, feedback regular e reconhecimento; transforma avaliação de desempenho de burocracia em ferramenta de desenvolvimento.
 - Ações concretas pra propor: treinamento formal de gestores (acabar com o "líder por acaso"), trilha dupla de carreira (especialista vs gestão, responde ao "prefiro crescimento individual"), redistribuir carga administrativa do cargo, metas claras e realistas com autonomia no como, reconhecimento atrelado a desenvolver pessoas.
 - Fecha: cargo gerencial atrativo = direção que desenvolve + controle que dá clareza, alimentando o ciclo de novo planejamento.
+- Vocabulário que pontua no esqueleto B: gerência intermediária = nível tático; habilidades de Katz (a humana é o coração do cargo); liderança ≠ chefia.
 
-## 7. Heurística de MC da Simone
+## 8. Heurística de MC da Simone
 
 - Palavras que matam alternativa: "exclusivamente", "deixando de lado", "em segundo plano", "sem a necessidade de", "dispensa", "único". A correta tende a ser a contínua, integrada, equilibrada.
 - Exceção: questões de definição fina (prescritivo/descritivo, eficiência/eficácia, qual função do PODC). Aí extremismo não ajuda, é decoreba das tabelas acima.
@@ -151,3 +184,4 @@ Nunca parafraseia o texto sem teoria: a banca quer o nome do conceito explícito
 - [[Inovação]] | [[Inovação incremental]] | [[Inovação radical]] | [[Paradigma técnico-econômico]]
 - [[Sustentabilidade]] | [[ODS]] | [[ESG]] | [[Ciclo de Vida do Produto]]
 - [[Stakeholders]] | [[Conflito de Agência]] | [[Governança Corporativa]] | [[Materialidade]] | [[Dieselgate]]
+- [[Teoria da Mudança]] | [[Terceiro setor]] | [[Favela 3D]] | [[Investimento de impacto]]
