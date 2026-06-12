@@ -11,187 +11,188 @@ tags: [resumo, prova]
 
 | Tema | O que saber de cor | Fonte |
 |---|---|---|
-| [[Percepção Subliminar\|Percepção]] | Sensação vs percepção, limiares, [[Lei de Weber]], atenção, [[Gestalt]] | PERCEPCAO.pptx |
-| Aprendizagem | [[Condicionamento Clássico]] vs [[Condicionamento Operante]], esquemas de reforço, [[Efeito Halo]], memória | APRENDIZAGEM E MEMORIA.pptx |
-| Motivação | Cadeia necessidade→tensão→impulso, [[Pirâmide de Maslow]], [[Conflitos Motivacionais]], [[Envolvimento]] | MOTIVACAO.pptx + Solomon cap 5 |
-| [[Atitudes]] | [[Modelo CAB]] e as 3 hierarquias, funções, [[Modelo de Fishbein]], persuasão, [[Nudge]] | ATITUDES.pptx |
-| Decisão | Processo 5 etapas, 5 regras de decisão, [[Risco Percebido]], [[Heurística\|heurísticas]] | TOMADA DECISAO.pptx + atividade 27.05 |
+| Percepção | Limiares, [[Lei de Weber]], seleção perceptiva, [[Gestalt]] | PERCEPCAO.pptx |
+| Aprendizagem | [[Condicionamento Clássico]] vs [[Condicionamento Operante]], esquemas de reforço, memória | APRENDIZAGEM E MEMORIA.pptx |
+| Motivação | Necessidade→tensão→impulso, [[Pirâmide de Maslow]], [[Conflitos Motivacionais]], [[Envolvimento]] | MOTIVACAO.pptx + Solomon cap 5 |
+| [[Atitudes]] | [[Modelo CAB]] e hierarquias, funções, [[Modelo de Fishbein]], persuasão, [[Nudge]] | ATITUDES.pptx |
+| Decisão | Processo 5 etapas, 5 regras, [[Risco Percebido]], [[Heurística\|heurísticas]] | TOMADA DECISAO.pptx + atividade 27.05 |
 | Fundamentos | Valor, definições de marketing, [[Miopia em Marketing]] | AULA 1-2 + Levitt + Sheth |
 
-Os 5 temas do quiz ENADE (condicionamento, regras de decisão, CAB, motivação, percepção) são o núcleo provável. Fundamentos entra como contexto.
+Os 5 temas do quiz ENADE (condicionamento, regras de decisão, CAB, motivação, percepção) são o núcleo provável.
 
 ## 2. Percepção
 
+Espinha da aula: o processo perceptivo, **Exposição → Atenção → Interpretação**.
+
+- **Sensação**: reação dos receptores sensoriais (olhos, ouvidos, pele) a estímulos básicos (cor, som).
+- **Percepção**: selecionar, organizar e **interpretar** essas sensações.
+- **Marketing sensorial**: trabalhar os 5 sentidos (cores/visão, jingles/som, tato com a escala need for touch, olfato, paladar culturalmente determinado).
+
+### Exposição: limiares
+
 | Item | O que é |
 |---|---|
-| Sensação | Reação dos receptores sensoriais (olhos, ouvidos, pele) a estímulos básicos (cor, som). |
-| Percepção | Processo de **selecionar, organizar e interpretar** as sensações. |
-| Processo perceptivo | Exposição → Atenção → Interpretação. |
-| Marketing sensorial | Envolver os 5 sentidos: cores e visão, jingles e som, tato (escala need for touch), olfato, paladar (culturalmente determinado). |
-| Limiar absoluto | Quantidade mínima de estímulo detectável num canal sensorial. |
-| Limiar diferencial | Capacidade de detectar **diferença entre dois estímulos** (j.n.d., just noticeable difference). |
-| [[Lei de Weber]] | A mudança necessária pra ser notada é proporcional à intensidade do estímulo original. Quanto mais intenso o estímulo inicial, maior a mudança necessária. |
-| Habituação | Deixar de notar estímulo constante e repetido. |
-| [[Percepção Subliminar]] | Estímulo abaixo do limiar absoluto. Existe como fenômeno psicológico, eficácia comercial **não comprovada**. |
-| Atenção | Grau de processamento dedicado a um estímulo. Contexto: sobrecarga sensorial, multitarefa, seleção perceptiva (filtros). |
-| Vigilância perceptiva | Notar mais o que é relevante pra necessidade atual (camisa suja → ouvir o anúncio de camisas). |
-| Defesa perceptiva | Bloquear o que ameaça (fumante ignora aviso do maço). |
-| Adaptação | Deixar de prestar atenção por familiaridade. Fatores: intensidade, duração, discriminação, exposição, relevância. |
-| Contraste de estímulo | Pra romper adaptação: tamanho, cor, posição, novidade. |
-| Interpretação | Significado atribuído ao estímulo, via **esquema** (conjunto de crenças evocado). Priming: propriedade do estímulo evoca o esquema. |
-| Semiótica | Correspondência entre signos/símbolos e seus significados (ex: Leite Ninho evoca cuidado). |
-| [[Gestalt]] | O todo é interpretado diferente da soma das partes. Princípios: complementação (fechamos figuras incompletas), figura-fundo, similaridade. |
+| Limiar absoluto | Mínimo de estímulo detectável num canal sensorial. |
+| Limiar diferencial (j.n.d.) | Menor **diferença entre dois estímulos** que dá pra detectar. |
+| [[Lei de Weber]] | A mudança necessária pra ser notada é **proporcional** ao estímulo original. |
+| [[Percepção Subliminar]] | Abaixo do limiar absoluto. Existe; eficácia comercial **não comprovada**. |
 
 ```
 Lei de Weber:  ΔI / I = k
-ΔI = mudança mínima perceptível; I = intensidade original; k = constante do canal
 ```
 
-Aplicação clássica: shrinkflation. Reduzir produto **abaixo** do j.n.d. passa despercebido; melhoria de produto precisa ficar **acima** do j.n.d. pra ser percebida.
+Aplicação: shrinkflation (cortar abaixo do j.n.d. passa batido; melhoria precisa ficar acima pra ser notada). Habituação: deixar de notar o estímulo repetido.
+
+### Atenção: o filtro
+
+Sobrecarga sensorial + multitarefa → seleção perceptiva. Três fatores pessoais:
+
+| Fator | Mecanismo | Exemplo |
+|---|---|---|
+| Vigilância perceptiva | Notar mais o relevante pra necessidade ativa | Camisa suja → ouve o anúncio de camisas |
+| Defesa perceptiva | Bloquear o que ameaça | Fumante não registra o aviso do maço |
+| Adaptação | Deixar de notar por familiaridade | Letreiro da esquina some |
+
+Adaptação depende de: intensidade, duração, discriminação, exposição, relevância. Pra **romper** a adaptação, contraste: tamanho, cor, posição, novidade.
+
+### Interpretação: o significado
+
+| Item | O que é |
+|---|---|
+| Esquema | Conjunto de crenças que o estímulo evoca. |
+| Priming | Propriedade do estímulo que aciona o esquema. |
+| Semiótica | Signos e símbolos e seus significados (Leite Ninho evoca cuidado). |
+| [[Gestalt]] | O todo ≠ soma das partes: complementação, figura-fundo, similaridade. |
 
 ## 3. Aprendizagem e memória
 
-Aprendizagem: mudança no comportamento causada por experiência ou observação. Aprendizagem incidental: aquisição casual, não intencional.
-
-Duas famílias de teorias: **comportamentais** (behavioristas: caixa-preta, estímulo→resposta) e **cognitivas** (processos mentais internos).
+Aprendizagem: mudança de comportamento causada por experiência ou observação (incidental: casual, não intencional). Duas famílias: **behavioristas** (estímulo→resposta, caixa-preta) e **cognitivas** (processos mentais).
 
 ### Condicionamento clássico (Pavlov)
 
 | Item | O que é |
 |---|---|
-| ENC | Estímulo não condicionado: gera resposta inata (comida → salivação). |
-| EC | Estímulo condicionado: neutro, ganha poder por **emparelhamento repetido** com o ENC. A **marca é o EC**. |
-| RC | Resposta condicionada: a resposta transferida pro EC. |
-| Repetição | Condicionamento exige pareamentos repetidos de EC e ENC. |
-| Generalização de estímulo | [[Efeito Halo]]: estímulos parecidos com o EC evocam resposta parecida. |
+| ENC | Estímulo não condicionado: resposta inata (comida → salivação). |
+| EC | Estímulo neutro que aprende por **emparelhamento repetido** com o ENC. **A marca é o EC.** |
+| RC | Resposta condicionada, transferida pro EC. |
+| Generalização | [[Efeito Halo]]: estímulos parecidos com o EC evocam resposta parecida. |
 
-Estratégias de marketing baseadas em generalização: marca de família e extensão de linha/marca, licenciamento, embalagem semelhante (marcas próprias imitando líder), mascaramento de marca.
+Estratégias por generalização: extensão de marca/linha, licenciamento, embalagem semelhante, mascaramento de marca.
 
 ### Condicionamento operante (Skinner)
 
-Aprendizagem **voluntária e instrumental**: a resposta é emitida pra ganhar recompensa ou evitar punição. Consequência boa → comportamento se repete.
+Resposta **voluntária e instrumental**: agir pra ganhar recompensa ou evitar punição.
 
-| Programa de reforço | Exemplo de aula |
+- **Reforço positivo**: usar o produto dá o efeito desejado.
+- **Reforço negativo**: NÃO usar gera efeito indesejado (seguro, desodorante). Reforça por evitação. **Não é punição** (punição enfraquece o comportamento, reforço fortalece).
+
+| Esquema de reforço | Exemplo |
 |---|---|
-| Reforço positivo | Uso do produto tem o efeito desejado (recompensa). |
-| Reforço negativo | NÃO usar o produto gera efeito indesejado (seguro, desodorante). Reforça o uso por evitação. |
-| Intervalo fixo | Liquidações sazonais (tempo previsível). |
-| Intervalo variável | Compradores secretos / cliente oculto (tempo imprevisível). |
-| Proporção (razão) fixa | Programa de milhagem, cartão fidelidade (a cada N compras). |
-| Proporção (razão) variável | Máquina caça-níquel, gamificação. **Mais alta taxa de resposta e maior resistência à extinção.** |
+| Intervalo fixo | Liquidações sazonais |
+| Intervalo variável | Cliente oculto |
+| Proporção (razão) fixa | Milhagem, cartão fidelidade |
+| Proporção (razão) variável | Caça-níquel, gamificação. **Maior taxa de resposta e maior resistência à extinção.** |
 
 | Clássico vs Operante | Clássico | Operante |
 |---|---|---|
 | Resposta | Involuntária, reflexa | Voluntária, deliberada |
-| Mecanismo | Associação de estímulos (EC+ENC) | Consequências (reforço/punição) |
-| Papel do consumidor | Passivo | Ativo, busca objetivo |
+| Mecanismo | Associação de estímulos | Consequências |
 
 ### Teoria cognitiva
 
-| Item | O que é |
-|---|---|
-| [[Aprendizagem observacional]] | Aprender pela experiência **de outros**, imitação de modelos. |
-| Priming | Estímulo que aciona padrão/esquema mental. |
-| Piaget | Estágios: sensório-motor (0-2), pré-operacional (2-7, foca uma dimensão só), operatório concreto (7-11, relaciona aspectos), operatório formal (12+, abstração). Base pra discutir propaganda infantil. |
+- **[[Aprendizagem observacional]]**: aprender pela experiência dos outros, imitação de modelos.
+- **Piaget**, estágios: sensório-motor (0-2), pré-operacional (2-7), operatório concreto (7-11), formal (12+). Base da discussão de propaganda infantil.
 
 ### Memória
 
-| Item | O que é |
-|---|---|
-| Processo | Aquisição → armazenagem → recuperação. |
-| Memória externa | Listas, embalagens, reviews: informação fora da cabeça. |
-| Recuperação | Favorecida por: marca pioneira, congruência de humor (estado na hora da compra). **Familiaridade extrema pode REDUZIR aprendizagem/recall.** |
-| Redes associativas | Nós de conceitos ligados; é onde vivem [[Conjunto evocado]] e [[Conjunto de consideração]]. |
-| Script | Sequência de eventos esperada; gera resistência a sequências novas. |
-| Efeito Von Restorff | Estímulo que destoa do conjunto é mais lembrado (novidade melhora recall). |
-| Nostalgia | Apelo a memórias afetivas antigas. |
-| Vieses de medição de memória | Desejabilidade social, lapsos, omissão (esquecer o constrangedor), nivelamento de extremos, telescoping (erro de datação). |
-| Propaganda pós-experiência | Reduz dissonância cognitiva do comprador (reasseguramento). |
+Processo: **aquisição → armazenagem → recuperação**. Memória externa: listas, embalagens, reviews. Redes associativas: nós de conceitos ligados, onde vivem [[Conjunto evocado]] e [[Conjunto de consideração]]. Script: sequência esperada de eventos (gera resistência ao novo).
+
+- **Melhora recall**: marca pioneira, congruência de humor, efeito Von Restorff (o destoante grava), nostalgia.
+- **Piora ou engana**: familiaridade extrema (para de prestar atenção), vieses de medição (desejabilidade social, omissão do constrangedor, nivelamento de extremos, telescoping no tempo).
+- **Propaganda pós-experiência**: reduz a dissonância cognitiva do comprador.
 
 ## 4. Motivação e envolvimento
 
-Cadeia central:
-
 ```
-Necessidade ativada → discrepância (estado real vs ideal) → TENSÃO
-→ IMPULSO (drive, urgência de reduzir a tensão) → comportamento → meta (homeostase)
+Necessidade ativada → discrepância (real vs ideal) → TENSÃO
+→ IMPULSO (urgência de reduzir) → comportamento → meta (homeostase)
 ```
 
-| Item | O que é |
-|---|---|
-| Necessidade vs desejo | Desejo = manifestação da necessidade moldada por fatores pessoais e culturais. |
-| Tipos de necessidade | Biogênicas vs psicogênicas; utilitárias (benefício funcional) vs hedônicas (emoção, fantasia). |
-| [[Pirâmide de Maslow]] | Fisiológicas → segurança → sociais → estima → autorrealização. Indivíduos diferem na priorização. |
-| Críticas a Maslow | Um produto satisfaz várias necessidades ao mesmo tempo; a ordem é culturalmente limitada; faltam replicações e teste empírico. Revisão de Kaufman (metáfora do veleiro: segurança vs crescimento). |
-| Teoria do impulso | Foco biológico: estados desagradáveis de agitação motivam reduzir a tensão (homeostase). |
-| Teoria da expectativa | Foco cognitivo: comportamento puxado por **expectativa de resultado desejável** (incentivos positivos), não por origem interna. |
-| Valência | Meta pode ser positiva (aproximar) ou negativa (evitar). |
-| Afeto | Escala de intensidade: avaliações (leves) < humores (moderados) < emoções (fortes). |
+- **Desejo** = manifestação da necessidade moldada por cultura e personalidade.
+- **Tipos de necessidade**: biogênicas vs psicogênicas; utilitárias (função) vs hedônicas (emoção). Podem coexistir.
+- **Afeto** em escala de intensidade: avaliações < humores < emoções.
+
+### Maslow
+
+Fisiológicas → segurança → sociais → estima → autorrealização.
+
+Críticas (caem em prova): um produto satisfaz várias necessidades ao mesmo tempo; a ordem é culturalmente limitada; falta validação empírica. Revisão de Kaufman: metáfora do veleiro (segurança vs crescimento).
+
+### Teoria do impulso vs teoria da expectativa
+
+- **Impulso**: biológica, reduzir tensão desagradável (homeostase).
+- **Expectativa**: cognitiva, comportamento puxado por expectativa de resultado desejável.
 
 ### [[Conflitos Motivacionais]]
 
 | Conflito | Estrutura | Exemplo |
 |---|---|---|
-| Aproximação-aproximação | Duas alternativas desejáveis | Férias na praia ou no campo. Resolvido com redução de dissonância cognitiva pós-escolha. |
-| Aproximação-evitação | **O mesmo objeto** atrai e repele | Sundae delicioso + culpa; carro esportivo = status (estima, nível 4 de Maslow) + insegurança financeira (segurança, nível 2). |
-| Evitação-evitação | Duas opções indesejáveis | Pagar conserto do carro velho ou assumir 60 prestações do novo. |
+| Aproximação-aproximação | Duas opções boas | Praia ou campo. Resolve com redução de dissonância pós-escolha. |
+| Aproximação-evitação | **O MESMO objeto** atrai e repele | Carro de luxo: estima (nível 4) vs segurança (nível 2). |
+| Evitação-evitação | Duas opções ruins | Conserto do carro velho ou 60 prestações. |
 
 ### [[Envolvimento]]
 
-Relevância pessoal percebida do objeto. **Quanto maior o risco percebido, maior o envolvimento.** Três alvos:
+Relevância pessoal percebida. **Mais [[Risco Percebido]] = mais envolvimento.**
 
-| Tipo | O que é | Pontos quentes |
-|---|---|---|
-| Com o produto | Interesse na categoria/produto | Lealdade à marca = recompra + atitude forte. **Inércia = recompra por hábito, sem atitude** (não confundir). IKEA effect (trabalho próprio aumenta valor). Busca de variedade mesmo satisfeito (mais em bom humor; com ambiguidade, vai na opção segura). |
-| Com a mensagem | Engajamento com a comunicação | Mídia impressa = alto envolvimento (leitor controla ritmo); TV = baixo (passivo). Narrative transportation (imersão na história). Táticas pra elevar: novidade, estímulos proeminentes, celebridades, valor real (Charmin), ensaio mental do uso, spectacles. |
-| Com a situação | Engajamento com loja/contexto de compra | Experiência no ponto de venda, personalização no momento da compra. |
+| Alvo | Pontos quentes |
+|---|---|
+| Produto | Lealdade = recompra + atitude forte. **Inércia = recompra por hábito, sem atitude.** IKEA effect. Busca de variedade (troca espontânea mesmo satisfeito). |
+| Mensagem | Print = alto envolvimento, TV = baixo (passivo). Narrative transportation. Táticas: novidade, estímulo proeminente, celebridade, valor real, ensaio mental, spectacles. |
+| Situação | Engajamento com loja/site/contexto, experiência no ponto de venda. |
 
-Fatores que determinam o nível de envolvimento numa decisão (modelo usado na atividade Sofia): **pessoais** (renda, uso intenso), **situacionais** (recorrência, ticket), **do objeto** (diferenciação real entre alternativas).
+Fatores do nível de envolvimento numa decisão (atividade Sofia): **pessoais** (renda, uso), **situacionais** (recorrência, ticket), **do objeto** (diferenciação real entre alternativas).
 
 ## 5. Atitudes e persuasão
 
-Atitude: avaliação **geral e duradoura** sobre pessoas, objetos, propagandas, questões. Tudo tem um objeto de atitude (Ao).
+Atitude: avaliação **geral e duradoura** sobre um objeto de atitude (Ao).
 
-### [[Modelo CAB]] (ABC) e hierarquias
+### [[Modelo CAB]] e hierarquias
 
-Componentes: **C**ognição (crenças), **A**feto (sentimentos), **B** comportamento/conação (intenção de agir). A **ordem** em que aparecem define a hierarquia:
+Componentes: **C**ognição (crenças), **A**feto (sentimentos), **B** comportamento (intenção/ação). A **ordem** define a hierarquia:
 
-| Hierarquia | Ordem | Quando |
+| Hierarquia | Ordem | Situação típica |
 |---|---|---|
-| Padrão (aprendizagem, alto envolvimento) | Pensar → Sentir → Fazer (C→A→B) | Pesquisa extensa, decisão elaborada. |
-| Baixo envolvimento | Fazer → Sentir → Pensar (B→A→C) no deck da professora | Compra com base em conhecimento mínimo; atitude vem depois, por aprendizagem comportamental. |
-| Experiencial (hedônica) | Sentir → Fazer → Pensar (A→B→C) | Consumo emocional, hedônico. |
+| Padrão (alto envolvimento) | C → A → B | Pesquisa extensa antes de comprar |
+| Baixo envolvimento | B → A → C (deck) | Compra com conhecimento mínimo, atitude depois |
+| Experiencial (hedônica) | A → B → C | Emoção como motor da compra |
 
-⚠️ **Divergência deck vs quiz**: o quiz ENADE usa uma quarta categoria, "dissonância-atribuição" (B→A→C: compra por impulso → gosta → racionaliza/recomenda), e define baixo envolvimento como comportamento repetido com **atitude fraca formada só após o uso**. Regra prática na prova: se "dissonância-atribuição" aparecer entre as alternativas, ela fica com o caso impulso-com-afeto-forte, e baixo envolvimento fica com o caso rotina-sem-elaboração. Se só existirem as 3 hierarquias do deck, fazer-sentir-pensar = baixo envolvimento.
+⚠️ **Divergência deck vs quiz**: o quiz usa a quarta categoria "dissonância-atribuição" (B→A→C: impulso → gosta → racionaliza/recomenda) e define baixo envolvimento como atitude fraca formada só após uso. Na prova: se "dissonância-atribuição" estiver nas alternativas, ela fica com o impulso-com-afeto-forte; baixo envolvimento fica com a rotina-sem-elaboração.
 
-### Funções das atitudes (por que temos)
+### Funções das atitudes
 
 | Função | Serve pra |
 |---|---|
-| Utilitária | Recompensas e punições (gosto porque funciona). |
-| Expressiva de valor | Expressar autoconceito e valores (AIO: atividades, interesses, opiniões). |
-| Ego-defensiva | Proteger de ameaças externas ou sentimentos internos (inseguranças). |
-| Conhecimento | Necessidade de ordem, estrutura, significado. |
+| Utilitária | Recompensas e punições concretas. |
+| Expressiva de valor | Expressar autoconceito e valores (AIO). |
+| Ego-defensiva | Proteger de ameaça externa ou insegurança interna. |
+| Conhecimento | Ordem, estrutura, significado. |
 
-### Comprometimento com a atitude (do raso ao profundo)
-
-Condescendência (compliance: por recompensa/punição) → Identificação (pra se conformar a pessoa/grupo) → Internalização (vira parte do sistema de valores).
+Comprometimento com a atitude, do raso ao profundo: condescendência → identificação → internalização.
 
 ### Teorias de consistência
 
 | Teoria | Ideia |
 |---|---|
-| Coerência cognitiva | Buscamos harmonia entre pensar, sentir e agir; mudamos componentes pra manter consistência. Dissonância cognitiva: agimos pra resolver a incoerência (e buscamos respaldo pós-decisão). |
-| Julgamento social | Nova informação é assimilada à luz do que já sentimos; atitude inicial é frame de referência, com latitudes de aceitação e rejeição. |
-| Equilíbrio | Tríade pessoa, objeto de atitude, outra pessoa/objeto; ajustamos percepções pra manter a tríade consistente (base do uso de celebridades). |
+| Coerência cognitiva | Harmonia entre pensar, sentir, agir; dissonância gera ação corretiva e busca de respaldo pós-decisão. |
+| Julgamento social | Atitude inicial é frame; latitudes de aceitação e rejeição. |
+| Equilíbrio | Tríade pessoa-objeto-outro; ajustamos pra manter consistência (uso de celebridades). |
 
 ### [[Modelo de Fishbein]] (multiatributo)
 
 ```
 Ajk = Σi (βijk × Iik)
-A = atitude do consumidor k pra marca j
-β = crença: quanto a marca j entrega o atributo i
-I = importância (peso) do atributo i pro consumidor k
+β = crença (quanto a marca j entrega o atributo i)   I = importância do atributo
 ```
 
 Exemplo do deck (chocolates finos), pesos: presentes 4, qualidade 9, variedade 7, reputação 10:
@@ -202,105 +203,114 @@ Exemplo do deck (chocolates finos), pesos: presentes 4, qualidade 9, variedade 7
 | Cacau Show | 4(7) + 9(8) + 7(10) + 10(8) | 250 |
 | Brasil Cacau | 4(10) + 9(8) + 7(8) + 10(7) | 238 |
 
-Aplicações estratégicas do modelo: capitalizar vantagem relativa (comunicar o atributo onde ganha), fortalecer a percepção no atributo mais importante, acrescentar atributo novo, influenciar a avaliação dos concorrentes.
+Aplicações estratégicas: capitalizar a vantagem relativa, fortalecer a percepção no atributo mais importante, acrescentar atributo novo, mexer na avaliação dos concorrentes.
 
-Medição de posicionamento: escala Likert e **diferencial semântico** (pares de adjetivos opostos em escala 1-5). Resultado plota no [[Mapa perceptual]]: posição = lugar do produto na cabeça do consumidor em relação aos concorrentes.
+Medição: Likert e diferencial semântico (pares de adjetivos opostos). Plota no [[Mapa perceptual]]: posição = lugar do produto na cabeça do consumidor vs concorrentes.
 
 ### Persuasão e influência
 
 | Princípio | Mecanismo |
 |---|---|
 | Reciprocidade | Damos quando recebemos. |
-| Escassez | Escasso fica mais atraente. |
-| Autoridade | Acreditamos em fontes confiáveis. |
+| Escassez | Escasso atrai mais. |
+| Autoridade | Fontes confiáveis convencem. |
 | Coerência | Evitamos nos contradizer. |
 | Afeição | Concordamos com quem admiramos. |
-| Consenso | Olhamos o que os outros fazem (prova social). |
+| Consenso | Prova social. |
 
-Poder social (capacidade de alterar ação dos outros): de referência, legítimo, de informação, de expertise, de recompensa, coercitivo.
+Poder social: de referência, legítimo, de informação, de expertise, de recompensa, coercitivo.
 
-[[Nudge]]: aspecto da **arquitetura de escolha** que altera comportamento de forma previsível **sem proibir opções nem mudar significativamente incentivos econômicos**. Tem que preservar liberdade de escolha. Subsídio, imposto, multa, prisão: NÃO são nudges.
+**[[Nudge]]**: mudança na arquitetura de escolha que altera comportamento de forma previsível **sem proibir opções nem mudar incentivos econômicos**. Multa, imposto, subsídio: NÃO são nudge.
 
 ## 6. Tomada de decisão e risco
-
-Compra = resposta a um problema. Processo de decisão:
 
 ```
 Reconhecimento do problema → Busca de informações → Avaliação de alternativas
 → Escolha/compra → Avaliação pós-compra
 ```
 
-| Item | O que é |
-|---|---|
-| Reconhecimento de necessidade | Estado **real piorou** (acabou, quebrou, rotina exige). |
-| Reconhecimento de oportunidade | Estado **ideal subiu** (viu algo melhor, novo padrão de comparação). |
-| Tipos de decisão por envolvimento | Habitual (baixo, automática) / envolvimento moderado / cognitiva elaborada (alto). |
-| Papéis de compra | Iniciador, guardião (controla informação), influenciador, comprador, usuário. |
-| Categorização | Níveis de abstração nas categorias de produto. Implicações: posicionamento, identificação de concorrentes, exemplares da categoria, localização na loja. |
+- **Reconhecimento de necessidade**: estado **real piorou** (quebrou, acabou).
+- **Reconhecimento de oportunidade**: estado **ideal subiu** (viu padrão superior). Propaganda consegue provocar.
+- **Tipos de decisão por envolvimento**: habitual (baixo) / moderada / cognitiva elaborada (alto).
+- **Papéis de compra**: iniciador, guardião, influenciador, comprador, usuário.
+- **Categorização**: níveis de abstração; implicações em posicionamento, concorrentes, exemplares, layout de loja.
 
 ### As 5 regras de decisão
 
 | Regra | Tipo | Mecânica |
 |---|---|---|
-| [[Regra compensatória\|Compensatória]] | Compensatória | `R = Σ peso × nota` por marca; maior soma vence. Nota baixa num atributo é compensada por alta em outro. |
-| Conjuntiva | Não compensatória | Corte mínimo em **TODOS** os critérios; quem falha em um, sai. Processamento por marca. |
-| Disjuntiva | Não compensatória | Passa quem é **excelente em pelo menos UM** critério-chave. |
-| Lexicográfica | Não compensatória | Melhor nota no critério **mais importante**; empate → vai pro segundo critério. |
-| Eliminação por aspectos (EBA) | Não compensatória | Cortes aplicados **na ordem de importância**, eliminando sequencialmente. |
+| [[Regra compensatória\|Compensatória]] | Compensatória | `R = Σ peso × nota`; maior soma vence. Fraqueza compensável. |
+| Conjuntiva | Não compensatória | Corte mínimo em **TODOS** os critérios (lógica AND). |
+| Disjuntiva | Não compensatória | Excelência em **pelo menos UM** critério-chave (lógica OR). |
+| Lexicográfica | Não compensatória | Melhor no critério **mais importante**; empate → próximo critério. |
+| Eliminação por aspectos | Não compensatória | Cortes aplicados **na ordem de importância**, eliminando em sequência. |
 
-Regras não compensatórias = atalhos usados por quem tem pouca familiaridade com a categoria ou pouca motivação pra processar informação complexa.
+Não compensatórias = atalhos de quem tem pouca familiaridade ou pouca motivação pra processar.
 
 ### Caso Sofia resolvido (atividade 27.05, streaming)
 
 | Regra | Resultado |
 |---|---|
-| Conjuntiva | B (único que passa em todos os cortes; A cai em áudio 3<4 e offline 2<3, C cai em preço 2<3, D cai em áudio 3<4) |
-| Disjuntiva | A, B e C (nota 5 em algum top 3; D não tem) |
-| Lexicográfica | A (preço é o critério nº 1, A tem nota 5 única, sem empate) |
-| EBA | B (passo 1 preço corte 3 elimina C; passo 2 áudio corte 4 elimina A e D) |
-| Compensatória | Empate A e B com 385; desempate pelo critério mais importante (preço) → A |
+| Conjuntiva | B (único que passa em todos; A cai em áudio e offline, C em preço, D em áudio) |
+| Disjuntiva | A, B e C (D não tem nota 5 no top 3) |
+| Lexicográfica | A (nota 5 única em preço, critério nº 1) |
+| EBA | B (preço corte 3 elimina C; áudio corte 4 elimina A e D) |
+| Compensatória | Empate A e B com 385; desempate pelo preço → A |
 
-Contas compensatórias: A = 35(5)+25(3)+15(4)+10(4)+10(2)+5(3) = 385; B = 35(3)+25(5)+15(4)+10(3)+10(4)+5(5) = 385; C = 360; D = 350.
+Contas: A = 35(5)+25(3)+15(4)+10(4)+10(2)+5(3) = 385; B = 35(3)+25(5)+15(4)+10(3)+10(4)+5(5) = 385; C = 360; D = 350.
 
-Leitura de marketing: regras diferentes escolhem marcas diferentes porque cada uma é uma [[Heurística]] que pondera os atributos de outro jeito. O gerente escolhe **qual regra ativar** na comunicação (ex: marca equilibrada sem nota máxima em nada → ativar regra conjuntiva: "não falha em nenhum critério").
+Leitura de marketing: cada regra é uma [[Heurística]] que pondera atributos de um jeito; o gerente escolhe **qual regra ativar** na comunicação (marca equilibrada sem pico → ativar conjuntiva: "não falha em nada").
 
 ### [[Risco Percebido]] (5 tipos)
 
 | Risco | Capital em jogo | Compras mais sujeitas |
 |---|---|---|
-| Monetário | Dinheiro, patrimônio (vulnerável: renda baixa) | Itens caros |
-| Funcional | Meios alternativos de cumprir a função | Produtos que exigem comprometimento exclusivo |
-| Físico | Vigor, saúde, vitalidade | Veículos, remédios, comida |
-| Social | Autoestima, autoconfiança | Bens visíveis e simbólicos (roupa, carro, joia) |
-| Psicológico | Afiliações, status, culpa interna | Luxos pessoais caros, produtos que exigem autodisciplina |
+| Monetário | Dinheiro, patrimônio | Itens caros |
+| Funcional | Alternativas de cumprir a função | Comprometimento exclusivo |
+| Físico | Saúde, vigor | Veículos, remédios, comida |
+| Social | Autoestima, aprovação externa | Bens visíveis e simbólicos |
+| Psicológico | Culpa interna, autodisciplina | Luxos pessoais |
 
-Estratégias de redução de risco (teste grátis, garantia, review, demo) têm impacto máximo na etapa de **avaliação de alternativas**: operam direto nos critérios e pesos que o consumidor já está aplicando.
+Estratégias de redução (teste grátis, garantia, reviews) têm impacto máximo na **avaliação de alternativas**: operam nos critérios e pesos que o consumidor já aplica.
 
 ### Decisão habitual e vieses
 
-| Item | O que é |
-|---|---|
-| Heurísticas | Atalhos mentais: covariação (sinais que andam juntos), país de origem, nome de marca familiar, **preço alto como proxy de qualidade**. |
-| Framing (estruturação) | A decisão muda conforme a apresentação do problema. |
-| Viés de omissão / default | Ficar no padrão, não agir. |
-| Viés do presente | Sobrepeso do agora vs futuro. |
-| Busca de variedade | Trocar de marca por estímulo, mesmo satisfeito. |
-| Autorregulação | Controle do próprio comportamento frente à tentação. |
+- **Heurísticas**: covariação, país de origem, marca familiar, **preço alto como proxy de qualidade**.
+- **Framing**: a apresentação do problema muda a decisão.
+- **Viés de omissão/default** (ficar no padrão) e **viés do presente** (sobrepeso do agora).
+- **Busca de variedade** (trocar por estímulo) e **autorregulação** (controle frente à tentação).
 
 ## 7. Fundamentos (aula 1-2 + leituras)
 
-| Item | O que é |
-|---|---|
-| Marketing (Kotler) | Processo pelo qual empresas **criam valor** pro cliente e constroem relacionamentos pra **capturar valor** em troca. |
-| Evolução das definições AMA | 1976: fluxo de bens produtor→consumidor. 2004: criar/comunicar/entregar valor e gerir relacionamento. 2013: + parceiros e **sociedade em geral**. |
-| Sheth & Uslay | A mudança 1985→2004 = sair do paradigma da **TROCA** pro da **CRIAÇÃO DE VALOR**. Papéis distintos: usuário, pagador, comprador (paciente usa, seguradora paga, médico seleciona). Valor em uso > valor em troca. Co-criação de valor com o cliente. |
-| Valor | `Valor = Benefícios / Esforços`. Individual, relativo e determinado no tempo. Benefícios: funcionais, hedônicos. Esforços: monetários, pessoais, psicológicos, comportamentais. |
-| Conceitos essenciais | Oferta (produto, serviço, experiência), necessidades → desejos → demandas, troca (com assimetrias), mercados. |
-| Orientações da gestão de marketing | Produção (barato e disponível) → Produto (qualidade e inovação) → Vendas (empurrar agressivamente) → **Marketing** (partir da necessidade do mercado-alvo) → Societal (valor compartilhado e bem-estar de longo prazo). |
-| Dimensões do produto | Básico (benefício central) → Real → Ampliado. |
-| [[Miopia em Marketing]] (Levitt) | Definir o negócio pelo **produto** em vez da **necessidade do cliente**. Ferrovias se achavam do ramo de trens, eram de transporte; Hollywood se achava de cinema, era de entretenimento. Não existe setor de crescimento garantido: todo produto "insubstituível" é ameaçado de obsolescência (lavagem a seco, bondes, mercearias de esquina). Quem sobrevive (DuPont, Corning, alumínio) é orientado ao cliente, criando usos novos pras necessidades dele. A falha é da cúpula, que mira o produto e não o cliente. |
-| Hofstede | Dimensões culturais pra comparar países (usado em exercício comparativo). |
-| [[Mapa de Empatia]] | Ferramenta pra entender o consumidor (o que vê, ouve, pensa, sente, faz). |
+### O que é marketing
+
+- **Kotler**: criar valor pro cliente e construir relacionamento pra **capturar valor** de volta.
+- **AMA pela história**: 1976 fluxo de bens → 2004 valor e relacionamento → 2013 inclui parceiros e **sociedade**.
+- **Sheth & Uslay**: a virada 1985→2004 = sair do paradigma da **troca** pro da **criação de valor**. Papéis distintos (usuário, pagador, comprador), valor em uso > valor em troca, co-criação com o cliente.
+
+### Valor
+
+```
+Valor = Benefícios / Esforços
+```
+
+Individual, relativo, determinado no tempo. Benefícios: funcionais, hedônicos. Esforços: monetários, pessoais, psicológicos, comportamentais.
+
+### Orientações da gestão de marketing
+
+Produção (barato e disponível) → Produto (qualidade) → Vendas (empurrar) → **Marketing** (partir da necessidade do mercado-alvo) → Societal (bem-estar de longo prazo).
+
+### [[Miopia em Marketing]] (Levitt)
+
+- Definir o negócio pelo **produto** em vez da **necessidade**: ferrovias eram transporte, Hollywood era entretenimento.
+- Não existe setor de crescimento garantido; obsolescência alcança os "imunes" (lavagem a seco, bondes, mercearias de esquina).
+- Sobrevive quem orienta ao cliente e cria usos novos (DuPont, Corning, alumínio). A falha é da cúpula.
+
+### Complementos
+
+- Dimensões do produto: básico (benefício central) → real → ampliado.
+- Necessidades → desejos → demandas; troca com assimetrias.
+- Hofstede: dimensões culturais pra comparar países. [[Mapa de Empatia]]: o que o consumidor vê, ouve, pensa, sente, faz.
 
 ## 8. Pegadinhas consolidadas (reler 15 min antes)
 
@@ -335,6 +345,7 @@ Estratégias de redução de risco (teste grátis, garantia, review, demo) têm 
 - [[Regra compensatória]] · [[Regra não compensatória]] · [[Heurística]] · [[Risco Percebido]]
 - [[Conjunto evocado]] · [[Conjunto de consideração]] · [[Miopia em Marketing]]
 
-## Simulado
+## Simulados
 
-Fazer `sem respostas quiz_comportamento_consumidor_enade.md` (nesta pasta) cronometrado antes de reler as pegadinhas. Gabarito no arquivo com respostas: **C, B, B, C, B**.
+1. `sem respostas quiz_comportamento_consumidor_enade.md`: quiz da professora (gabarito: C, B, B, C, B).
+2. `QuizComplementar_SemRespostas.md`: feito em 12.06, **8/10**. Erros: Q9 (disjuntiva vs conjuntiva, pegadinha 3) e Q10 (dissonância-atribuição vs experiencial, pegadinha 6). Reler as duas pegadinhas marcadas com ⚠️.
