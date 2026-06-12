@@ -77,44 +77,107 @@ Distinções finas que derrubam:
 ## 5. Pós-parcial condensado
 
 ### Sistema aberto e críticas ao consumo (aula 28.04)
-- [[Greenwashing]] é FINGIR fazer, não "fazer pouco". Duplo mal: não resolve e ainda pacifica os críticos.
-- [[Obsolescencia programada]] existe formalmente desde 1925 ([[Cartel Phoebus]], lâmpadas de 2.500h reduzidas pra 1.000h). Não é fenômeno recente.
-- Menos de 10% do plástico global é reciclado. A solução da aula: produzir menos plástico, não reciclar mais.
-- Consumidor NÃO decide livremente: é influenciado por ciência comportamental (cor, embalagem, design).
-- Responsável pelo problema: o sistema inteiro (empresas, governos, consumidores), não um ator só.
-- [[Teoria da complexidade]]: variáveis interconectadas e não-lineares, solução isolada não funciona.
+
+**A virada teórica:**
+- Evolução das visões: empresa como máquina (processos e eficiência, ignora o externo) → empresa como pessoas (relações humanas, formal e informal, ainda só interna) → empresa como [[Sistema Aberto]] (incorpora o ambiente). As duas primeiras não estavam erradas: o mundo era menos complexo.
+- [[Caso DineTogether]]: empresa saudável internamente, derrubada por choque externo (denúncias). É O caso que justifica o sistema aberto.
+- [[Teoria da complexidade]]: variáveis interconectadas e não-lineares (clima, pobreza, lixo). Solução isolada não funciona; exige mudança de paradigma, não incremental.
+
+**As 3 regras do documentário (Conspiração Consumista):**
+- Regra 1, vender mais: Adidas fez turnaround por storytelling e collabs (Beyoncé, Kanye). Indústria de roupa: 100 bilhões de peças/ano; Shein sozinha lança 1,3 milhão de itens/ano. Amazon A/B-testa cada pixel e criou o 1-Click com objetivo declarado de reduzir o tempo do consumidor pensar criticamente.
+- Regra 2, guerra ao desperdício: [[Cartel Phoebus]] (1925) reduziu a vida das lâmpadas de 2.500h pra 1.000h, prova de que [[Obsolescencia programada]] é centenária. Apple: AirPods com bateria que degrada em 18-24 meses sem troca possível, parafuso pentalobe contra reparo amador, 13 milhões de telefones descartados POR DIA, primeira empresa a valer US$1 tri. iFixit (Kyle Wiens) e o [[Right-to-repair]]: ameaças de copyright pra censurar manuais de conserto. [[Lock-in do ciclo de reposicao]]: quando o modelo de negócio depende de reposição cíclica, CEO que propõe reduzir é demitido.
+- Destruição deliberada: Amazon na Europa destrói ~130 mil itens NOVOS por semana (destruir é mais barato que redistribuir). EUA: 5 bilhões de libras de lixo de devoluções por ano. Café que joga borra em produto novo pra inutilizar.
+- Regra 3, [[Greenwashing]] e [[Lying labels]]: menos de 10% do plástico global é reciclado; selo "reciclável" no plástico nº 6 é decorativo. Marcadores típicos de greenwashing em propaganda: ambiente natural, criança entregando a mensagem, verde extensivo, linguagem vaga. Definição da Maren Costa: "duplo mal", não faz E ainda pacifica os críticos. Timing emblemático: Amazon anunciou o Climate Pledge na véspera da greve de 7.700 funcionários.
+
+**Teses pra MC:**
+- Greenwashing é FINGIR fazer, não "fazer pouco".
+- Solução do plástico: PRODUZIR menos, não reciclar mais.
+- Consumidor NÃO decide livremente: ciência comportamental (cor, embalagem, design).
+- Responsável: o sistema inteiro (empresas + governos + consumidores), nunca um ator só.
+- Números de fechamento: 400 milhões de toneladas de lixo plástico/ano, 50 milhões de toneladas de lixo eletrônico/ano, projeção de dobrar até 2050.
 
 ### Inovação (aula 05.05)
-- [[Inovação]] exige os TRÊS critérios: ideia nova, viabilidade técnica, comercialização/adoção. Faltou um, não é inovação.
-- Escala: [[Descoberta]] (existe, sem aplicação) → [[Invenção]] (protótipo, sem adoção) → Inovação (adotada pelo mercado).
-- Segway é invenção que falhou na adoção: NÃO é inovação. iPad Mini É inovação (incremental, de produto), mesmo sendo "só um iPad menor".
-- Dois eixos que não se misturam. Tipo (ONDE muda): produto, processo, marketing, organizacional. Grau (QUANTO disrupta): [[Inovação incremental]] melhora o existente, [[Inovação radical]] cria trajetória nova e atinge UM setor, [[Paradigma técnico-econômico]] muda TODOS os setores (vapor, eletricidade, internet, IA).
-- Toda inovação tem um tipo E um grau: iPhone original = produto + radical. Home office = organizacional + radical. Burocracia foi organizacional + radical na época.
-- Uber: radical no lançamento, depois inova incrementalmente (Eats, agendamento).
+
+**Os três critérios, TODOS obrigatórios:**
+
+| Critério | Falha quando |
+|---|---|
+| Ideia nova (ou combinação nova) | Já existia idêntico |
+| Viabilidade técnica (protótipo funcionando) | Só ideia no papel (carro voador de 100 anos atrás) |
+| Comercialização (preço viável + adoção) | Caro demais ou ninguém quer (Segway, bicicleta sem pedais) |
+
+**Escala:** [[Descoberta]] (achou que existe, sem aplicação: elemento químico sem extração) → [[Invenção]] (protótipo feito, sem adoção: bicicleta sem pedais) → [[Inovação]] (adotada e comercializada: iPad Mini, Linha de Montagem, Uber). Âncora: achou no mapa → construiu a máquina → o mercado comprou.
+
+**Tipos (ONDE muda):**
+
+| Tipo | Exemplo da aula |
+|---|---|
+| [[Inovação de produto]] | Caneta que não mancha, garrafa com canudo, iPad Mini |
+| [[Inovação de processo]] | [[Linha de Montagem]] do Ford, fast food (7 min vs 30 min) |
+| [[Inovação de marketing]] | Comercial feito por IA, drone de entrega, embalagem nova |
+| [[Inovação organizacional]] | [[Burocracia]] (histórica), home office (atual) |
+
+Tipos não são exclusivos: classifica pelo PREDOMINANTE. Mudança de processo quase sempre puxa mudança organizacional.
+
+**Graus (QUANTO disrupta):** [[Inovação incremental]] melhora o que existe, cliente e tecnologia conhecidos (iPhones pós-lançamento, moda, ar-condicionado). [[Inovação radical]] cria trajetória inexistente com adoção incerta e atinge UM setor (iPhone original, Uber, Netflix). [[Paradigma técnico-econômico]] muda TODOS os setores e o tecido social (vapor, eletricidade, internet, IA em curso).
+
+**Pegadinhas:**
+- Algo novo ≠ inovação: faltam viabilidade e comercialização.
+- Tipo e grau são eixos independentes; toda inovação tem um de cada. iPhone original = produto + radical. Home office = organizacional + radical. iPhones seguintes = produto + incremental.
+- iPad Mini É inovação mesmo sendo "só um iPad menor". Segway NÃO é, apesar de ser invenção.
+- Uber: radical no lançamento, hoje incremental (Eats, agendamento, motorista mulher).
+- Burocracia foi inovação organizacional RADICAL quando surgiu.
 
 ### Sustentabilidade e ciclo de vida (aula 12.05)
-- [[Sustentabilidade]]: atender o presente sem comprometer gerações futuras. Brundtland, 1987 (não 1937). Triple bottom line: ambiental, social, econômico.
-- [[ODS]]: 17 objetivos, ONU, 2015.
-- Sustentabilidade ≠ [[ESG]]: sustentabilidade é o conceito, ESG é o framework de AVALIAÇÃO. Score ESG alto sem substância = greenwashing.
-- ESG como burden vs oportunidade: saber argumentar nas DUAS direções.
-- [[Ciclo de Vida do Produto]]: matéria-prima → produção → distribuição → consumo → descarte. Inovação sustentável pode entrar em QUALQUER etapa, não só no produto.
+- [[Sustentabilidade]]: atender as necessidades do presente sem comprometer as gerações futuras. Brundtland, 1987, relatório "Our Common Future" da ONU (o transcript do Plaud trocou pra 1937: é 1987).
+- Triple bottom line: ambiental + social + econômico.
+- [[ODS]]: 17 objetivos interconectados, ONU, 2015.
+- Sustentabilidade ≠ [[ESG]]: sustentabilidade é o conceito, ESG é o framework de AVALIAÇÃO não-financeira. Empresa pode ter score ESG alto sem ser substancialmente sustentável (= greenwashing).
+- ESG burden vs oportunidade: burden = custo, compliance, papelada (leitura anti-ESG). Oportunidade = acesso a capital, risco menor, vantagem competitiva. Saber argumentar nas DUAS direções.
+- [[Ciclo de Vida do Produto]]: matéria-prima → produção → distribuição → consumo → descarte. Inovação sustentável entra em QUALQUER etapa: na obtenção da matéria-prima, no processo (menos energia, menos resíduo), na embalagem (mais reciclável) ou compensando em outra etapa do ciclo.
+- Inovação sustentável continua precisando dos 3 critérios de inovação: "sustentável" não dispensa viabilidade econômica.
 
 ### ESG e governança (aula 19.05)
-- [[Stakeholders]]: quem afeta ou é afetado pela empresa.
-- [[Conflito de Agência]]: gestor age em benefício próprio. [[Governança Corporativa]] é o conjunto de mecanismos que realinha gestor e empresa. Crise de 2008 = falha de GOVERNANÇA (bônus de curto prazo), não só falha financeira.
-- Boas práticas: [[Conselho Independente]] (gente de fora, sem conflito), vedar [[Dualidade de Papel]] (CEO = presidente do conselho é má prática), [[Compliance]], transparência.
-- [[Materialidade]]: pauta ESG conectada ao próprio negócio. Caso Itaú: de 7 temas dispersos pra 3 conectados.
-- [[Fair Trade]] (Starbucks): pagar preço justo em vez de esmagar pequeno produtor. [[Logística Reversa]]: descarte volta pra cadeia (alumínio >97% reciclado no Brasil).
-- [[Dieselgate]]: cobre os TRÊS pilares, não só o E. Fraude de software (11M carros, NOx 40x acima, US$30bi+ em multas, ações -40%).
-- Lucro vs sustentabilidade é FALSA dicotomia: a aula bate nisso. [[Movimento anti-ESG]] existe (Trump) e é relevante.
-- [[Acordo de Paris]]: limite de 1,5°C de aquecimento global, e já estamos chegando nesse patamar.
+
+**Os três pilares com os exemplos da aula:**
+
+| Pilar | O que entra | Exemplos da aula |
+|---|---|---|
+| E | Redução de descarte, energia renovável vs petróleo, [[Logística Reversa]], [[Acordo de Paris]] (limite 1,5°C, já chegando nesse patamar) | Alumínio >97% reciclado no Brasil |
+| S | Diversidade, maternidade/paternidade ampliadas, projetos sociais, filantropia, educação | Creche corporativa da Natura; [[Fair Trade]] da Starbucks (preço justo certificado ao pequeno produtor, em vez de esmagar pelo poder de compra) |
+| G | [[Conselho Independente]], vedar [[Dualidade de Papel]], [[Compliance]], anticorrupção, transparência total | Lava Jato e Odebrecht como contraexemplos |
+
+**Conceitos que viram questão:**
+- [[Stakeholders]]: indivíduos ou grupos que afetam ou são impactados pela empresa.
+- [[Conflito de Agência]]: gestor age em benefício próprio. [[Governança Corporativa]]: mecanismos que realinham gestor e empresa. Crise de 2008 = falha de GOVERNANÇA (bônus milionários incentivaram resultado de curto prazo destrutivo), não só falha financeira.
+- [[Conselho Independente]] ≠ conselho consultivo: exige gente SEM interesse direto na empresa.
+- [[Materialidade]]: pauta ESG conectada ao próprio negócio. Caso Itaú: de 7 temas dispersos pra 3 conectados (transparência, educação financeira, investimento socioambiental).
+- Lucro vs sustentabilidade é FALSA dicotomia: boas práticas tendem a melhorar desempenho; bancos fazem análise de risco SOCIOAMBIENTAL além da financeira; fundos ESG pressionam adesão por via de mercado.
+- [[Movimento anti-ESG]]: era Trump, "empresa deve focar em lucro, ESG é custo", retirada de coalizões; no Brasil tem dimensão anti-woke.
+
+**[[Dieselgate]] (Volkswagen, 2015), o caso que reúne os três pilares:**
+- Software da Bosch fraudava o teste de emissão em mais de 11 milhões de carros; NOx até 40x acima do limite em uso real.
+- Consequências: US$30 bilhões+ em multas globais (US$4bi só nos EUA, €500M Porsche, €90M Bosch), ações caíram ~40%, 700 mil empregos perdidos na Alemanha, 17 mil Amaroks fraudados no Brasil, estimativa de 5 mil mortes prematuras no Reino Unido.
+- Em prova: NÃO é caso só do pilar E. Tem fraude contra o consumidor (S) e falha interna de governança (G).
 
 ### Teoria da Mudança e terceiro setor (aula 08.05)
-- [[Teoria da Mudança]]: cadeia lógica e SEQUENCIAL: inputs → intervenções → públicos → outputs → resultados → impactos. Cada bloco depende do anterior funcionar.
-- A pegadinha é output vs resultado vs impacto. Output: produto imediato, quantitativo ("X jovens formados", "5 mil ONGs apoiadas"). Resultado: mudança de curto/médio prazo na vida de alguém ("jovens em emprego formal acima da média do território"), exige medição comparativa. Impacto: efeito estrutural de longo prazo ("pobreza extrema reduzida", "modelo vira política pública").
-- Sem resultado medido, output vira fim em si mesmo. Sem impacto de longo prazo, resultado é caridade pontual.
-- Caso da aula: Gerando Falcões (Edu Lyra). [[Terceiro setor]] profissionalizado: doações corporativas, dashboards de impacto, Universidade Falcons, Auçaí, Corre, [[Favela 3D]] (piloto em Poá).
-- [[Terceiro setor]]: organização privada SEM fins lucrativos com finalidade pública. Primeiro setor: Estado. Segundo: mercado. Moral da aula: administração profissional não é exclusividade de empresa.
+
+**A cadeia (sequencial, cada elo depende do anterior):**
+
+| Elo | Pergunta | Na Gerando Falcões |
+|---|---|---|
+| Inputs | O que temos? | Doações corporativas (Itaú, Magalu, Ambev), time gestor profissional, marca Edu Lyra, rede de 5 mil ONGs, 14 anos de operação |
+| Intervenções | O que fazemos? | Universidade Falcons (forma líderes de ONG), Auçaí (mercado social digital), Corre (empregabilidade jovem), Famelhas, [[Favela 3D]] (território completo: saneamento, internet, moradia, renda) |
+| Públicos | Pra quem? | Líderes de ONG, famílias em pobreza, mulheres da favela, jovens vulneráveis, comunidades-piloto (Poá) |
+| Outputs | Produto imediato, quanti | Líderes formados por turma, famílias ativas no Auçaí, toneladas de alimento entregues, famílias atendidas em Poá |
+| Resultados | Mudança medida, médio prazo | Jovens em emprego formal ACIMA da média do território, ONGs profissionalizam gestão e captação, em Poá: IDH sobe, evasão cai, renda sobe |
+| Impactos | Efeito estrutural, longo prazo | Pobreza extrema reduzida, Favela 3D escala e vira política pública, favela vista como ativo e não problema |
+
+**A regra dos cinco "sem":** sem inputs, não rodam intervenções. Sem público claro, intervenção vira ativismo difuso. Sem outputs medidos, não dá pra acompanhar execução. Sem resultados, output vira fim em si mesmo. Sem impacto, resultado é caridade pontual.
+
+**Pegadinha de prova:** "5 mil ONGs apoiadas" é OUTPUT. "Essas ONGs entregam mais por causa da Falcons" é RESULTADO, e exige medição comparativa.
+
+**[[Terceiro setor]]:** organização privada SEM fins lucrativos com finalidade pública. Primeiro setor: Estado. Segundo: mercado. Moral da aula: administração profissional não é exclusividade de empresa.
 
 ## 6. Do syllabus, sem aula gravada (cobre o flanco)
 
