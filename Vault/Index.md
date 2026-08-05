@@ -4,31 +4,37 @@ tags: [index, home]
 
 # FGV vault
 
-Vault de estudos da FGV EAESP. Cada matéria tem pasta própria, com sub-pasta `Aulas/DD.MM.AA/` por aula contendo `Transcrito.md` e `Resumo.md`.
+Vault de estudos da FGV EAESP. Cada matéria ativa tem pasta própria na raiz, com sub-pasta `Aulas/MM.DD/` por aula contendo `Transcrito.md` e `Resumo.md`. Semestres encerrados são arquivados em pasta própria na raiz (`S1/`, futuramente `S2/`, etc.).
 
-## Matérias ativas
+## Matérias ativas (2026.2)
 
-- [[ProdutosFinanceiros]]
-- [[Estatistica]]
-- [[ComportamentoDoConsumidor]]
-- [[OperacoesParaCompetitividade]]
-- [[IntroducaoAGestao]]
-- [[Programacao]]
-- [[Sociologia]]
-- [[PVU]]
+| Matéria | Pasta | Tag |
+|---|---|---|
+| Tecnologia, Dados e Negócios | `TecnologiaDadosENegocios` | `#tdn` |
+| Psicologia | `Psicologia` | `#psi` |
+| Matemática Aplicada I | `MatematicaAplicada1` | `#ma1` |
+| Estudos Organizacionais | `EstudosOrganizacionais` | `#eo` |
+| Estatística II | `Estatistica2` | `#est2` |
+| Direito Empresarial | `DireitoEmpresarial` | `#dir` |
+| Contabilidade Financeira | `ContabilidadeFinanceira` | `#cont` |
+
+## Arquivo
+
+- `S1/` contém as matérias de 2026.1: ProdutosFinanceiros, Estatistica, ComportamentoDoConsumidor, OperacoesParaCompetitividade, IntroducaoAGestao, Programacao, Sociologia, PVU. As tasks do S1 estão na seção de arquivo de [[Tasks]].
 
 ## Estrutura
 
 ```
 ~/FGV/
-├── <Matéria>/
+├── <Matéria>/            (matérias do semestre corrente)
 │   └── Aulas/
-│       └── DD.MM.AA/
+│       └── MM.DD/
 │           ├── Transcrito.md
 │           └── Resumo.md
+├── S1/                   (arquivo do semestre 2026.1, mesma estrutura)
 └── Vault/
     ├── Index.md          (este arquivo)
-    ├── Tasks.md          (lista de prazos consolidada)
+    ├── Tasks.md          (lista de prazos consolidada, único arquivo de tasks)
     ├── Conceitos/        (notas atômicas: SELIC, Greenwashing, etc.)
     ├── Templates/        (templates de aula, resumo, conceito)
     ├── Attachments/      (imagens e arquivos colados)
@@ -37,6 +43,7 @@ Vault de estudos da FGV EAESP. Cada matéria tem pasta própria, com sub-pasta `
 
 ## Convenções
 
+- Pasta de aula em formato `MM.DD` (ex: `08.12` = 12 de agosto), pro sort alfabético ficar cronológico
 - `[[wikilinks]]` pra conceitos importantes
 - Tag `#prova` em coisa pra revisar antes da prova
 - Tag `#duvida` em ponto não entendido
@@ -59,6 +66,7 @@ Vault de estudos da FGV EAESP. Cada matéria tem pasta própria, com sub-pasta `
 
 ```tasks
 not done
+heading does not include Arquivo S1
 due before in 14 days
 sort by due
 ```
