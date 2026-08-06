@@ -25,4 +25,3 @@ Função Exponencial -> Expoente Varia
 * 3o caso: Reais - 0 
 * 4o caso: Reais - 0
 * 5o caso: Reais - Negativos
-
