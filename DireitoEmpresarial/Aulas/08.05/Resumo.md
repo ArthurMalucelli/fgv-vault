@@ -5,6 +5,11 @@ tema: Capacidade civil, regimes de casamento e patrimônio
 tags: [resumo]
 ---
 
+## Slides
+
+- [[Slides/DEMP_1_CG_DPE_-_ATIVIDADE_EMPRESARIAL.ppt|Slide 1 — Atividade Empresarial]]
+- [[Slides/DEMP_2_CG_DPE_-_REGIME_JURIDICO_DA_LIVRE_INIC.ppt|Slide 2 — Regime Jurídico da Livre Iniciativa]]
+
 # Capacidade civil, regimes de casamento e patrimônio
 
 ## Conceitos-chave

@@ -5,6 +5,12 @@ tema: Análise de Demonstrações Financeiras (DRE e Balanço Patrimonial)
 tags: [resumo]
 ---
 
+## Slides
+
+- [[Slides/1697_T1_A_Contabilidade.pdf|T1 — A Contabilidade]]
+- [[Slides/1697_T2_Relatórios_Contábeis.pdf|T2 — Relatórios Contábeis]]
+- [[Slides/1697_QC_T2_DFs_principais.pdf|QC T2 — DFs Principais (exercício)]]
+
 ## Conceitos-chave
 
 | Item | O que é |
