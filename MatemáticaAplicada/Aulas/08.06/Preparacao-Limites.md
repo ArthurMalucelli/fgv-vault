@@ -7,6 +7,10 @@ tags: [preparacao, limites, pre-calculo]
 
 # Preparação — Aula 2: Introdução a Limites
 
+## Slides
+
+- [[Slides/2-Aula-Introducao-a-Limites.pdf|Aula 2 — Introdução a Limites]]
+
 ## O que é limite (conceito central)
 
 Limite é o valor que uma função **se aproxima** quando x se aproxima de um ponto, independente do que acontece *exatamente* naquele ponto.
