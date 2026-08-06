@@ -39,5 +39,10 @@ Seja f(x) = $\sqrt{x}$  a = 5
 	lim $\sqrt{x}$  = 5
 	x -> 25
 
-
+Exemplo: Estime o valor de 
+	lim = x-1/xˆ2-1 -> **x-1/(x+1)(x-1)** -> lim1/x+1
+	lim1/x+1 = 0,5
+	x->1
+  
+    
 
