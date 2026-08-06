@@ -25,3 +25,16 @@ Função Exponencial -> Expoente Varia
 * 3o caso: Reais - 0 
 * 4o caso: Reais - 0
 * 5o caso: Reais - Negativos
+
+
+**Limites**
+
+Dada f(x), oque acontece com os valores de f(x) para x proximo de um valor "a"?
+
+Seja f(x) = xˆ2, a = 2:
+
+
+|     |     |
+| --- | --- |
+|     |     |
+
