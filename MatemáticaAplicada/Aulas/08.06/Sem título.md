@@ -1,0 +1,3 @@
+
+
+Funcao Potencial -> Ba
