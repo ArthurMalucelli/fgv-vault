@@ -43,6 +43,9 @@ Exemplo: Estime o valor de
 	lim = x-1/xˆ2-1 -> **x-1/(x+1)(x-1)** -> lim1/x+1
 	lim1/x+1 = 0,5
 	x->1
+Exemplo:
+	lim$\sqrt{xˆ2+16}$  - 4 / xˆ2
+	x->0
   
     
 
