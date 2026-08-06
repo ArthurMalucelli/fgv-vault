@@ -17,8 +17,12 @@ Função Exponencial -> Expoente Varia
 * 5o caso: n racional
 		f(x) = xˆ1/2 = Raiz(x)
 
-**Saber: Dominio e Grafico**
+==**Saber: Dominio e Grafico**==
 
 **Dominio**
-*  1o caso: Dominio = Reais
-* 2o caso: 
+*  1o caso: Reais
+* 2o caso: Reais
+* 3o caso: Reais - 0 
+* 4o caso: Reais - 0
+* 5o caso: Reais - Negativos
+
