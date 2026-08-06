@@ -31,10 +31,7 @@ Função Exponencial -> Expoente Varia
 
 Dada f(x), oque acontece com os valores de f(x) para x proximo de um valor "a"?
 
-Seja f(x) = xˆ2, a = 2:
-
-
-|     |     |
-| --- | --- |
-|     |     |
+Seja f(x) = xˆ2, a = 2: 
+	lim xˆ2 = 4
+	x -> 4
 
