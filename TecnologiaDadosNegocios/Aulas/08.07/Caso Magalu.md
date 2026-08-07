@@ -52,3 +52,4 @@ Plataforma digital para PMEs que operavam só fisicamente começarem a vender on
 
 3. **Modelo de negócio adotado**
    Plataforma digital / superapp com marketplace: Magalu como intermediária entre consumidores e sellers (PMEs + grandes marcas), mais serviços financeiros integrados. Modelo de ecossistema digital.
+
