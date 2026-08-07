@@ -7,4 +7,4 @@
 		Criação de um aplicativo, marketplace digital, meios de pagamento digitais, marketing digital, e crédito digital.
 
 **3 Modelo de negócio adotado?**
-		Passou a atuar como marketplace digital, intermediando as vendas entre os vendedores e os consumidores, 
+		Passou a atuar como marketplace digital, intermediando as vendas entre os vendedores e os consumidores, através da digitalização.
