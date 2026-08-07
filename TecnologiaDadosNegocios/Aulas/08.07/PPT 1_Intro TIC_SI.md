@@ -76,7 +76,7 @@ Se o WhatsApp cair, a empresa perde uma *TIC*, não o SI — o SI sobrevive se o
 
 Trabalho em grupo (30 min, grupos de 5). Cada grupo responde ao roteiro e define um porta-voz para escrever no quadro branco.
 
-Ver nota: [[Caso Magalu]]
+Ver nota: [[Caso Magalu - Respostas]]
 
 ---
 
