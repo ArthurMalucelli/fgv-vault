@@ -1,0 +1,266 @@
+00:00:12 Speaker 1
+Controlação, controlação.
+00:00:28 Speaker 1
+E o uso dos dados hoje não funciona com as referências que dá valor, certo? Então, esse é o primeiro bloco, depois nós vamos ter os integrados, vamos passar por, O IPC 4.0, tecnologias digitais e engenhos, essas duas aulas aqui, fundamentais para o Trabalho, então não falem.
+00:00:58 Speaker 1
+E o que as empresas estão fazendo para mudar o modelo de transformação digital é livre. Eles querem utilizar esse convencional tudo. Isso demandou uma transformação digital, ok? Então, aqui nós vamos aprender o que as empresas vão fazer.
+00:01:18 Speaker 1
+Depois disso, nós temos economia de informação, O quanto disso está em prova. Com os efeitos, os principais elementos, por exemplo, lock-in, lock-in, digamos assim, Quem é que tem o celular da Apple?
+00:01:39 Speaker 1
+Quem tem o Samsung?
+00:01:42 Speaker 1
+Por que vocês não trocam de imagem?
+00:01:47 Speaker 1
+Podem falar, se vocês querem.
+00:02:07 Speaker 1
+Seja por qualidade, seja por preço, seja por aprendizado, então às vezes você fala Assim, olha, ao invés de eu usar um computador da Apple, eu vou usar um computador da Dell. Porque é muito difícil aprender a usar o computador da época. Então, isso também é um aprisionamento. E, normalmente, quem tem época, não liga o que ele estressa, principalmente. Então, tem diversos outros valores, não só finanças.
+00:02:40 Speaker 1
+Depois disso, nós vamos ver e-commerce, plataformas e ecossistemas digitais aqui, né? Para quem usa mercado de criar mais um pouco. Então, vamos ver como isso funciona. Essa página aqui é interessantíssima, que são as bibliotecas. Alguém sabe o que são bibliotecas ou quem são elas?
+00:03:04 Speaker 1
+Elas hoje são chamadas de Magnificent Seven.
+00:03:10 Speaker 1
+Apple, NVIDIA,
+00:03:15 Speaker 2
+Microsoft, Netflix, Netflix, muito bem. Mais alguém?
+00:03:26 Speaker 1
+Atenção, faltou 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 62, O que é um volume grande de dados, aí sim, sempre que a parte do código, nós vamos entender o que fazer com os dados.
+00:04:01 Speaker 1
+Aí vem um bloco de ciência de dados e analíticas, que é aprender as técnicas, não como elas funcionam, mas saber como é que elas servem, como é que elas podem ajudar os negócios. Nós temos aqui um bloco de como elas podem transformar os negócios, um bloco de aspectos sociais, que seriam os... Efeitos colaterais das tecnologias, então, que tipo de problemas elas estão causando, consequências intencionais ou não intencionais.
+00:04:34 Speaker 1
+E, por último, um bloco inteiro dedicado para a inteligência artificial, tá bom?
+00:04:40 Speaker 1
+Então, esse é o nosso conteúdo.
+00:04:45 Speaker 1
+Alguém tem alguma dúvida até aqui, antes da gente começar a entrar no conteúdo?
+00:04:53 Speaker 1
+Então, por favor, celulares agora, notícias fechadas.
+00:04:59 Speaker 1
+Atenção, a informação está no palco. Ô, fechado.
+00:05:06 Speaker 2
+Valeu. A conta de quem é essa? Eu sou. Vai dar em quanto?
+00:05:16 Speaker 2
+Tem uns 4, né?
+00:05:19 Speaker 2
+Não sei se tem em 3, mas vai ter em 5, hein? Tem que ter mais.
+00:05:35 Speaker 2
+Obrigado.
+00:08:09 Speaker 3
+Música.
+00:08:55 Speaker 3
+Tchau.
+00:09:28 Speaker 3
+Tchau, tchau.
+00:10:00 Speaker 3
+Tchau.
+00:10:56 Speaker 1
+Obrigada.
+00:11:02 Speaker 1
+E a maioria desses algoritmos estavam fazendo o índice das pessoas vivendo, os centros de saúde estavam aumentando exponencialmente, as pessoas estavam ficando doentes, eles começaram a monitorar isso muito antes de nunca, eles ouviram a máquina.
+00:11:33 Speaker 1
+A tecnologia é uma coisa que a gente consegue fazer, né?
+00:11:40 Speaker 1
+Então, a gente tem que ter mais interesse. A gente tem que ter mais interesse.
+00:12:05 Speaker 1
+E vocês acham que a Amazônia tem cadeira, tem pessoas?
+00:12:18 Speaker 2
+Não, não tem nada.
+00:12:24 Speaker 2
+Então tem pessoas,
+00:12:29 Speaker 1
+Tecnologia, o que mais que ela tem?
+00:12:33 Speaker 2
+Os armazénios, a abertura.
+00:12:49 Speaker 2
+Obrigada.
+00:13:16 Speaker 1
+Abençoe-me que eu vou te chamar.
+00:14:24 Speaker 1
+Não para só que é mais do que isso, mas vocês falaram muito bem. E se ela não sobreviver, se um dos elementos pode fazer mais falta? Não só em um,
+00:14:39 Speaker 2
+Ela pode também.
+00:14:45 Speaker 2
+Qualquer um.
+00:15:14 Speaker 1
+O que é a grande missão disso? Nenhum elemento sozinho gera, eles só vão gerar valor quando associados se encontram. E é exatamente por isso que nós precisamos entender a diferença entre a tecnologia da informação, Tecnologia da informação e comunicação.
+00:15:46 Speaker 1
+TI. O que é TI? Tecnologia da Informação. Ela vai compreender todos os recursos tecnológicos que uma empresa tem. Ó, reparem, primeira coisa, gente, apareceu a luzinha, tá? Importante. Os recursos tecnológicos. Isso significa o hardware, os computadores, software, os sistemas aplicativos, as redes de comunicação e dados.
+00:16:17 Speaker 1
+Agora, o que tem aqui, ela vai ser, é a TV, envolvendo a TV, net, internet, é muito importante, é bem, é muito importante, pessoal, vocês vão ver que é muito importante, tá bom, é só, vamos escolher.
+00:16:49 Speaker 1
+Bom, então, ela vai pegar as APIs, mas com o serviço de videoconferência, por exemplo, O que vocês estão vendo, e-mail, e-mail, e até aqui, ó.
+00:17:16 Speaker 1
+É famoso o WhatsApp.
+00:17:21 Speaker 1
+Então, por exemplo, tem lugares, vocês acham que no meio da floresta amazônica tem fibrótica?
+00:17:28 Speaker 1
+A comunicação lá se dá por satélite. Como é que vocês acham?
+00:18:04 Speaker 1
+Isso permite que a comunicação aconteça no mundo inteiro. Aí vocês podem me perguntar, mas como é que faz a comunicação da Europa para as Américas? O cabo, o submarino, a central ótica. Então, tudo está interrompido. Os lugares remotos, onde não tem fibra, pode ainda existir uma coisa jurássica para vocês, Que se chama paramentada.
+00:18:40 Speaker 1
+Música.
+00:19:00 Speaker 1
+É a junção dos dois, é óbvio, não vale dizer, mais do que se tivesse. Seu nome é?
+00:19:11 Speaker 1
+Exatamente, pessoas, lembram aqui, o conjunto integrado, ele vai envolver pessoas, não Só pessoas, mas também processos, os dados que as pessoas coletam e a tecnologia.
+00:19:31 Speaker 1
+A tecnologia Leia-se, esse é o... Só que aqui, ó, todos trabalham juntos para gerar informação para a tomada de pesquisa. O sistema, ele é um todo, ele é um conceito mais amplo. E é isso que nós vamos ver nas próximas aulas. Baixo, nós temos integrados de informação e os tipos físicos. Aqui tem a cor do FED, ERP, assim como a Andrade, Enterprise.
+00:20:13 Speaker 1
+O CRM é um sistema de informações para monitorar o cliente.
+00:21:34 Speaker 1
+Os sistemas, eles servem, por exemplo, para eu escrever, olha, a minha boa prática para dar aula é isso. A minha boa prática de uma prova é isso. Então, isso é compartilhado entre todos.
+00:21:47 Speaker 1
+Se eu me for embora e ter acesso a um Decision Support Systems, que é bem na estratégia, já são o sistema de decisão, né? E hoje muito, tirar minha área de pesquisa a base de inteligência artificial. Os agentes do IAR, Agents, IAR Systems, nós vamos ver se funciona, Subsidiam o departamento inteiro.
+00:22:19 Speaker 1
+Bom, então para resumir, para durar mais tempo, a TI, ela vai processar e guardar informação. Olha, eu ainda deixei um verbo no meu, para vocês verem, gravar de tempo. Ela processa e guarda, ela vai processar, guardar, transportar e formar.
+00:22:42 Speaker 1
+E o ex, ele vai organizar e interpretar essa informação, justamente transformando esses, Dados brutos em informação que vai apoiar a tomada de decisão.
+00:22:58 Speaker 1
+Isso ficou bem claro para vocês, ou alguém ainda só tem dificuldade de entender qual é a diferença de um... Você está com o semblante um pouco... Você está entendendo o meu líquido branco? Eu? Não entendi. Não? Entendeu? Então, se vocês tiverem alguma dúvida, eu falo com certeza.
+00:23:22 Speaker 1
+Bom, em outros casos, é importante deixar claro que o sistema... E também tecnologia de informação e comunicação profissional, porque as ferramentas que, Podem isolar as comunidades, elas não fazem nada, então, é isso que a gente faz, é isso Que a gente faz, a gente faz.
+00:23:56 Speaker 1
+Ó, mais uma analítica para vocês guardarem bem. A tecla, podemos separar ela por exemplo, é um motor, ou seja, Ele não anda sozinho, sobe o motor? Não. Ele é uma peça do carro, ok? Concorda? Agora, adentro do motor, você não tem estrada para rodar? Não. Então, vocês podem fazer a sua contatinha com as estradas.
+00:24:28 Speaker 1
+Então, ou seja, é o conjunto do carro, do motor, das estradas que eu vou usar, inclusive Das pessoas, é o motorista que vai fazer, ok?
+00:24:46 Speaker 1
+Então, para que os sistemas de informação existem? Como eles geram valor para o negócio? Essa é uma parte extremamente importante. A gente olha a vizinha de novo, eles automatizam processos, seja vendas, estoque, pagamento. Nós vamos ver no próximo aula isso em detalhes. Então, exatamente eles servem para você fazer a gestão desse processo de isolamento.
+00:25:17 Speaker 1
+Nós temos aqui, fornecer informações para decisões gerenciais, que é uma parte importantíssima. E tudo isso serve para a empresa tomar decisões ideológicas.
+00:25:29 Speaker 1
+Integrar diferentes áreas e departamentos, porque eu preciso saber o que todo mundo está fazendo, O que todo mundo está pensando dentro do modelo.
+00:25:40 Speaker 1
+Melhorar a comunicação e custos.
+00:25:43 Speaker 1
+Aumentar a eficiência. Reparem aqui no vermelhinho, sinal de alerta. Todo mundo olhando para a tela. Isso aqui é questão de prova.
+00:25:53 Speaker 1
+Ela elimina o erro humano que está inscrito aí.
+00:26:00 Speaker 1
+Então, muita atenção, isso é uma questão própria. Se estiver escrito na prova, se o sistema de informação é melhor, ele elimina o erro humano. Vai errar. Ele reduz. É impossível eliminar o erro humano.
+00:26:20 Speaker 1
+E gerar inovação e vantagem competitiva.
+00:27:21 Speaker 1
+E vai apoiar a gestão.
+00:27:26 Speaker 1
+Uma maneira muito fácil, De gravar esses conceitos é com uma pergunta Que eu deixei aqui. Então, tem Vai ser qual tecnologia nós estamos, Usando pra processar a informação. Ah, ele, por exemplo, tá usando, Um tablet, que eu falei que não era produto, Da parte da aula. Então, qual é a tecnologia Que eu estou usando? Tem gente que está usando papel e caneta, também vale.
+00:27:55 Speaker 1
+Como as informações são compartilhadas e comunicadas? Eu me comunico por e-mail, por WhatsApp, pela internet, Pelo sistema, pelo títulos, pelo subclube. Então, é assim como a organização utiliza pessoas, processos e ideologias Para gerar essa informação para as pessoas.
+00:28:18 Speaker 1
+Vocês, estudando essa parte, não vão ficar bem claras as diferenças entre eles.
+00:28:27 Speaker 1
+Alguma dúvida, eu posso ir adiante. Bom, nós falamos aqui dos sistemas, da tecnologia, mas tem uma parte muito importante da qual todos Esses sistemas defendem, que é a informação por si só. Então, vocês precisam diferenciar dados de informação e conhecimento. Alguém sabe o que está acontecendo? Qual é a diferença?
+00:29:16 Speaker 1
+Música.
+00:29:46 Speaker 2
+Aqui eu tenho que ter, eu vou colocar,
+00:29:55 Speaker 1
+E aqui eu vou colocar, caneta, caneta preta.
+00:30:15 Speaker 1
+A FGT tem dentro da sala aqui uma caneta preta, são dados, eu coloco aqui assim, tem para usar em meu bolso.
+00:30:45 Speaker 1
+Estou dando uso dessa caneta. E se eu falar aqui assim, professores não gostam da caneta preta, olha a ponta do rastro Preto, eu tenho a caneta...
+00:32:08 Speaker 1
+Então vamos ver aqui, eu coloquei uma coisa aqui para você, por exemplo, eu tenho lá, eu tenho produto árvore, eu tenho 120 iludados, o custo é 89 reais, isso faz uma coisa rápida,
+00:32:23 Speaker 1
+Então São quadros brutos sem muito sentido, isolados, eles são facilmente estruturados, porque em uma empresa normalmente eles são numéricos, são digitalizados. E eles são facilmente obtidos, quantificados e transferidos. Por exemplo, ela anota para vocês. É fácil eu mandar. Eu não posso mandar assim. Clano tirou 10. Ciclano tirou excelente. Não, eu tenho que padronizar de uma forma estruturada.
+00:32:54 Speaker 1
+Que esse dado faça sentido. Que gere uma ação.
+00:33:00 Speaker 1
+O dado ele vai gerar uma informação. Então veja, o exemplo aqui. O produto 4 vendeu R$ 100 mil.
+00:33:25 Speaker 1
+Para gerar conhecimento, nós temos a evolução desse produto há 30 e mais de finais de semana. Legal! Então, o conhecimento vai ser a aplicação prática junto com a experiência humana. Ele vai ser a interpretação dessa informação aqui. Isso vai servir para a decisão. Então, com base nessa informação aqui, a empresa vai tomar a decisão E tentar aumentar o estoque responsável do corpo físico, do corpo animal e das outras imagens.
+00:34:00 Speaker 1
+Eu vou entender a diferença entre o que é um dado e o que eu faço com a informação.
+00:34:08 Speaker 1
+E essa parte aqui é a parte mais difícil de monitorar dentro da empresa, porque cada Um vivencia de um jeito. Por exemplo, cada um de vocês está entendendo esse conteúdo de uma forma, porque tem uma Certa experiência, ou porque não tem experiência, ou porque não tem algum contato com tecnologia. Então, cada um vivencia de uma forma diferente e gera um conhecimento.
+00:34:37 Speaker 1
+E quais são os riscos então dos três elementos, da tecnologia, da informação, das TICs e dos sistemas de informação? Olhem lá, primeiro, custo de atualização constante. Vocês devem passar por isso, vocês devem ter office em casa, ferramentas ou celular, Constantemente tem que ficar atualizando, mudando as coisas na empresa, esses custos são muito altos.
+00:35:21 Speaker 1
+Eu tenho concorrência das bibliotecas, eu sou mercadinho da esquina que tem um e-commerce Que vende online, mas eu conclito no mercado de educação.
+00:35:34 Speaker 1
+Não tem problema das big tags. Tem gente que compra, não, eu compro só por cada um.
+00:35:39 Speaker 1
+Se vocês têm alguma relação, eu compro só por cada um.
+00:35:47 Speaker 2
+Ah, então,
+00:35:53 Speaker 1
+Isso aí é condicionamento. Nós vamos ver isso, né? Condicionamento por fidelidade. Eles arrumam formas de condicionar os clientes no bom sentido, tá, gente? Eu tô falando que são técnicas. A gente tem um cliente que é uma rápida limitação. Nós vamos ver na terceira aula, eu vou mostrar para vocês como era o comércio de streaming de filmes Quando a Netflix começou e como é que ele era há cinco anos.
+00:36:25 Speaker 1
+Então, aqui, a tecnologia tem muita limitação, muito rápida, muito fácil de copiar, Fácil de copiar esse conteúdo aqui e passar adiante.
+00:36:45 Speaker 1
+Música.
+00:37:04 Speaker 1
+Onde ficam os servidores, onde a informação é processada ou despedada. São grandes instalações que processam toda essa informação. A IA, ela consome tanto. Em cada movimento, eles dão um bom dia, boa tarde, Não estão dizendo que eles vão demorando, mas estão consumindo energia. Eles são obrigados a resfriar com água.
+00:37:29 Speaker 1
+Então, por exemplo, a China tem...
+00:37:43 Speaker 1
+Música.
+00:38:03 Speaker 1
+Então, nós vamos ver isso mais adiante. Então, é outro desafio, A capacidade de processamento Que se exige, a segurança Da informação. Eu não posso ter Vazamento de informação, Eu não posso ter pessoas Compartilhando coisas, Que não estão vivendo na empresa, Muito menos acessando dados, Das pessoas ou dos consumidores, Individualmente e ter vigilância Entre as pessoas. Então...
+00:38:32 Speaker 1
+Tem os sistemas e empresas que monitoram, por exemplo, Todas as vezes que você fica na frente da tela do computador, Cada vez que você vai ter um episódio de portal, já vai ser sabendo.
+00:38:46 Speaker 1
+Tem sistemas que fazem isso, como também o sistema radial, Não é o caso aqui, mas que monitora o olho, a atenção do ângulo, Quanto tempo ele está captando o conteúdo, quanto tempo ele está viajando, Ou o que vale esse ângulo.
+00:39:05 Speaker 1
+Aí vem aqui, exclusão digital, cada vez mais quem tem acesso à tecnologia paga um Seguro do e-mail e quem não tem acesso está mais excluído. O celular ajudou bastante, mas a inteligência digital, o tecno-estresse, a desinovação, Do tecno-estresse, o valor de risco do estresse causado pelo uso do...
+00:39:41 Speaker 1
+Música.
+00:40:00 Speaker 1
+E redução de impostos no meu trabalho, claro, que quanto mais eu automatizo, eu vou transformar.
+00:40:09 Speaker 1
+Qual que é a estrutura de um sistema de informação? Isso aqui é um sistema bem técnico, vocês não precisam conhecer em profundidade, não tem nada. Para vocês entenderem, vai ser um sistema que tem dados, tem entradas, uma parte onde eles vão ser processados e dados.
+00:40:31 Speaker 1
+Informação de fornecedores, clientes, acionistas, concorrentes, órgãos, reguladores, enfim. Então, por exemplo, o prático, o cuidado de entrada. O cliente faz um pedido, ele é inserido no sistema. Quando alguém compra uma coordenada, naturalmente ele é inserido no sistema. Aí ele vai ser processado. O sistema verifica que ele teve um estoque, onde ele vai ser entregue, qual é o pagamento.
+00:41:01 Speaker 1
+E a saída, o out, que nós falamos, vão ser os relatórios, os dashboards, que são relatórios De noticiários, de indicações, de informação, de compras, de indicadores.
+00:41:22 Speaker 1
+Pessoal, muito obrigado.
+00:41:31 Speaker 3
+Tchau.
+00:42:24 Speaker 1
+O WhatsApp é um ativo, lembram? O WhatsApp, ele precisa do celular...
+00:42:38 Speaker 1
+Mas ele precisa de informação, comunicação, ok?
+00:42:50 Speaker 1
+E vem o fundo do ato. Ele for usado dentro da empresa para a gente dar uma conversa dentro do departamento. Ou, por exemplo, na pizzaria que vocês pedem.
+00:43:25 Speaker 1
+Então ele continua com o sistema de informação dele, ok?
+00:44:06 Speaker 1
+E por último, gente, eu juro que eu vou te dar um slide, tá bom?
+00:44:10 Speaker 1
+Isso aqui é importante que vocês saibam.
+00:44:15 Speaker 1
+Quais são os pais níveis dentro de uma organização que se tem mais informação a ter?
+00:44:22 Speaker 1
+Então nós temos o nível operacional, de colaboração, apoio a decisão de prejuízo inicial e o nível estratégico. Operações, isso nós vamos ver se não é o que é.
+00:44:37 Speaker 1
+São os sistemas que processam as ações. E o que é? E como a operação, nós já temos aqui, ó, a gestão do cliente, né? Tem o sistema de automação de história, então às vezes eu tenho sistemas automatizados.
+00:45:00 Speaker 1
+De agendamento de reuniões, ferramentas colaborativas aqui, times, whatsapp.
+00:45:11 Speaker 1
+Apoio à decisão gerencial, que aqui sim, pode ser, via AIT, nós vamos dar aulas.
+00:45:21 Speaker 1
+Pegar toda a informação que a gente disponibiliza dentro da empresa, por isso, a disposição do grupo gerencial, Da companhia inteira, informe gráficos, indicadores, famosos KPIs, vocês já ouviram falar em KPIs?
+00:45:42 Speaker 1
+O último nível é estratégico, mas que são os sistemas mais visitados, que é mais para o topo da empresa, que é onde se leva.
+00:45:55 Speaker 1
+Só que permeando todas essas camadas ali, não adianta ter um sistema que não tenha como... Então, o que permeia tudo isso aqui são o que nós chamamos de sistemas... Ciberxismos ou ciberxismos, eles vão ser completos, eles integram as redes digitais ao mundo xismo, eles vão, são as programações de internet das coisas, inteligência central, robótica, sensores, computação em nuvem, edge computing, digital twins, que nós vamos ver também, veículos autônomos e sistemas embarcados.
+00:46:48 Speaker 1
+O que é isso?
+00:47:10 Speaker 1
+Bom, e para finalizar a aula de hoje, pelo menos a minha parte, Alunos que assistiram a minha discussão, já perguntaram, não falei mais, pode.
+00:47:23 Speaker 2
+Eu vi só uma questão despertada.
+00:47:26 Speaker 1
+É muito legal. Essa série, eu recomendo, não cai na prova, nada, Mas essa série, ela permeia oito tópicos que a gente discutiu em sala de aula. Ela é muito interessante. Então basicamente fala de um sistema de inteligência artificial que eles construíram, analisar toda a informação de todas as pessoas do mundo e maquiar o objetivo dela e achar, sim, existe chance de acontecer um crime.
+00:48:00 Speaker 1
+Então ela faz uma análise e ela dá alguns candidatos. Esse aqui é o cara que criou o software.
+00:48:30 Speaker 1
+O trabalho de atender, como ela toma decisões, em que momento ela se torna autônoma ou não.
+00:48:51 Speaker 1
+Música.
+00:49:11 Speaker 1
+Tem sensores, tem as câmeras corretando informação, tem que entender as pessoas, Eles não conseguem, hoje nós também, não conseguem se esconder, porque tem um sistema De registro, tem câmeras que são exatamente para o tracking das pessoas onde elas estão. É muito interessante, vale a pena assistir, e agora chegou a parte chata.
+00:49:41 Speaker 1
+Agora, quem quiser pode ligar o tablet, pode ligar o computador, pode ligar a internet.
+00:50:41 Speaker 2
+Obrigado.
