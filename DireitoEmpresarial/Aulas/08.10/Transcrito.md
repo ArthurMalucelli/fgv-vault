@@ -48,7 +48,7 @@ A defesa dele argumentou contra a caracterização: cada um mantinha residência
 
 ## Como pessoas públicas e ricas se protegem
 
-Ele foi direto: raramente uma pessoa pública fica muito tempo seguida com o mesmo parceiro, justamente pra não configurar união estável. Ele citou o [[Neymar]] como exemplo: pra esse tipo de perfil de vida (múltiplos relacionamentos curtos, forte exposição de mídia), é quase mandatório casar em regime de separação total de bens pra qualquer relacionamento que passe de um mês.
+Ele foi direto: raramente uma pessoa pública fica muito tempo seguida com o mesmo parceiro, justamente pra não configurar união estável. Ele citou o Neymar como exemplo: pra esse tipo de perfil de vida (múltiplos relacionamentos curtos, forte exposição de mídia), é quase mandatório casar em regime de separação total de bens pra qualquer relacionamento que passe de um mês.
 
 Ele descreveu ainda estratégias mais elaboradas usadas por gente muito rica pra afastar a caracterização de união estável: manter residências separadas, evitar declarar a relação em processos públicos, alternar entre relacionamentos e a família formal (visitas, mas nunca convivência contínua sob o mesmo teto), e fazer acertos financeiros informais (por exemplo, "a cada ano de relacionamento, um imóvel") em vez de comunicar patrimônio.
 
