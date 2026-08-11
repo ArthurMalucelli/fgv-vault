@@ -17,12 +17,17 @@ Cinco casos novos no formato da atividade HypeDrop e da planilha da videoaula do
 | 3 | [[Ex3_ValeVerde\|Distribuidora Vale Verde]] | Médio | 8 | 25 min | Balanço de abertura, recebimento que não é receita, capex a prazo, aporte e dividendos |
 | 4 | [[Ex4_ClinicaVetor\|Clínica Vetor]] | Médio | 8 | 25 min | Empresa de serviços, custo do serviço prestado contra despesa, consumo de estoque sem caixa |
 | 5 | [[Ex5_MarGrosso\|Cervejaria Mar Grosso S.A.]] | Difícil | 12 | 45 min | Depreciação, adiantamento de cliente, empréstimo com principal e juros separados, IR com parcela a pagar, capex financiado |
+| 6 | [[Ex6_MetalurgicaPilar\|Metalúrgica Pilar S.A.]] | Difícil | 14 | 45 min | Indústria: três contas de estoque, folha de fábrica e depreciação capitalizadas no produto, CPV |
+| 7 | [[Ex7_RotaSul\|Transportadora Rota Sul S.A.]] | Difícil | 17 | 55 min | Venda de imobilizado com ganho e com perda, baixa de estoque obsoleto, provisão para devedores duvidosos |
+| 8 | [[Ex8_EditoraFarol\|Editora Farol S.A.]] | Difícil | formato novo | 50 min | Engenharia reversa: dois balanços e a DRE, monta a DFC pelo indireto e pelo direto |
 
-Ordem sugerida: na sequência. O 5 pressupõe que o 3 e o 4 já estão automáticos.
+Ordem sugerida: na sequência. O 5 pressupõe que o 3 e o 4 já estão automáticos, e o 8 pressupõe o 5.
+
+Os três últimos são de nível difícil e cada um abre terreno novo, não são o 5 com números trocados. O 8 muda o formato: em vez de registrar transações, você recebe demonstrações prontas e reconstrói o fluxo de caixa de trás para frente, que é o que se faz em análise de verdade.
 
 ## Como usar a planilha
 
-Quatro abas em cada arquivo:
+O Ex8 tem estrutura própria (abas `Dados`, `DFC` e `Gabarito`), explicada no enunciado dele. Os outros sete seguem o mesmo padrão, com quatro abas em cada arquivo:
 
 - `Equação`: efeito de cada transação em Ativo, Passivo e PL, no formato do slide da professora. Duas linhas por transação, porque muita transação mexe em duas contas do mesmo lado. A coluna Check acusa na hora se aquela transação fechou.
 - `Plan`: a planilha de trabalho, com Balanço Patrimonial, DRE e DFC. Uma coluna por transação.
@@ -44,7 +49,13 @@ Convenções:
 3. Pergunta terceiro: o que mudou de saldo no balanço? Toda transação mexe em pelo menos duas contas, e os dois lados da [[Equação Patrimonial]] têm que continuar iguais.
 4. Só depois de rodar as três perguntas você preenche a coluna.
 
-Armadilhas que esses casos plantam de propósito: recebimento de cliente antigo não é receita, compra a prazo de imobilizado não é saída de caixa, adiantamento de cliente não é receita, dividendo não é despesa, e consumo de estoque não é evento de caixa.
+Armadilhas que esses casos plantam de propósito: recebimento de cliente antigo não é receita, compra a prazo de imobilizado não é saída de caixa, adiantamento de cliente não é receita, dividendo não é despesa, consumo de estoque não é evento de caixa, folha de fábrica não é despesa do período, venda de ativo entra na DRE pelo resultado e na DFC pelo preço, e baixa de cliente incobrável já provisionado não passa pela DRE.
+
+## O check que a equação não faz
+
+A linha "Diferença, se houver" só pega erro que desequilibra os dois lados. Erro de classificação dentro do mesmo lado, ou erro que se compensa nos dois lados pelo motivo errado, passa liso com diferença zero.
+
+A amarra que pega esses: **lucro líquido da DRE igual à variação de lucros acumulados no balanço**, ajustada por dividendo e aporte. Confere isso antes de dar o exercício por encerrado, sempre.
 
 ## Conceitos cobrados
 
