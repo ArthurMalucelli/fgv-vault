@@ -89,29 +89,57 @@ FCF   (1.150)  [dividendos]
 = Variação de caixa +2.050   (caixa: 0 -> 2.050) ✓ bate com o BP
 ```
 
-## Meses 2 e 3 (gabarito do quiz do Tema 4)
+## Mês 2 (dados reais + gabarito do quiz)
 
-Números oficiais do quiz, com a reconstrução dos dados implícitos (o enunciado B não está salvo aqui; a reconstrução é a única que fecha os quatro números exatos):
+Eventos de M2: vendeu 3.400 (metade à vista, metade no cartão de crédito que só entra em M3), comprou 1.340 de ingredientes (pagos dia 15 de M3) e consumiu só 680, o resto (660) ficou em estoque. Pagou em M2 as três contas de M1: supermercado 700, salário 750, aluguel 600. Dividendo de 100% do lucro pago dentro do mês.
 
-| | M1 | M2 | M3 |
-|---|---|---|---|
-| Vendas (competência) | 3.200 | 3.400 (1.700 a prazo) | 3.290 |
-| Compras consumidas ([[CMV]]) | 700 | 680 | 350 |
-| Salário + aluguel | 1.350 | 1.350 | 1.350 |
-| **Lucro** | **1.150** | **1.370** | **1.590** |
-| Recebimentos | 3.200 | 1.700 | 3.290 |
-| Pagamentos (contas do mês anterior) | 0 | 2.050 | 2.030 |
-| **Caixa das operações** | **+3.200** | **(350)** | **+1.260** |
+```
+DRE M2
+Receita de vendas        3.400   [competência: à vista + cartão]
+(-) CMV                   (680)  [consumo, NÃO a compra de 1.340]
+= Lucro bruto            2.720
+(-) Salário               (750)
+(-) Aluguel               (600)
+= Lucro líquido          1.370
 
-A conta do caixa de cada mês: recebe as vendas à vista do mês e paga as três contas do mês anterior (salário 750 dia 05, fornecedor dia 15, aluguel 600 dia 01).
+DFC M2 (método direto)
+FCO
+  Recebimento de clientes        1.700   [só a metade à vista]
+  (-) Fornecedor (super de M1)    (700)
+  (-) Salários (M1)               (750)
+  (-) Aluguel (M1)                (600)
+  = FCO                           (350)
+FCF
+  Dividendos pagos              (1.370)
+= Variação de caixa             (1.720)   [caixa: 2.050 -> 330]
+
+BP fim de M2
+ATIVO                          PASSIVO + PL
+Caixa               330        Fornecedores        1.340
+Contas a receber  1.700        Salários a pagar      750
+Estoque             660        Aluguéis a pagar      600
+                               PL                      0
+Total             2.690        Total               2.690  ✓
+```
+
+Pontos de prova de M2:
+
+- [[CMV]] é o consumido (680), nunca o comprado (1.340). Os 660 não consumidos são ativo (estoque), não despesa.
+- Lucro positivo (1.370) com FCO negativo ((350)): a receita do cartão é reconhecida inteira pela competência, mas o caixa só vê os 1.700 à vista enquanto as contas de M1 vencem. Mesma lição da Sofia, agora via contas a receber.
+- O caixa termina M2 em 330: o distractor "(330)" do quiz era esse saldo, disfarçado de negativo.
+- PL fecha em zero de novo (capital 0, lucro todo distribuído), e o ativo de 2.690 é 100% financiado por terceiros.
+
+## Mês 3 (parcial, só números oficiais)
+
+Gabarito: lucro M3 = **1.590**, caixa das operações M3 = **1.260**. Pagamentos conhecidos de M3 (contas de M2): fornecedor 1.340 + salário 750 + aluguel 600 = 2.690, logo os recebimentos de M3 foram 3.950 (1.260 + 2.690), que incluem os 1.700 do cartão de M2. Vendas, consumo e estoque final de M3 dependem do enunciado da parte final do caso. `// preencher quando tiver o material`
 
 O arco pedagógico dos três meses cobre os três descasamentos possíveis:
 
 - M1: caixa maior que lucro (despesas incorridas, nada pago ainda)
-- M2: lucro positivo com caixa operacional negativo (venda a prazo reconhece receita sem caixa, enquanto as contas de M1 vencem)
-- M3: os dois positivos e próximos (operação normaliza)
+- M2: lucro positivo com caixa operacional negativo (venda no cartão reconhece receita sem caixa, enquanto as contas de M1 vencem)
+- M3: os dois positivos (cartão de M2 entra, operação normaliza)
 
-Lição central: lucro e caixa das operações respondem a gatilhos diferentes ([[Regime de Competência]] vs [[Regime de Caixa]]) e qualquer prazo (a pagar OU a receber) descola um do outro, em qualquer direção.
+Lição central: lucro e caixa das operações respondem a gatilhos diferentes ([[Regime de Competência]] vs [[Regime de Caixa]]) e qualquer prazo (a pagar OU a receber) e estoque descolam um do outro, em qualquer direção.
 
 ## Pegadinhas / pontos de prova
 
