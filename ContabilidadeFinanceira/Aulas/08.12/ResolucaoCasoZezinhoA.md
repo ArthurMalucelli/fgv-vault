@@ -15,6 +15,8 @@ tags: [caso, resolucao]
 | Q1: Lucro em M1 | **$1.150** |
 | Q2: Quanto pode retirar em M1 | **$1.150** (não os $3.200 do caixa) |
 
+Quiz do Tema 4 (gabarito confirmado 12/08): lucro M2 **1.370**, caixa operações M2 **(350)**, caixa operações M3 **1.260**, lucro M3 **1.590**.
+
 ## Fase 1: o dia único
 
 ```
@@ -86,6 +88,30 @@ FCO   +3.200   [recebimento de clientes; nada foi pago]
 FCF   (1.150)  [dividendos]
 = Variação de caixa +2.050   (caixa: 0 -> 2.050) ✓ bate com o BP
 ```
+
+## Meses 2 e 3 (gabarito do quiz do Tema 4)
+
+Números oficiais do quiz, com a reconstrução dos dados implícitos (o enunciado B não está salvo aqui; a reconstrução é a única que fecha os quatro números exatos):
+
+| | M1 | M2 | M3 |
+|---|---|---|---|
+| Vendas (competência) | 3.200 | 3.400 (1.700 a prazo) | 3.290 |
+| Compras consumidas ([[CMV]]) | 700 | 680 | 350 |
+| Salário + aluguel | 1.350 | 1.350 | 1.350 |
+| **Lucro** | **1.150** | **1.370** | **1.590** |
+| Recebimentos | 3.200 | 1.700 | 3.290 |
+| Pagamentos (contas do mês anterior) | 0 | 2.050 | 2.030 |
+| **Caixa das operações** | **+3.200** | **(350)** | **+1.260** |
+
+A conta do caixa de cada mês: recebe as vendas à vista do mês e paga as três contas do mês anterior (salário 750 dia 05, fornecedor dia 15, aluguel 600 dia 01).
+
+O arco pedagógico dos três meses cobre os três descasamentos possíveis:
+
+- M1: caixa maior que lucro (despesas incorridas, nada pago ainda)
+- M2: lucro positivo com caixa operacional negativo (venda a prazo reconhece receita sem caixa, enquanto as contas de M1 vencem)
+- M3: os dois positivos e próximos (operação normaliza)
+
+Lição central: lucro e caixa das operações respondem a gatilhos diferentes ([[Regime de Competência]] vs [[Regime de Caixa]]) e qualquer prazo (a pagar OU a receber) descola um do outro, em qualquer direção.
 
 ## Pegadinhas / pontos de prova
 
