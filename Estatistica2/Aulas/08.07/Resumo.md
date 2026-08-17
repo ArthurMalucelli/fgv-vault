@@ -36,6 +36,10 @@ Regra de decisão bicaudal, alfa dado:
 - Se |T calculado| > T crítico (α/2, gl)  →  rejeita H0
 - Se valor-p < alfa                        →  rejeita H0
 (os dois critérios são equivalentes)
+
+Caminho operacional (funções espelhadas):
+- inversa da t:      entra (alfa, gl)         →  sai T crítico
+- distribuição da t: entra (T calculado, gl)  →  sai área (valor-p)
 </pre>
 
 ## Roteiro fixo pra resolver qualquer exercício

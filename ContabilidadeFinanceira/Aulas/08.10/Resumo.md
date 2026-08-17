@@ -67,4 +67,4 @@ Check: 78 = 10 + 68 ✓
 
 ## Próxima aula
 
-O professor adiantou que a turma vai ver um caso (mencionado como "do padeiro"): um empreendedor que retira todo o lucro gerado da empresa pra sustentar o próprio padrão de vida. Serve pra aprofundar o ponto de hoje sobre lucro contábil que nunca vira crescimento patrimonial quando não há retenção.
+O professor adiantou que a turma vai ver um caso: um empreendedor que retira todo o lucro gerado da empresa pra sustentar o próprio padrão de vida. Confirmado depois: é o caso Zezinho Pipoqueiro, trabalhado na aula de 08.12 (material na pasta da aula). Serve pra aprofundar o ponto de hoje sobre lucro contábil que nunca vira crescimento patrimonial quando não há retenção.

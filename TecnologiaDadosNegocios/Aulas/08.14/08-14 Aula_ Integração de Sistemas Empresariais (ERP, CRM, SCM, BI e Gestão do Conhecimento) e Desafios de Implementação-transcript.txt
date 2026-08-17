@@ -1,0 +1,180 @@
+00:00:00 Speaker 1
+Se vocês tivessem que assumir uma gestão de uma empresa hoje, onde cada setor tem planilhas Para controlar a informação de forma isolada e separada, quais seriam os problemas que Vocês não te apareceriam?
+00:00:17 Speaker 1
+Vamos lá, eu quero sugestões. Eu vou ajudar com o estímulo de uma figura, ok? Olhem para a figura, o que vocês imaginam que aconteceria em cada setor, utilizando a informação de forma separada e independente? Falta de... Ok, por favor, levantem o braço, tá? De emergência. O que mais?
+00:00:57 Speaker 1
+Se eu não passasse para vocês as informações da aula no Eclésio, nem comunicasse dia de prova e tal, o que aconteceria com vocês?
+00:01:32 Speaker 1
+Eu vou adicionar uma palavrinha ao que o Lucas falou, integração, as pessoas perderiam, A visão do todo. Eu sou do departamento de vendas e eu não sei o que acontece na contabilidade ou na área de marketing, eu perco a visão do que acontece na empresa.
+00:02:04 Speaker 1
+O que mais? Que tipo de problema pode acontecer?
+00:02:27 Speaker 1
+Perfeito. Eu vou dar mais um exemplo. Digamos que eu peço para a Giovana buscar uma maçã para mim. Mas o Pedro não sabe que ela buscou. E eu peço, Pedro, dá para alguém ir buscar uma maçã? Os dois vão lá buscar a maçã para mim. O que é isso? Duas pessoas fazendo a mesma coisa.
+00:02:54 Speaker 1
+E o retrabalho gera o quê? Perda de eficiência, né? Bom, já tá bom.
+00:03:06 Speaker 1
+Então, se cada área trabalha de forma isolada, nós vamos ter retrabalho, dados inconsistentes, Porque eu não sei se o que o Rodrigo me passou é o que vale, se o que a Catarina me passou é o que vale, Porque cada um tem uma visão da informação. E o mais importante é que nós temos a dificuldade de integração entre a informação da empresa.
+00:03:55 Speaker 1
+O cara, você chegou a ler? O que é isso? O que é que vai ter atividade na segunda parte? Mas é que é o grupo, é o livro. Você dormiu lá?
+00:04:08 Speaker 1
+Não, eu dormi em casa. Bom, depois eu falo.
+00:04:17 Speaker 1
+Eu dormi no bar. Eles servem para interligar os setores e fazer com que a... A informação flua dentro da empresa de forma única e que todos tenham, o mais importante, A mesma versão da informação.
+00:04:34 Speaker 1
+Bom, o máximo nisso são os sistemas integrados de gestão. Eles são plataformas que conectam as áreas e os dados da empresa em uma única plataforma.
+00:04:50 Speaker 1
+Exemplos disso, nós vamos ter o ERP, que é o Enterprise Resource Planning, nós temos o CRM, que é o Customer Relationship Management, Nós temos o SCM, que é o Supply Chain Management, BI e os sistemas de gestão de conhecimento ou Knowledge Management Systems. Bom, o ERP, ele atua como... Um guarda-chuva, desculpa gente, um guarda-chuva que integra todas as demais áreas e os demais sistemas, eles são altamente especializados, eles servem para complementar essa integração de informação e permitir...
+00:05:48 Speaker 1
+Eles servem para gerar essa informação específica e eles são integrados numa coisa que nós chamamos de lógica multissistema. Então, quando está escrito aqui que é uma solução específica integrada a outras, uma lógica multissistema, Significa que eu tenho um sistema-manho ou guarda-chuva que está integrando isso tudo.
+00:06:16 Speaker 1
+O Toblerone, para quem chegou depois, está lá na ponta, no canto esquerdo da sala, tá?
+00:06:24 Speaker 1
+Bom, então vamos começar passando o Enterprise Resource Planning, que é o guarda-chuva-mãe. O que ele faz? Ele integra numa só plataforma os principais processos de uma empresa. Então ele tem módulos básicos para operação e finanças, basicamente. Ele vai controlar a contabilidade, ele vai controlar toda a cadeia da operação, Desde que uma ordem de compra ou de serviço entre com a empresa até que ela saia.
+00:06:57 Speaker 1
+Nós temos um exemplo aqui que vocês podem ver. Módulo de compras, financeiro, recursos humanos, vendas, CRM, nós já vamos falar aqui, controle de entregas, clientes. Relatórios e gráficos e controle de estoque. Embora o ERP seja uma solução mãe que tem tudo, ele tem o módulo mais básico das unidades específicas. Então, se eu quero ter um relacionamento melhor com os meus clientes, além do módulo dele,
+00:07:35 Speaker 1
+Eu vou ter que ter um CRM, integrá-lo a ele depois, ok? E a mesma coisa vale para a parte de logística.
+00:07:46 Speaker 1
+Bom, o objetivo aqui então é integrar toda a informação dentro da empresa, como vocês já falaram aqui, evitar a divergência de informação, facilitar as decisões, evitar retrabalho e o principal, reduzir os erros e os custos gerados por esse retrabalho. Então, exemplos aqui nós temos o SAP, o Oracle. Vocês já ouviram falar desses sistemas, a TOTUS e a Microsoft Dynamics.
+00:08:17 Speaker 1
+A escolha do tipo de ERP vai depender não só do tamanho da empresa, mas também do Tipo de negócio dela. Nem todas as soluções são adequadas para todos os negócios.
+00:08:35 Speaker 1
+E quais são os tipos de ERP que existem? Nós temos três categorias. O último pacote é o on-premises, que significa que toda a solução vai estar hospedada nos servidores da companhia, no local, certo? Ela é a opção mais cara, por quê? Porque ela vai demandar que a empresa tenha uma equipe de TI para poder gerenciar isso e cuidar da atualização.
+00:09:05 Speaker 1
+Depois nós temos a solução em nuvem.
+00:09:09 Speaker 1
+Onde a solução fica hospedada no servidor do fornecedor, então, por exemplo, eu posso, Comprar o ERP da Oracle ou da SAP, mas ele fica hospedado nos servidores da SAP. E quem controla tudo em termos de atualização, de gestão, é o próprio fornecedor. Eu simplesmente acesso o meu sistema pela internet.
+00:09:41 Speaker 1
+E a terceira versão é a parte híbrida, onde parte fica instalado na empresa e parte é disponibilizado pela... Novamente, cada solução vai ter um custo e vai trazer uma dificuldade e um desafio. Vai depender de cada tipo de negócio.
+00:09:59 Speaker 1
+Então, quais são os desafios aqui que a implementação de um ERP pode trazer? O custo e tempo de implementação não é uma coisa trivial, você precisa mapear todos Os processos da empresa, precisa entender se todos eles estão espelhados dentro daquele, Sistema.
+00:10:20 Speaker 1
+Resistência dos funcionários, muitas vezes as empresas operam de uma forma mais orgânica, Ou mais... Digamos, não tecnológica, analógica, e as pessoas são resistentes a adotar esse tipo De informação, de processamento de informação. Nós temos reengenharia de processos, às vezes, Nós temos que adaptar processos que não funcionam corretamente para que eles se moldem.
+00:10:51 Speaker 1
+No sistema. Dependência de fornecedor. Isso nós vamos ver mais para frente no módulo de economia da informação, que é o famoso Walk-in, que eu fico dependendo de um fornecedor e eu não posso, novamente, gastar zilhões, De moedas para implementar um sistema de muito tempo, de dois a cinco anos, e aí, de repente, Mudar de ideia. Ah, eu não gostei desse, eu vou sair da sala e vou para o oráculo.
+00:11:21 Speaker 1
+Isso não funciona. Então, eu acabo ficando presa. No fornecedor que eu escolhi. E por fim, ajustes necessários. Parametrização, Customização e tropicalização. Eu não sei se vocês repararam, mas no E-Class toda aula eu deixo Um glossário de alguns termos que vão estar aqui, que é importante que vocês saibam o que cada um Significa. Lá tem a explicação, tá bom? Mas só para vocês saberem, parametrização significa assim, eu ativar dentro do módulo o que eu quero.
+00:11:56 Speaker 1
+Então, o RP-Mãe-Pro da Oracle ou da SAP, ele vem com o módulo de vendas, de finanças, de controladoria, de contabilidade, E eu ativo o que eu quero que esteja funcionando. A customização é se eu tenho alguma etapa complementar. Que não está prevista nesse sistema. Então, eu tenho que fazer um ajuste, uma customização desse sistema Para que o meu negócio esteja contemplado.
+00:12:27 Speaker 1
+E a tropicalização normalmente envolve a parte de tributação. O IRP nos Estados Unidos é carregado com um tipo de tributação Que no Brasil é totalmente diferente. Então, essa parte, a tropicalização, envolve isso. Ok? Alguma dúvida até aqui?
+00:12:51 Speaker 1
+Bom, então esse é o mais importante, novamente guarda, ele é o guarda-chuva, é o sistema guarda-chuva dentro de uma empresa. Depois nós temos o supply chain management ou gestão da cadeia de suprimentos. Como o nome já diz, ele vai gerir toda a gestão da cadeia de suprimentos, toda a parte de logística, que é um item. Da gestão de suprimentos, desde o fornecedor até o consumidor final.
+00:13:24 Speaker 1
+Eu pus esse desenho aqui para vocês fazerem associação e lembrarem. Então nós temos, eu vou fazer a rastreabilidade da matéria-prima, da parte aqui do fabricante, O distribuidor, o atacadista. O varejista até chegar no meu usuário final, que no caso aqui é o consumidor, ok? Então eu vou ter visibilidade de tudo isso aqui, como ocorre.
+00:13:54 Speaker 1
+E nós vamos ver mais tarde que blockchain, na próxima aula, Que é uma das tecnologias digitais emergentes, elas servem para fazer rastreabilidade em matéria-prima. Por exemplo, é entender se a carne que eu estou comprando está vindo de um fornecedor bom ou não. Se as pedras preciosas que eu uso para fabricar joias, se elas vêm de meios corretos e oficiais, Ou se elas vêm de mecanismos expulsos do mercado negro, ok?
+00:14:26 Speaker 1
+Então, vocês vão ver depois que o blockchain ajuda muito a complementar isso aqui. Bom, o objetivo aqui, então, é reduzir custo, promover agilidade e ter visibilidade da cadeia inteira. Principalmente, vocês vão ver no caso de hoje, prestem atenção,
+00:14:47 Speaker 1
+Supply Chain Management ajuda muito a evitar que tenha muito produto em estoque Ou que falte produto na prateleira. Que eu tenha exatamente a conta certa que eu devo ter para que o meu negócio funcione. Os desafios aqui são a complexidade da cadeia por si só, é muito difícil fazer a rastrabilidade De tudo isso, ter essa visão holística e o custo de integração.
+00:15:18 Speaker 1
+Próximo sistema, que é um dos mais comuns e utilizados, é o Customer Relationship Management, Que serve para fazer todo o gerenciamento da relação com clientes e prospects. Ao longo de todo o ciclo comercial. Vocês sabem o que é um prospect?
+00:15:39 Speaker 1
+Alguém sabe?
+00:15:43 Speaker 1
+Prospect é, Um candidato A cliente que eu tenho. Então, sempre que uma empresa, Tem um candidato que fez, uma pessoa, Um consumidor que fez uma pesquisa, Que fez uma cotação, mas acabou não comprando, que ela não é meu cliente, Nós chamamos ele de prospect, ou lead, que vai aparecer mais tarde. É bom vocês começarem a se familiarizar que nas matérias de marketing vocês vão ver bastante.
+00:16:13 Speaker 1
+Então, prospect é todo cliente que não é cliente, ok? É um cliente em potencial. Então, o CRM, ele vai fazer a gestão de todo o relacionamento. Como eu me comunico, o que esse cliente compra. O que ele gosta, o que ele não gosta, o que ele reclamou nos canais. Eu vou ter uma visão específica dessa parte do negócio.
+00:16:41 Speaker 1
+Exemplos aqui, nós temos o Salesforce, o HubSpot e o RD Station. O Salesforce é o mais comum. A figura aqui está um pouco pequenininha.
+00:16:55 Speaker 1
+Mas eu queria que vocês prestassem atenção que nós temos quatro tipos de CRM e é importante que vocês saibam disso, tá? Isso é questão de prova. O que é o CRM operacional?
+00:17:11 Speaker 1
+Ele vai fazer a automação do dia a dia de vendas e marketing, ou seja, como ele já disse, operacional. Ele faz a parte mecânica, da área comercial. Depois nós vamos ter o CRM analítico, que serve para interpretar os dados e gerar insights sobre esses clientes, ou seja, eu vou pegar lá todas as reclamações que tem no meu sistema, quanto que esse cliente compra, o que ele compra, o que ele não compra, o que ele gosta, o que ele não gosta e eu vou gerar informação para tentar aumentar a minha receita.
+00:17:47 Speaker 1
+Depois nós temos... O CRM estratégico, ele vai analisar o comportamento histórico dos clientes, Justamente para direcionar campanhas de marketing, para fazer upselling e cross-selling. Vocês sabem o que é isso? Cross-selling é quando eu faço venda cruzada. Digamos, vocês compram um computador, eu vendo um mouse junto. São coisas complementares. Upselling é quando eu estou vendendo uma versão melhor e mais cara.
+00:18:21 Speaker 1
+Digamos que vocês tenham um iPhone 7 e resolveram comprar um iPhone 10, Eu estou fazendo um upselling para vocês. É uma versão mais sofisticada, mais moderna e mais cara. Isso é só curiosidade, não é importante que vocês saibam aqui, mas esses termos vão surgir. E por fim nós temos o CRM colaborativo. Que ele vai ajudar todas as áreas da empresa a alinhar os esforços em torno desse cliente.
+00:18:52 Speaker 1
+Então, por exemplo, digamos que eu seja uma empresa de serviços de comunicações. E eu tenho um cliente como a Amazon, que está com um problema. No momento, e a Amazon é um dos meus dez maiores clientes, se eu tenho um CRL em toda a empresa... A empresa sabe que a Amazon é um dos top 10 clientes da empresa. A empresa inteira precisa se mobilizar para a TRE, ok?
+00:19:23 Speaker 1
+E priorizar. Para isso serve um CRE. O objetivo aqui é óbvio, satisfação, fidelização, lealdade e aumentar a receita de vendas, obviamente. Ó, apareceram os leads aqui, né? Clientes potenciais ou prósperos. Quais são as etapas de um CRM? Então, primeiro, identificar quem é meu cliente, diferenciar, segmentar ele, saber o que ele compra, Quanto ele gasta, com que prazo ele quer ser atendido, que tipo de qualidade ele exige ou não,
+00:20:00 Speaker 1
+Se ele compra por preço, se ele compra por qualidade, atendê-lo, interagir e guardar o histórico. Vocês sabem aqui o que é um omni-channel, canal omni-channel? Ou seja, eu tenho múltiplos canais de comunicação com o cliente. Então, telefone, e-mail, eu tenho reunião, eu tenho redes sociais que eu tenho que ficar monitorando, Que eles podem reclamar de mim lá nas redes sociais, não necessariamente nas redes sociais da empresa, ok?
+00:20:33 Speaker 1
+Então, eu tenho que gerenciar tudo isso. E no final... Personalizar, que é a etapa final, né? Eu poder dar um atendimento específico pra ele. Então, saber que a Luana gosta de comprar um perfume específico, Que tem traços florais ou traços cítricos E que custa até X dólares, ok? Isso vai fazer com que o negócio não seja mais estreito. Os desafios aqui são um pouquinho diferentes dos outros dois sistemas.
+00:21:07 Speaker 1
+Primeiro, é a adoção pela área comercial, a área comercial naturalmente tem um problema Em como inserir os dados no sistema, essa disciplina é importantíssima e também que Eu tenha dados atualizados, porque não adianta nada, eu tenho informação do cliente, por Exemplo, na hora de mandar a nota fiscal, o endereço está errado e a nota fiscal não, Chega no cliente. Então, a adoção é importantíssima, qualidade de atualização dos dados, como eu falei,
+00:21:44 Speaker 1
+E também privacidade e segurança desses dados. Eu não posso ser invasivo nem manipulador para os clientes, embora muitas empresas façam isso. Quantas vezes vocês entraram no Facebook, procuraram um tênis ou algum produto? E constantemente, cada vez que vocês abrem, começam a abrir as janelinhas com aquele tênis E como se você eternamente fosse comprar o mesmo tênis ou alguma coisa.
+00:22:15 Speaker 1
+Então, isso é um bom exemplo do que não se deve fazer.
+00:22:21 Speaker 1
+Bom, aí depois disso nós vamos ter Business Intelligence, que é o famoso BI. O BI, ele reúne várias tecnologias ou processos. Para pegar todos esses recursos brutos que eu coletei dos clientes da minha operação E gerar informação para tomada de decisão. Então, através disso, eu consigo fazer monitoração do desempenho através dos KPIs famosos.
+00:22:51 Speaker 1
+E eu consigo compartilhar na empresa, obviamente, por zonas de classificação, de acesso à informação. Todos os dados da empresa, frase em vermelho importantíssima, o dado sozinho ele não é uma decisão, vocês lembram da primeira aula quando eu falei é um produto A, isso é um dado produto, o que isso fala? Nada, o que importa é que ele é um insumo ou matéria-prima para uma tomada de decisão, certo? O dado precisa ser transformado em informação que gera conhecimento para transformá-lo nesse prato.
+00:23:30 Speaker 1
+Tomar uma decisão. E importante aqui é a comparação com o ERP. O ERP vai ser a fonte dos dados. E o BI envolve a análise desses dados. Então, cuidado. O BI não centraliza e não integra a informação. Ele vai analisar essa informação.
+00:23:54 Speaker 1
+Exemplos aqui. O Toblerão está lá.
+00:23:59 Speaker 1
+Exemplos aqui, nós temos o Power BI, o Tableau, Click, não sei se vocês já tiveram contato com essas ferramentas, mas são as principais. E o objetivo aqui, então, como nós já discutimos, é apoiar a decisão e fazer monitoramento da performance.
+00:24:20 Speaker 1
+Aqui, a título de curiosidade, análise drill down, é quando eu tenho um funil.
+00:24:28 Speaker 1
+Por exemplo, eu saio de uma informação ampla e eu chego numa informação granulada. Então, digamos, eu sei que eu estou vendendo 1,5 bilhões em produtos por mês. E aqui embaixo eu especifico que 100 milhões é relacionado a automóveis, 200...
+00:24:58 Speaker 1
+Então, eu saio de uma informação macro e chego numa informação micro, isso é, Drill down.
+00:25:06 Speaker 1
+Nós temos aqui OLAP, que na verdade é processamento online, né, é uma análise de dados online, E data mining, que também é outra técnica, vocês vão ver mais pra frente, que é provavelmente, Unir a paleta, que ela faz, ela...
+00:25:30 Speaker 1
+Desafios aqui, primeiro, termos indicadores de performance corretos em mãos, porque não Adianta eu gerar um relatório de 50 folhas para vocês com informação que isso vai Entupir o cérebro de vocês. Eu preciso ter o que nós chamamos de dashboard.
+00:25:51 Speaker 1
+Não sei se está escrito aqui em algum lugar, mas no outro slide vai aparecer, Que é o concentro ou infográfico em uma página, é isso que as empresas fazem, As reuniões do board, elas têm um, no máximo, dois slides com o resumo De toda a informação que interessa para a companhia, ok?
+00:26:12 Speaker 1
+Então, saber fazer isso, vocês vão fazer isso hoje na segunda etapa da aula, Também é uma arte.
+00:26:22 Speaker 1
+E por último, aqui nós temos os sistemas de gestão de conhecimento. O que eles vão fazer? Eles são menos comuns, nem todas as empresas têm, Mas eles servem para capturar, organizar e compartilhar, Todo o conhecimento que é gerado dentro de uma empresa.
+00:26:44 Speaker 1
+Eu coloquei aqui a diferença entre tácito e explícito, Para vocês terem uma noção. Ele vai envolver dois tipos de conhecimento. O explícito é o que pode ser facilmente estruturado, documentado dentro de uma empresa. Então, missão, visão, objetivos, códigos de procedimento de conduta, até manuais ou tutoriais. Como vocês devem mexer no E-Class, como vocês devem, sei lá, fazer outras coisas.
+00:27:17 Speaker 1
+Isso. É o conhecimento explícito. O táxi, ele é mais difícil e desafiador de capturar, porque ele é a interpretação pessoal de cada um daquele conhecimento explícito, com base na vivência deles. Então, a minha vivência, experiência, minha bagagem de conhecimento, da Giovana, da Sofia, do Caio. Então, cada um vai ter um... É uma experiência, uma vivência diferente e isso dificulta muito compartilhar.
+00:27:53 Speaker 1
+Na aula passada eu compartilhei. Isso é ruim porque quando um profissional sai da empresa, Se eu não tenho esse compartilhamento de conhecimento, A pessoa leva esse conhecimento junto com ela e a empresa perde. Então hoje esse compartilhamento é feito através de alguns softwares. E aqui vocês têm intranets corporativas, Wirefins internos, repositórios de melhores práticas, Sistemas de e-learning.
+00:28:24 Speaker 1
+Muitas empresas adotam, por exemplo, uma área de vendas, Procedimento padrão para vender para um cliente é esse, As pessoas precisam fazer aquele treinamento, E estar em compliance com ele. E também existem outros sistemas. Outras plataformas, hoje nas organizações, por exemplo, eu posso compartilhar, ah, eu sou o vendedor da Amazon, mas a Laura vai fazer uma visita lá na Amazon essa semana, então ela pode entrar na plataforma e ver tudo o que eu vendi para a Amazon, tudo o que a Amazon reclamou, o que ela comprou, o que ela gostaria de receber, porque quando ela for lá, ela já vai ter todo esse conhecimento.
+00:29:09 Speaker 1
+Mas, como eu tenho esse compartilhamento de tudo, qual que é o grande risco aqui?
+00:29:18 Speaker 1
+Segurança e propriedade intelectual, porque, por exemplo, numa empresa eu não posso compartilhar Fora dela o conhecimento dela. Isso é reino de espionagem, de vazamento de informações. Isso não é permitido, e esse é o maior desafio. Se eu tenho acesso a toda a informação da empresa, eu torno a empresa um tanto quanto inumerável. Esse é um dos motivos pelos quais boa parte das empresas ainda não tem essa prática.
+00:29:50 Speaker 1
+E outro desafio aqui também é o engajamento e compartilhamento, e justamente como eu falei, a captura do conhecimento tácito.
+00:30:01 Speaker 1
+Bom, eu preparei nesse slide... Não precisam tentar enxergar aqui no fundo, tá? Vocês olham em casa. Essa aula, vocês só precisam estudar para provar esse slide, tá? Ele tem a síntese de tudo aqui. Ele traz o objetivo de cada um dos sistemas, quais são os benefícios que eles trazem. Pessoal, uma pessoa só falando, certo?
+00:30:31 Speaker 1
+E também trazem os desafios. Então, se vocês estudarem esse slide, reparem que ele está com a arvorezinha vermelha. Vocês sabem a matéria desta aula, tá? Não precisam olhar os outros inventários. E por fim, aqui, o que é importantíssimo é como é que esses sistemas vão se integrar na prática. Então, o ERP, ele vai registrar a operação, então, a venda para o cliente, produção, o estoque e o financeiro. O CRM vai gerenciar o relacionamento com quem compra, o SCM vai coordenar o abastecimento.
+00:31:09 Speaker 1
+E a logística com base desses dados, a gestão do conhecimento vai capturar o aprendizado Gerado nessa operação para reaproveitar para a aprendizagem futura e o BI, que entra, Aqui no final do processo, ele vai extrair o dado de todos esses sistemas.
+00:31:31 Speaker 1
+Para gerar a informação que vocês vão precisar para tomar decisões.
+00:31:36 Speaker 1
+Eu deixei em vermelho aqui também, importantíssimo, eles não funcionam de forma isolada. Se eles estão integrados, eles trocam dados constantemente e vocês têm essa conexão, Essa integração feita através de aplicações, de interface, que são as famosas APIs. Ou middlewares ou data warehouses, que são silos de informação, são servidores que vão concentrar toda essa informação e estocar.
+00:32:12 Speaker 1
+E camadas intermediárias aqui de aplicações que servem para fazer um sistema conversar com o outro, ok? São interfaces.
+00:32:23 Speaker 1
+Bom, quais são as principais dificuldades, então, para integrar esses sistemas? Resistência cultural das pessoas, falta de planejamento estratégico, a tensão que isso aqui tem no trabalho em seguida. Então a pessoa planejou errado o tempo ou custo ou quis apressar o processo, então isso vai ser uma dificuldade. Dados inconsistentes, vocês já ouviram a expressão garbage in, garbage out?
+00:32:57 Speaker 1
+Vocês vão ver nas próximas matérias de estatística ou com dados, ou seja, se eu jogo lixo dentro do sistema, lixo eu quero dizer informação errada, desatualizada, na hora que eu pedir para a minha IA fazer uma análise, o que vai sair aqui? Uma coisa sem sentido, sem valor. Então, muito cuidado. Isso serve também de alerta para vocês, se vocês são usuários de Google Geninai, ChatGPT, Clod e outros.
+00:33:32 Speaker 1
+Lembrem-se que essas plataformas, elas são treinadas na internet, não só em bases confiáveis. Então, elas têm muito garbetinho.
+00:33:44 Speaker 1
+Vocês precisam saber filtrar para tirar uma coisa de valor aqui. Nós vamos ver na última aula de IA como criar um prompt.
+00:33:57 Speaker 1
+Bom, agora nós vamos fazer a nossa atividade prática. Vocês leram o caso?
+00:34:05 Speaker 1
+Quem leu? Levanta o braço, por favor. Mas leram, leram ou deram nada? Então tá bom, deixa eu explicar o que vocês vão fazer, porque o tempo é corridíssimo.
+00:34:17 Speaker 1
+Primeiro, eu não recebi todas as equipes. Eu quero só nove equipes de cinco pessoas. Então se organizem para ter essas nove equipes. Não pode, podem fechar notebook, guardar celular, aplicativo. Vocês vão fazer o trabalho na mão, no papel e vão me entregar antes de sair da sala. Vocês vão ter duas funções. O caso...
+00:34:50 Speaker 1
+Eu trouxe nove, tá? Eu fui boazinha e trouxe um caso impresso. Nas próximas aulas, eu aconselho vocês a fazer um caso impresso. Então, tem nove aqui, um para cada equipe. Eu quero que, primeiro, vocês pintem. Isso é importante, porque isso vai valer ponto. Então, prestem atenção. Vocês vão responder duas perguntas aqui. A Target, ela tentou, a Target é um supermercado, uma cadeia famosa dos Estados Unidos, que Tentou implementar no Canada Purist, a Target Canadá, a cadeia dela.
+00:35:26 Speaker 1
+E ela fracassou violentamente. E eu quero que no texto, vocês vão começar a falar perguntadores, que vocês identifiquem, Todos os problemas que aconteceram relacionados à tecnologia, pessoas, processos dados e gestão. Tem no texto pelo menos cinco itens para cada, tá? Mas eles podem se sobrepor. Por exemplo, às vezes, um erro de uma pessoa pode ser também um problema de gestão.
+00:35:56 Speaker 1
+Então, ele pode acontecer mais de uma vez. Mas tem pelo menos cinco de cada. E vocês têm que me apresentar com menos três. Vou destruir aqui o ovo com a picadinha. Como que eu sou? E não precisa copiar uma frase inteira, traga um planete. A tecnologia não funciona por causa disso. Assim, uma frase não pode resumir. Então, a primeira parte do trabalho, vocês vão pintar com cada um uma cor diferente.
+00:36:28 Speaker 1
+Eu dou essas canetinhas e me devolvo no final da aula. Então, vocês vão pintar com as canetinhas. Depois, vocês vão, com base nisso, entender o que funciona e o que não. E aí vocês vão responder essa, porque o fracasso foi mais culpa da tecnologia, das, Pessoas ou dos processos. Também não quero um jornal, eu quero um parágrafo. Olha, eu acho que é por causa disso, em função disso.
+00:36:58 Speaker 1
+Coloque em evidência do texto, não precisa procurar fora do texto, tá?
+00:37:04 Speaker 1
+Pontuação tá aqui, primeira questão vale 4, segunda 5, a última um ponto. No final da aula vocês me entregam o caso pintado e botem uma identificação, pelo menos o nome de uma pessoa do grupo, para eu saber qual folha é de quem e a folhinha que vocês vão responder, ok? Vitorio, senta aí, por favor. Você está em volta, tá bem? Pode ser.

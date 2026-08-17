@@ -1,0 +1,342 @@
+00:00:29 Speaker 1
+Falcuna, né, a nossa estatística do teste, né, o quanto que os padrões, a minha amostra, Funciona, porque eu vou querer que o testado for valido.
+00:00:45 Speaker 1
+Depois disso, o que eu faço para tomar a minha decisão? Eu falcuno ou, de repente, usei crítica, estatística crítica, ou eu falcuno P-valor. Ah, mas as duas coisas dão a mesma base para a decisão. Sim, mas vocês vão ser perguntados das duas maneiras. Tanto ter valor, né, quanto ter crítica, tudo bem? Quanto estatística aqui. Então, vamos lá. Mídia de teste.
+00:01:16 Speaker 1
+Semana que vem, aula 36, que fecha testes de Q quadrado. Que, essencialmente, é a mesma lógica de teste de Q.
+00:01:30 Speaker 1
+Os grupos não mandam.
+00:02:14 Speaker 1
+Isso é muito cagão, cara.
+00:02:47 Speaker 1
+É, tudo bem.
+00:02:55 Speaker 1
+Vamos lá.
+00:03:31 Speaker 1
+Não, o cara tem mais também.
+00:03:36 Speaker 1
+Não, eu peguei seguro sem querer, velho.
+00:04:01 Speaker 1
+Sobre a minha população, mas eu não tenho todas as observações. Eu nunca falei o mais quente, que eu brinco mais do que ele é. Eu nunca bolei. É caro, eu faço o quê?
+00:04:15 Speaker 1
+Agora, a partir dessa amostra, eu busco fazer o quê? Diferenças sobre a população.
+00:04:28 Speaker 1
+Então, esse intervalo... Se eu assumo a limédia amostral, se distribui conforme a distribuição de seu valor de.
+00:04:49 Speaker 1
+Valor, eu falo que a partir dele...
+00:05:00 Speaker 1
+Com um certo número de desvios abaixo ou acima, eu consigo identificar o que? Se uma certa confiabilidade vai adiante do ponto racional. Como é que eu posso assumir que a minha média amostral vai ter distribuição normal?
+00:05:50 Speaker 1
+E aí, com base nessa informação, se deu uma definição.
+00:06:06 Speaker 1
+A gente pode aplicar nos contextos que vão assumir o contexto atual. Se eu tenho uma informação que eu não posso fazer uma diferença sobre a amostra populacional, O que é essa diferença?
+00:06:32 Speaker 1
+Uma determinada hipótese. Para a minha média populacional, a minha amostra traz informações relevantes para rejeitar ou não rejeitar aquela afirmação inicial. Tudo bem até aí? Tranquilo? Então, como é que a nossa receita de bolo resolve? Como é essa? Medite pra zero.
+00:07:07 Speaker 1
+Então, uma estatística de teste.
+00:07:12 Speaker 1
+O que vai ser essa estatística de teste? Aí a gente fica atento. E está atento por quê? Ah, se tem um número não tão grande, A gente dá uma distribuição normal. Então, a distribuição...
+00:07:36 Speaker 1
+E aí eu posso fazer o quê? Eu posso ter a regra de decisão. É a condição, a condição, a regra de decisão. Eu posso.
+00:08:05 Speaker 1
+Calcular o P-valor a partir da estatística.
+00:08:24 Speaker 1
+Se o P-valor é menor do que o alfa do F, isso não rejeita. Não rejeita.
+00:08:38 Speaker 1
+Se ele é menor, beijei. Se ele é maior, não beijei.
+00:09:06 Speaker 1
+Outra ponta...
+00:09:30 Speaker 1
+O meu valor calculado foi de 9.
+00:09:52 Speaker 1
+O que é o AU? É o erro tipo 1 ou tipo 2? O que é o AU?
+00:10:09 Speaker 1
+Essa área, mas eu classifico aqui como meio contínua.
+00:10:16 Speaker 1
+Essa área que está na hipótese roma, assumindo que ela seja verdadeira, né? E sempre o erro. 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 62.
+00:10:40 Speaker 1
+Eu posso rejeitar o H0. Se eu rejeito o H0, pode ser que ele seja verdadeiro, certo? Eu peguei uma amostra muito pesada. Tem sempre um erro aqui com a probabilidade de ser grande ou ruim.
+00:11:00 Speaker 1
+Mas se eu erro tipo 2, seria o oposto. Seria o quê? A probabilidade de...
+00:11:20 Speaker 1
+Agora, a gente vai trabalhar hoje proporção. Isso é lógico, a gente pega a média e a representação.
+00:11:37 Speaker 1
+Agora, a gente vai pegar o quê? Proporção.
+00:11:42 Speaker 1
+A proporção da população, como é que isso acontece? Bom, esse ano teve as eleições, daqui a dois meses, e vocês vão ver o quê? A proporção de professores que votam para graduar. Eu só tenho essa informação, depois que fecharam a urna, certo? Mas, agora vocês já veram o quê? Númeras pesquisas. A intenção de voto. O que são essas pesquisas?
+00:12:15 Speaker 1
+Ah, seleciona, seleciona, sua maneira de votar.
+00:12:20 Speaker 1
+Implica-se o quê? Qual é a proporção dessa amostra que pode candidatoar? O candidato tem a batida de decisão, está fazendo o quê? Implica-se que essa será a proporção para a população. A lógica é a mesma. Isso é média, mostrada, nacional.
+00:12:40 Speaker 1
+Proporção amostral, proporção populacional. O que vai mudar? Proporção é algo assim, Pertencer ou não pertencer a um grupo. É uma coisa o quê? É uma coisa real, é uma coisa, Dicotômica. E vocês viram como é que é um modelo de distribuição de probabilidade De uma variável que é sobre 0,1. Vocês viram a distribuição binomial, certo?
+00:13:19 Speaker 1
+A binomial, quando eu tenho vários torneios, quando eu tenho um evento só, Ser P, né, ou 1P, a distribuição começa com P, E a distribuição P, B, C, certo? Tudo bem? Agora, aqui a minha média amostral tinha o quê? Distribuição da málcoa, média.
+00:13:53 Speaker 1
+Limpa, variância, né? Sigma ao quadrado sobre E, ou desvio padrão, sigma sobre raiz B. No caso da distribuição...
+00:14:24 Speaker 1
+Música.
+00:15:09 Speaker 1
+A Vida mundial vai ser o quê? Qual que é o valor desse pecado?
+00:15:31 Speaker 1
+A gente vai ver um trecho de um homem que ele diz que é um jovem.
+00:15:50 Speaker 1
+A gente vai ver um jovem.
+00:16:19 Speaker 1
+Então, ele só pode assumir o quê? Então, sei lá, eu vou ter lá, 0, 1, 0 0, 0,
+00:17:00 Speaker 1
+Obrigado.
+00:17:11 Speaker 1
+O que é a proporção?
+00:17:42 Speaker 1
+Agora, ele é uma propriedade de variança, de uma constante indenização da variança.
+00:18:09 Speaker 1
+Se eu pego três outros... 5, 10, 5, esses três números foram dois. Qual que vai ser a nova média?
+00:18:25 Speaker 2
+Eu diria que vai ser a média de 95.
+00:18:31 Speaker 1
+Você Quer colocar o peso? E a variante?
+00:18:48 Speaker 1
+O Que vocês viram?
+00:19:07 Speaker 1
+Viram? Então vamos pensar aqui, ó. Isso aqui é 1 sobre N, por eu tirar, vai ser o quê? 1 sobre N ao quadrado, vezes a variância de X, que é o quê? O P e o P.
+00:19:40 Speaker 1
+Então, o que eu estou falando aqui? Essa vai ser a variância da minha proporção amostral. Se essa é a variância da proporção amostral, O que eu dizia o padrão da minha proporção amostral?
+00:20:29 Speaker 1
+A gente faz a nossa fala de nossa vez e eu quero verificar. Eu quero saber se a proporção da população é determinada na luta.
+00:20:48 Speaker 1
+Na prática, o que eu vou fazer? Eu vou pegar a luta, eu vou tirar a proporção, eu vou colocar a condição nessa luta. Eu preciso fazer o quê? Identificar quão distante a proporção dessa luta está da proporção populacional. Como é que eu faço?
+00:21:23 Speaker 1
+A gente não fez isso no teste de hipóteses da aula anterior. Eu pego o que eu calculei, vejo quanto eu estou distante da hipótese de média populacional E divido pelo desvio padrão da amostra. Agora eu vou fazer isso para a proporção. Eu vou pegar a proporção que eu calculei, vou ver o quão distante está a proporção.
+00:22:02 Speaker 1
+Da população que eu estou estudando e dividir pelo desvio padrão. A proporção a mostrar o que vai ser feito, o que vai mudar na prática, na nossa conta, E esse esporte.
+00:22:37 Speaker 1
+Vamos fazer um exemplo, desde a final, um pouco mais claro. Se você tiver uma ideia interessante, a gente vai começar a fazer testes em caudal. A proposta alternativa não é só diferente, deve ser que seja só um álbum.
+00:23:07 Speaker 1
+O que é isso?
+00:23:35 Speaker 1
+Então, vamos pensar no serviço de proveito. Você já começa a trabalhar, já tinha um tipo de golfe, você olha lá as informações das pessoas que vão jogar, você percebe que só 20% das pessoas que jogaram golfe são mulheres. Então, pô, vamos tentar melhorar isso, vamos fazer uma promoção, cumprir uma rodada, leve rua, praga.
+00:24:17 Speaker 1
+E aí você percebe a morte de 400 pessoas sem...
+00:24:34 Speaker 1
+São mulheres.
+00:24:41 Speaker 1
+Posso falar que a minha promoção foi bem-sucedida? Sim, bem-sucedida.
+00:24:53 Speaker 1
+Posso falar que esse alimento foi bom para os testados, certo?
+00:25:05 Speaker 1
+Tentei fazer cinco minutinhos, não tem o que fazer. Começo a esvair. É uma lógica mistério.
+00:25:45 Speaker 1
+Então pessoal, o que eu faço aqui da nossa receitinha eu já dei para vocês, eu quero saber se a proporção aumentou, como é que eu vejo na prova se acontece que é unicaudal ou unicaudal, neste caso aqui é caudal porque, eu quero saber se aumentou. Não importa para mim se é só fico diferente, interessa apenas, mas olha, ficar igual ou menor, agora é para mim um, tudo bem?
+00:26:22 Speaker 1
+Neste contexto, o que é o meu A da Z, o meu baseline, é o que eu vou testar com, é o que eu quero estudar, que seja menor ou igual a Z.
+00:26:40 Speaker 1
+Obrigado.
+00:27:19 Speaker 1
+Então, identificamos aqui a hipótese nua e a hipótese inicial. O que é o fechapéu? O fechapéu é a proporção da amostra. A gente não calcula a média amostral, a gente vai calcular a proporção amostral. Qual que é a proporção da minha amostra?
+00:27:44 Speaker 1
+85%, então a pior.
+00:27:56 Speaker 1
+Então, vamos calcular, vamos calcular com você, vamos ver o quanto que esse zero É distante entre os números do patrão, como é que a gente faz isso. Posso apagar aqui?
+00:28:34 Speaker 1
+Eu cheguei numa amostra que tem uma proporção de 25% de mulheres. Eu quero verificar se isso é de fato maior que 0,20. Ora, em termos absolutos, sim, isso aumentou. Mas eu quero ver se esse desvio está tipicamente significante. Para isso, eu preciso continuar o quê? Eu preciso ver o padrão. Mas qual que é o desvio padrão da amostra da proporção?
+00:29:06 Speaker 1
+Vai ser raiz de quem? 0,20 vezes 1 menos 0,20 é 0.
+00:29:21 Speaker 1
+Sobre 4, 6. Tudo bem? Vamos lá. 0, 20, 0, 8, 0, 16.
+00:29:37 Speaker 1
+Aí, 0, 16 é 0, 4. Aí, 0, 6 é 20. Então, dá 0, 4 sobre 1. Vamos lá. Isso dá 0.
+00:30:08 Speaker 1
+Então, o que está acontecendo aqui?
+00:30:14 Speaker 1
+Zero, verdade, Vergonha.
+00:30:26 Speaker 1
+Proposição populacional, ou pelo menos o que eu estou querendo testar, Proporção popular de 90, eu estou com 0,25. Eu quero saber quanto será 0,25. 0,25.
+00:31:01 Speaker 1
+Agora eu sei, quando eu tenho todos os vírus na sua distância, na área, meu p-valor vai ser grande ou pequeno também, certo?
+00:31:26 Speaker 1
+Então, eu rejeito ou não rejeito o H0?
+00:31:34 Speaker 1
+Rejeito ou não rejeito?
+00:31:38 Speaker 1
+Rejeito. O que é o H0? Aqui. Então, se eu rejeito isso, opa, muito bom. Vai com a minha proporção, está com mais.
+00:32:05 Speaker 1
+Eu só não vou tirar a senagada, eu só não vou tirar a senagada, eu fui direto, não, obrigado, eu fui só pela inscrição de 2,5, mas qualquer ideia, sim, eu até coloquei, mas se não for, se não tiver... E aí, a gente já veio aqui com o automático, aqui, este cara aqui, vai ser o senador.
+00:32:41 Speaker 1
+Na verdade, esse cara aqui, ele é o senador, não sei se é isso, não é? Não, não é.
+00:32:59 Speaker 1
+Quando é o ano de 96, a gente é muito legal. Quando é o ano de 96, na normal, o funcionário É o mesmo. Na normal, na normal do ano de 96, o ano de 96 é o que fizemos, o que fizemos Desde o ano de 96, desde a quarta diária. Só que nesse caso eu vou dividir de volta.
+00:33:30 Speaker 1
+Então, na verdade, seria o Z que deixa 5% para cá. Então, ele vai ser menor do que o primeiro.
+00:33:40 Speaker 1
+Aí, se vocês colocassem para o Z, o maior, o menor, o menor, Ela quer a vez de 9 a 4.
+00:33:50 Speaker 1
+Então, é 10%. Então, o bom é o 10% e o infinito. Porque você só quer o quê? Você quer o infinito.
+00:34:15 Speaker 1
+Tudo bem aqui, pessoal?
+00:34:33 Speaker 1
+Então, esse exemplo me trouxe de novidade em relação ao que a gente viaja. Eu estou testando, eu quero testar se a proporção fica diferente, se ficou igual ou se caiu. Então, eu quero saber quanto sobe e aumentou. Então, a área de energia... Por ser unicaudal, meu alfa de 100%, como é unicaudal, eu vou encontrar ele é o quê?
+00:35:13 Speaker 1
+Você que deixa o quê? O porcento da vida. Não só o porcento. Por que isso? Porque eu quero toda a minha área de vida.
+00:35:37 Speaker 1
+A área que você fala que é a área, a área que você fala que é a área, a área que você fala que é a área, a área que você fala que é a Área.
+00:36:17 Speaker 2
+Música.
+00:36:36 Speaker 2
+É a variante.
+00:36:38 Speaker 1
+É o começo do... Mais dúvidas? Dê dúvidas pra mim, pra ajudar.
+00:36:49 Speaker 1
+Já explicou? Crítico é o 96, Eu sei. Não vai ser o 96, Por quê? É o 64. Por quê? Porque como é o único alcalde... Eu quero dizer, crítico, que deixo a 5%, não 3,5%. Tudo bem? Nós vamos.
+00:37:21 Speaker 1
+Tá suado, né?
+00:37:26 Speaker 1
+Pessoal, mais dúvidas? Vou vender meus skins tudo. Sem dúvida.
+00:37:31 Speaker 3
+Vou Vender meus skins tudo.
+00:37:35 Speaker 3
+Ah mano, eu não to jogando mais, tudo bem. Qualquer coisa eu compro de novo. Eu quero vender pelo preço errado.
+00:37:52 Speaker 1
+Aqui ó, nossa solução. Aqui ó, calcula, Calcula você.
+00:38:00 Speaker 3
+Essas ideias honestas. Tchau.
+00:38:04 Speaker 1
+Aqui eu coloquei, se vocês tiverem interesse.
+00:38:07 Speaker 3
+Então, não sei, normalmente demora um dia.
+00:38:09 Speaker 1
+Mas isso vocês viram em estátio 1, como é que chega nessas formas. Mas o que é interessante, e eu tive um pouco de questão, Que às vezes cai na prova, do ponto de vista mais teórico, Que às vezes dá um nó, mas para a gente, vocês olharem, Podem pensar, o que acontece se eu for mais... Tudo mais é igual. A única coisa que muda é o E. E o N, em vez de fazer o E, ele vai para o C.
+00:38:41 Speaker 1
+É oferecer o dinheiro. O que acontece se o N aumenta?
+00:38:54 Speaker 1
+Se o N aumenta, vamos despreparar. Vamos oferecer o dinheiro. Essa fração, o E. Se eu desfiz o produto...
+00:39:05 Speaker 1
+Se eu aumento ele, a chance de rejeitar é maior ou menor?
+00:39:14 Speaker 1
+Maior. E todo mundo acompanhou? Essa questão a gente gosta de colocar no quiz. Vocês entenderem todos os detalhes do que pode afetar a sua decisão.
+00:39:34 Speaker 2
+Deveria, justamente, ter mais mulheres, ou você deveria estar certo, ou você receber Uma prova? Sim.
+00:39:46 Speaker 1
+Mas, ó, não, mas é uma boa pergunta. Por quê? Tem mais, tem evidência de que tem mais mulheres. Por quê? Aqui, ó, vamos voltar. Qual que é o meu H0? O meu H0 é o meu H0. Ou seja, eu estou rejeitando o que tem a mente. Eu tenho a morte perfeita de quem não tem mente. Ou seja, tudo bem, mas eu não sei a possibilidade de ter um reivindicado.
+00:40:24 Speaker 1
+Isso é o que o professor falou, não é o que o professor disse. Isso aí tem fato de ser. Isso é o que o professor falou, não é a outra. É a proporção da amostra. Eu acho muito legal isso,
+00:40:35 Speaker 3
+Você pode comprar e vender, tá ligado?
+00:40:36 Speaker 1
+Tudo bem? Tudo bem. O que você precisa ver é o que? Tiver essa skin aqui, perfeita, perfeita, custa 500 dólares, olha o que ela é.
+00:40:47 Speaker 1
+Agora é uma, tipo, muito fodida. Qual é a chance, né?
+00:40:50 Speaker 3
+Só 8 dólares vai ficar. Só que, tipo, se você comprar alguma aí,
+00:40:54 Speaker 1
+Ela já fica. Você entendeu? Aí você tem mais gasto, Cara.
+00:40:56 Speaker 3
+Você abre ela com quem?
+00:40:59 Speaker 1
+É, meu, eu perguntei. Quase tanto. A filosofia popular, vocês não entenderam que é a mesma coisa, isso, o aumento, vem o que? Eu tenho fortes erudências para rejeitar o que foi igual.
+00:41:13 Speaker 1
+Rejeito a H0.
+00:41:17 Speaker 1
+Mas eu posso trabalhar isso para entender.
+00:41:21 Speaker 1
+Posta do teste, tem H0. Então isso é sinal de que...
+00:41:29 Speaker 1
+Sim.
+00:41:32 Speaker 1
+É, não, mas ele se internou, porque vocês vão ser cobrados nos quizzes, não só saber.
+00:41:41 Speaker 1
+Debatizar, mas interpretar.
+00:41:46 Speaker 1
+Tudo bem? Você tinha levantado a mão na hora.
+00:41:55 Speaker 1
+Pessoal, tranquilo.
+00:42:27 Speaker 1
+Obrigado.
+00:42:40 Speaker 1
+Agora, nesse caso, eu só quero saber se aumentou. Eu vou colocar toda a minha área de definição, tudo bem?
+00:42:51 Speaker 1
+Ó, coloquei aqui no e-class de vocês.
+00:43:00 Speaker 1
+Com o Excel, queria que vocês abrissem e tentassem fazer. Um último ponto antes de a gente tentar fazer,
+00:43:11 Speaker 1
+Isso que vocês viram, o professor já falou, Professor, isso é o que ele pediu na estátua? Exatamente. Se eu tenho uma variável que só assume dois valores, Zero ou zero, certo? Quanto que esse valor é mais? Eu não preciso de dinheiro.
+00:43:36 Speaker 1
+Quando ele é máximo, quando vale meio. Por quê? Se todos elementos forem zero, se todos elementos forem um, eu não tenho variabilidade. Quanto que a minha variabilidade é a maior possível? Enquanto a chance de ser cada um é exatamente a metade. Como é que a gente vê isso? Isso é uma parada, tem contabilidade para baixo, não caísse. Uma dessas.
+00:44:09 Speaker 1
+Já dá até 7 mil.
+00:44:11 Speaker 2
+Tem Essa luva aqui, né? Essa cadeira é tipo...
+00:44:13 Speaker 1
+Isso Aqui é.
+00:44:29 Speaker 3
+Tipo doentio, velho. É mais ou menos isso.
+00:44:36 Speaker 3
+Obrigado.
+00:45:47 Speaker 3
+Pô, Tem oito milhares de milhares de áudio. Eu não consigo, eu vou fazer o meu e vou deixar as milhares lá. Não, aí é um parágrafo.
+00:45:58 Speaker 3
+E aí amanhã, o Paraguai. Não é pra olhar.
+00:46:05 Speaker 3
+É, o foda é que você, tipo, é banido da lápis. Pode ter. Então, sabe? Você descobre que você é banido.
+00:46:14 Speaker 2
+O que o cara tá me marcando aí?
+00:46:19 Speaker 2
+Sabe? Teste. Ele tá no hotel. Ele tá na rua. Agora sim. Esse aqui é qualquer outro baratinho. É.
+00:46:31 Speaker 2
+Eu acho que ele tá na rua.
+00:46:36 Speaker 2
+Olha o que ele me marcou.
+00:46:39 Speaker 3
+Marque seu amigo pra ganhar esse kit.
+00:46:43 Speaker 3
+Olha o que ele me marcou.
+00:47:03 Speaker 2
+Calma, não vai caber.
+00:47:19 Speaker 3
+Vamos marcar a gente pra caralho.
+00:47:48 Speaker 2
+Não, eu repostei.
+00:48:13 Speaker 2
+Obrigado.
+00:49:34 Speaker 2
+Caralho, isso ficou bem.
+00:49:37 Speaker 2
+Marquei também. Tomara que você ganhe.
+00:50:08 Speaker 2
+Ah, que bom, esse cara é muito legal.
+00:50:16 Speaker 2
+Olha só o cara bizarro.
+00:50:18 Speaker 3
+Doente de merda. Cara, ele se mata. Como que resolve? Vamos ver agora.
+00:50:24 Speaker 3
+Sim, beleza. Meu celular tá preto e branco pra gente.
+00:50:35 Speaker 2
+Gostou? Ficou bom?
+00:51:05 Speaker 2
+A gente tá muito divertido aqui.
+00:51:18 Speaker 3
+Mas sabe, eu quase já fiz, mas se liga. Sabe que o nome dele é... Você, né? É aquele que você mandava pra gente, e aí a gente não conseguiu. Não, mas sabe que o nome dele é... Entra lá,
+00:51:28 Speaker 2
+Me aplica no canal.
+00:51:35 Speaker 2
+Deixe-me mostrar para você.
+00:51:43 Speaker 2
+Deixe-me mostrar, porque não abre.
+00:51:45 Speaker 3
+Não, não, não. Mostra aí porque você não abriu. Porque aparece para confirmar. Não, não.
+00:51:54 Speaker 3
+Não queria que não abrisse, na moral.
+00:52:04 Speaker 2
+É só saber as comandos, né? É só saber.
+00:52:34 Speaker 2
+Tem que ter a marca dela aí,
+00:52:35 Speaker 3
+Nesses comentários do geral, marca tu bora, né?
+00:52:40 Speaker 3
+Tem que ter a marca dela aí, né?
+00:52:43 Speaker 3
+Você sabe, tipo, ela vai achar que ela... A marca dela vai ficar muito... Olha isso, velho, eu não consigo conseguir fazer minha RG, porque minha RG não é de estudar quinta, tá ligado? Tem que ir lá e remitir minha RG, tá conseguindo fazer essa marca? Eu tinha acertado a conta do governo.
+00:53:01 Speaker 3
+Muita foda.
+00:53:02 Speaker 2
+Ô, Perdi tempo.

@@ -64,6 +64,8 @@ Quando eu tenho um número pequeno de observações, eu não uso a distribuiçã
 
 A regra prática de "acima de 30 posso usar Z" existe porque, conforme o número de observações cresce, a T converge pra distribuição normal, fica muito próxima dela. Com poucas observações (o professor deu o exemplo de n=15), a T se distancia mais da normal e usar Z direto seria errado.
 
+O professor fez a piada da cartomante pra fixar isso: se eu acordo, vou na cartomante e pergunto "posso usar a T hoje?", ela pode responder sim de olhos fechados e vai estar sempre certa, porque a T vale em qualquer cenário: com muitas observações ela praticamente coincide com a normal, com poucas ela é a distribuição correta. Agora, se o livro dela diz que hoje mercúrio está retrógrado e eu pergunto "posso usar a Z com uma amostra de 15 elementos?", aí a resposta é não: com N pequeno a diferença entre as duas distribuições aparece de verdade.
+
 ## Calculando a estatística de teste
 
 Como calcular o Z: pego o valor observado, subtraio a média e divido pelo desvio padrão. Isso mostra quantos desvios padrão aquele valor está distante da média, ou seja, em quantas unidades de erro padrão ele se desvia.
@@ -110,5 +112,7 @@ Como o número de observações é pequeno, usa-se a distribuição T, com graus
 A estatística de teste (T) é calculada padronizando a diferença entre a média amostral e a média hipotética, dividida pelo erro padrão: T = (10,13 - 10) / 0,07.
 
 Pra decidir, é preciso comparar essa estatística de teste com o valor crítico de T pra alfa de 5%, bicaudal, com 11 graus de liberdade (cada cauda com 2,5%). Alternativamente, dá pra achar o valor-p correspondente ao T calculado e comparar direto com alfa.
+
+Na ferramenta, o professor mostrou que são duas funções espelhadas. A inversa da T recebe o alfa (e os graus de liberdade) e cospe o T crítico: você entra com a área e sai com o valor de corte. A função de distribuição da T faz o caminho contrário: recebe o T calculado e cospe a área, que é o valor-p. Uma entra área e devolve valor, a outra entra valor e devolve área.
 
 Os dois caminhos, valor calculado contra valor crítico, ou valor-p contra alfa, levam à mesma decisão sobre rejeitar ou não H0.
