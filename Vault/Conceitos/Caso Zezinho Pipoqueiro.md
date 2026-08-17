@@ -27,6 +27,15 @@ Caso de ContabilidadeFinanceira (aulas de 12/08 e 17/08) sobre apuração de res
 
 Pasta `ContabilidadeFinanceira/Aulas/08.12/` (caso A: PDF, [[ResolucaoCasoZezinhoA]], ZezinhoDFs.xlsx) e `Aulas/08.17/Slides/` (caso B, mês 3).
 
+## Onde aparece nas aulas
+
+```dataview
+LIST
+FROM [[]]
+WHERE contains(file.outlinks, this.file.link)
+SORT file.name DESC
+```
+
 ## Conceitos relacionados
 
 - [[Regime de Competência]] e [[Regime de Caixa]]
