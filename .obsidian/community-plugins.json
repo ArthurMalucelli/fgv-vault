@@ -2,5 +2,6 @@
   "dataview",
   "obsidian-tasks-plugin",
   "obsidian-git",
-  "docxer"
+  "docxer",
+  "xlsx-viewer"
 ]

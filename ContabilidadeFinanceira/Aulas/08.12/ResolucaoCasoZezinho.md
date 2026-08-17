@@ -1,7 +1,7 @@
 ---
 materia: ContabilidadeFinanceira
 data: 2026-08-12
-tema: Caso Pipoca do Zezinho (A), lucro vs caixa, competência, limite de retirada de dividendos
+tema: Caso Pipoca do Zezinho (A e B), lucro vs caixa nos 3 meses, competência, dividendos
 tags: [caso, resolucao]
 ---
 
@@ -129,17 +129,54 @@ Pontos de prova de M2:
 - O caixa termina M2 em 330: o distractor "(330)" do quiz era esse saldo, disfarçado de negativo.
 - PL fecha em zero de novo (capital 0, lucro todo distribuído), e o ativo de 2.690 é 100% financiado por terceiros.
 
-## Mês 3 (parcial, só números oficiais)
+## Mês 3 (parte B, último mês de repouso)
 
-Gabarito: lucro M3 = **1.590**, caixa das operações M3 = **1.260**. Pagamentos conhecidos de M3 (contas de M2): fornecedor 1.340 + salário 750 + aluguel 600 = 2.690, logo os recebimentos de M3 foram 3.950 (1.260 + 2.690), que incluem os 1.700 do cartão de M2. Vendas, consumo e estoque final de M3 dependem do enunciado da parte final do caso. `// preencher quando tiver o material`
+Eventos de M3: no começo do mês paga as contas de M2 (supermercado 1.340, salário 750, aluguel 600). Nenhuma compra; todo o estoque remanescente (660) vendido por 3.600 à vista. Banco paga os 1.700 do cartão de M2. No fim do mês, pra não deixar dívida pra M4, paga também salário (750) e aluguel (600) do próprio M3.
+
+```
+DRE M3
+Receita de vendas        3.600
+(-) CMV                   (660)  [estoque que sobrou de M2]
+= Lucro bruto            2.940
+(-) Salário               (750)
+(-) Aluguel               (600)
+= Lucro líquido          1.590   ✓ gabarito (Q5)
+
+DFC M3 (método direto)
+  Vendas à vista                 3.600
+  Cartão de M2                   1.700
+  (-) Fornecedor (M2)           (1.340)
+  (-) Salário (M2)                (750)
+  (-) Aluguel (M2)                (600)
+  (-) Salário + aluguel de M3   (1.350)   [pagos no próprio mês]
+  = FCO                          1.260   ✓ gabarito
+  (-) Dividendos                (1.590)
+= Variação de caixa              (330)   [caixa: 330 -> 0]
+
+BP fim de M3: tudo zero
+Caixa 0, contas a receber 0, estoque 0 | passivo 0, PL 0
+```
+
+Q6: há caixa pra pagar o dividendo? Sim, exatamente: caixa antes do dividendo = 330 + 1.260 = 1.590 = lucro de M3. Paga e termina com caixa zero. Total distribuído nos 3 meses: 1.150 + 1.370 + 1.590 = **4.110**.
+
+## Síntese do trimestre
+
+| | M1 | M2 | M3 | Trimestre |
+|---|---|---|---|---|
+| Lucro | 1.150 | 1.370 | 1.590 | 4.110 |
+| Caixa das operações | 3.200 | (350) | 1.260 | 4.110 |
+| Dividendo | 1.150 | 1.370 | 1.590 | 4.110 |
+| Caixa fim do mês | 2.050 | 330 | 0 | |
 
 O arco pedagógico dos três meses cobre os três descasamentos possíveis:
 
 - M1: caixa maior que lucro (despesas incorridas, nada pago ainda)
-- M2: lucro positivo com caixa operacional negativo (venda no cartão reconhece receita sem caixa, enquanto as contas de M1 vencem)
-- M3: os dois positivos (cartão de M2 entra, operação normaliza)
+- M2: lucro positivo com caixa operacional negativo (venda no cartão reconhece receita sem caixa, estoque comprado além do consumo, enquanto as contas de M1 vencem)
+- M3: caixa fecha o ciclo (cartão entra, estoque vira venda, todas as dívidas quitadas)
 
-Lição central: lucro e caixa das operações respondem a gatilhos diferentes ([[Regime de Competência]] vs [[Regime de Caixa]]) e qualquer prazo (a pagar OU a receber) e estoque descolam um do outro, em qualquer direção.
+Lição central: lucro e caixa das operações respondem a gatilhos diferentes ([[Regime de Competência]] vs [[Regime de Caixa]]) e qualquer prazo (a pagar OU a receber) e estoque descolam um do outro, em qualquer direção. Mas quando o balanço volta a zero (sem giro pendente), **lucro acumulado = caixa gerado = dividendos pagos**. O descasamento é só de timing; no ciclo completo, competência e caixa convergem.
+
+Planilha com tudo em fórmulas: `ZezinhoDFs.xlsx` nesta pasta (o enunciado da parte B só existe em foto no WhatsApp/celular, não foi salvo aqui).
 
 ## Pegadinhas / pontos de prova
 
