@@ -10,7 +10,14 @@ tags: [conceito]
 
 Técnica pra resolver limites com indeterminação 0/0 quando há raiz na expressão: multiplica numerador e denominador pelo conjugado do termo com raiz (mesmo termo, sinal trocado), o que elimina a raiz via diferença de quadrados e permite cancelar o fator que gera a indeterminação.
 
-// preencher: exemplo completo resolvido (o transcript da aula de 08.06 corrompeu antes do resultado numérico)
+Exemplo completo (exercício da aula de 08.06, reconstruído do slide):
+
+```
+lim(x→0) (√(x²+16) − 4)/x²                      direto: 0/0
+× (√(x²+16) + 4)/(√(x²+16) + 4)
+= (x²+16−16) / (x²·(√(x²+16)+4))
+= 1/(√(x²+16)+4) = 1/8
+```
 
 ## Fórmula / aplicação
 

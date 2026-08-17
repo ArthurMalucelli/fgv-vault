@@ -10,7 +10,9 @@ tags: [conceito]
 
 Comportamento de f(x) quando x se aproxima de um valor "a", sem necessariamente que f atinja esse valor em a. Notação: lim f(x), x → a.
 
-// preencher: definição formal (épsilon-delta), limites laterais, quando o professor cobrir
+Limites laterais (slide da aula 08.06): o limite existe quando os dois laterais coincidem, lim(x→a⁻) f = lim(x→a⁺) f. No exemplo (x−1)/(x²−1), os dois lados dão 1/2.
+
+// preencher: definição formal (épsilon-delta), quando a professora cobrir
 
 ## Fórmula / aplicação
 

@@ -37,6 +37,9 @@ Marcar como feita: clica no checkbox ou troca `[ ]` por `[x]`.
 
 <!-- A skill adiciona tasks aqui automaticamente quando processa transcript -->
 
+- [ ] Imprimir o caso da aula de TDN (professora recomendou trazer impresso) #tdn 📅 2026-08-21
+- [ ] Fazer o exercício de Excel de teste de proporções no eClass #est2 📅 2026-08-18
+
 ## Adicionadas manualmente
 
 <!-- Espaço pra você adicionar prazos que não vieram de aula -->
