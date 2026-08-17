@@ -26,12 +26,12 @@ This isn't a code project. The deliverables are:
 **Files:**
 - Read: `~/FGV/Vault/automation/2026-05-25-weekly-summary-design.md` (for calendar IDs)
 
-- [ ] **Step 1: Check scheduled-tasks MCP availability**
+- [x] **Step 1: Check scheduled-tasks MCP availability** ✅ 2026-08-16
 
 Run: list current scheduled tasks via `mcp__scheduled-tasks__list_scheduled_tasks` (no args).
 Expected: returns an array (possibly empty). If the tool errors with "not connected", the MCP isn't set up — stop and surface to user.
 
-- [ ] **Step 2: Confirm Calendar MCP is callable from a scheduled-agent context**
+- [x] **Step 2: Confirm Calendar MCP is callable from a scheduled-agent context** ✅ 2026-08-16
 
 Scheduled agents run server-side with their own connector set. The local `mcp__9650ae8d-...__list_calendars` MCP only proves it's connected for Arthur's local sessions, not for remote agents.
 
@@ -42,14 +42,14 @@ This step is just confirming the local list_calendars call works as a sanity che
 Run: `mcp__9650ae8d-038d-4a39-a857-b1c2fef09413__list_calendars`
 Expected: returns 4 calendars including Principal, FGV, Quiz & Provas, Provas. IDs match what's in the spec.
 
-- [ ] **Step 3: Confirm Gmail MCP is callable from local context**
+- [x] **Step 3: Confirm Gmail MCP is callable from local context** ✅ 2026-08-16
 
 Same caveat: this only proves local. The real test is via the scheduled agent.
 
 Run: `mcp__4c57eb1b-a665-46f8-b17c-64447ccbe0a6__list_labels` (low side-effect call).
 Expected: returns Gmail labels. Confirms auth is alive.
 
-- [ ] **Step 4: Surface any gaps to user before continuing**
+- [x] **Step 4: Surface any gaps to user before continuing** ✅ 2026-08-16
 
 If either MCP errors on the local check, the remote agent will also fail. Stop and ask user to fix the connection before proceeding to Task 2.
 
@@ -60,7 +60,7 @@ If either MCP errors on the local check, the remote agent will also fail. Stop a
 **Files:**
 - Create: `~/FGV/Vault/automation/weekly-summary-prompt.md`
 
-- [ ] **Step 1: Write the prompt to file**
+- [x] **Step 1: Write the prompt to file** ✅ 2026-08-16
 
 The full prompt the scheduled agent will receive at every fire. Self-contained. No outside context. Includes calendar IDs, classification rules, output format, email recipient.
 
@@ -130,7 +130,7 @@ Rules:
 Email sent successfully via Gmail MCP, with a 200-like response from the send tool. If send fails, retry once. If it fails again, log the error to your own response (the scheduler will surface).
 ```
 
-- [ ] **Step 2: Commit the prompt to local notes**
+- [x] **Step 2: Commit the prompt to local notes** ✅ 2026-08-16
 
 This file is the source of truth backup. If the scheduled task gets nuked, we redeploy from here. No git, just file existence.
 
@@ -144,14 +144,14 @@ Expected: file exists, ~3-4 KB.
 **Files:**
 - Read: `~/FGV/Vault/automation/weekly-summary-prompt.md`
 
-- [ ] **Step 1: Define the schedule parameters**
+- [x] **Step 1: Define the schedule parameters** ✅ 2026-08-16
 
 - Cron expression: `0 19 * * SUN`
 - Timezone: `America/Sao_Paulo`
 - Name: `weekly-fgv-summary`
 - Prompt: full contents of `~/FGV/Vault/automation/weekly-summary-prompt.md`
 
-- [ ] **Step 2: Create via scheduled-tasks MCP**
+- [x] **Step 2: Create via scheduled-tasks MCP** ✅ 2026-08-16
 
 Load the tool: `ToolSearch` with `select:mcp__scheduled-tasks__create_scheduled_task`.
 
@@ -159,14 +159,14 @@ Call `mcp__scheduled-tasks__create_scheduled_task` with the parameters above. If
 
 Capture the returned task ID.
 
-- [ ] **Step 3: Verify creation**
+- [x] **Step 3: Verify creation** ✅ 2026-08-16
 
 Call `mcp__scheduled-tasks__list_scheduled_tasks`.
 Expected: the new task appears with the right schedule and next-fire timestamp.
 
 If the schedule on the listed task doesn't match what we asked for (timezone got lost, cron normalized weird), call `mcp__scheduled-tasks__update_scheduled_task` to fix. Don't accept a wrong-time task.
 
-- [ ] **Step 4: Save task ID to runlog**
+- [x] **Step 4: Save task ID to runlog** ✅ 2026-08-16
 
 Append to `~/FGV/Vault/automation/weekly-summary-runlog.md`:
 
@@ -187,18 +187,18 @@ Append to `~/FGV/Vault/automation/weekly-summary-runlog.md`:
 **Files:**
 - Modify: `~/FGV/Vault/automation/weekly-summary-runlog.md`
 
-- [ ] **Step 1: Trigger the task manually**
+- [x] **Step 1: Trigger the task manually** ✅ 2026-08-16
 
 Most scheduler implementations have a "run now" or "fire once" option. Check the tool schema. If `mcp__scheduled-tasks__update_scheduled_task` doesn't expose a manual trigger, the cleanest alternative is to clone the task as a one-shot for "now + 2 minutes" and let the schedule fire naturally.
 
 Capture the run's execution result (the agent's final output, which should mention sending the email).
 
-- [ ] **Step 2: Verify email arrived**
+- [x] **Step 2: Verify email arrived** ✅ 2026-08-16
 
 Wait up to 2 minutes after the trigger. Then call `mcp__4c57eb1b-...__search_threads` with query `subject:"[FGV] Semana" newer_than:1h`.
 Expected: at least one thread, with body matching the format spec.
 
-- [ ] **Step 3: Sanity-check the contents**
+- [x] **Step 3: Sanity-check the contents** ✅ 2026-08-16
 
 Read the email. Check:
 - Subject has the right date range for next week (seg→dom from a real perspective).
@@ -210,7 +210,7 @@ Read the email. Check:
 
 If any of these fail, edit `weekly-summary-prompt.md`, then update the scheduled task with the new prompt via `mcp__scheduled-tasks__update_scheduled_task`. Re-fire and re-check.
 
-- [ ] **Step 4: Update runlog with test result**
+- [x] **Step 4: Update runlog with test result** ✅ 2026-08-16
 
 Append to runlog:
 
@@ -229,7 +229,7 @@ Append to runlog:
 
 **Files:** none
 
-- [ ] **Step 1: Summarize what's live**
+- [x] **Step 1: Summarize what's live** ✅ 2026-08-16
 
 Report to user:
 - Scheduled task name + ID
@@ -238,7 +238,7 @@ Report to user:
 - Where the runlog lives
 - How to pause/modify: `mcp__scheduled-tasks__update_scheduled_task` or via Claude.ai if available
 
-- [ ] **Step 2: Flag known limitations**
+- [x] **Step 2: Flag known limitations** ✅ 2026-08-16
 
 Remind user:
 - Tasks.md is not included (no local filesystem access from remote agent).
