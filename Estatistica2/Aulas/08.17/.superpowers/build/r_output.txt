@@ -1,0 +1,113 @@
+
+==== 1. Z uma média (vendas) ====
+  z = 4 | z crítico = 1.645 
+  valor-p = 3.167e-05 < 0.05 ->  REJEITA H0
+
+==== 2a. t uma média, sumário (satisfação) ====
+  bicaudal: t = -1.789 | crítico = ± 2.093 
+  valor-p = 0.08959 >= 0.05 -> NÃO rejeita H0
+  unicaudal esq: t = -1.789 | crítico = -1.729 
+  valor-p = 0.0448 < 0.05 ->  REJEITA H0
+
+==== 2b. t uma média, dados brutos (SLA) ====
+  n = 25 | média = 49.664 | s = 4.15 
+  t = 2.005 | crítico = 1.711 
+  valor-p = 0.02819 < 0.05 ->  REJEITA H0
+  a 1%:   valor-p = 0.02819 >= 0.01 -> NÃO rejeita H0
+
+	One Sample t-test
+
+data:  sla
+t = 2.0048, df = 24, p-value = 0.02819
+alternative hypothesis: true mean is greater than 48
+95 percent confidence interval:
+ 48.24397      Inf
+sample estimates:
+mean of x 
+   49.664 
+
+
+==== 3. t pareado (vendas antes/depois) ====
+  D médio = 20.617 | s_D = 17.963 | t = 3.976 | crítico = 1.796 
+  valor-p = 0.001087 < 0.05 ->  REJEITA H0
+
+	Paired t-test
+
+data:  depois and antes
+t = 3.976, df = 11, p-value = 0.001087
+alternative hypothesis: true mean difference is greater than 0
+95 percent confidence interval:
+ 11.3044     Inf
+sample estimates:
+mean difference 
+       20.61667 
+
+  IC 95% de mu_D: [ 9.2 ; 32.03 ]
+
+==== 4. Welch (ticket médio loja A vs B) ====
+  t = -1.755 | gl Welch = 29.84 | crítico = ± 2.043 
+  valor-p = 0.08954 >= 0.05 -> NÃO rejeita H0
+
+	Welch Two Sample t-test
+
+data:  A and B
+t = -1.7549, df = 29.836, p-value = 0.08954
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -16.98524   1.28746
+sample estimates:
+mean of x mean of y 
+ 81.77333  89.62222 
+
+
+==== 5. Z proporção (golfe) ====
+  p^ = 0.25 | z = 2.5 | crítico = 1.645 
+  valor-p = 0.00621 < 0.05 ->  REJEITA H0
+
+	1-sample proportions test without continuity correction
+
+data:  x out of n, null probability p0
+X-squared = 6.25, df = 1, p-value = 0.00621
+alternative hypothesis: true p is greater than 0.2
+95 percent confidence interval:
+ 0.2161476 1.0000000
+sample estimates:
+   p 
+0.25 
+
+  valor-p com correção de continuidade (default do R): 0.007395 
+
+==== 6. Qui-quadrado aderência (pagamentos) ====
+  esperadas: 90 70 40 | qui2 = 2.54 | gl = 2 | crítico = 5.991 
+  valor-p = 0.2809 >= 0.05 -> NÃO rejeita H0
+
+	Chi-squared test for given probabilities
+
+data:  obs
+X-squared = 2.5397, df = 2, p-value = 0.2809
+
+
+==== 7. Qui-quadrado independência (canal x compra) ====
+  qui2 = 13.694 | gl = 2 | crítico = 5.991 
+  valor-p = 0.001063 < 0.05 ->  REJEITA H0
+
+	Pearson's Chi-squared test
+
+data:  tab
+X-squared = 13.694, df = 2, p-value = 0.001063
+
+  esperadas:
+        Compra
+Canal    Comprou NaoComprou
+  Email    44.25      75.75
+  Social   44.25      75.75
+  Search   29.50      50.50
+  resíduos (O-E)/sqrt(E): sinal e tamanho dizem qual célula puxa o qui2
+        Compra
+Canal    Comprou NaoComprou
+  Email     0.56      -0.43
+  Social   -2.14       1.64
+  Search    1.93      -1.48
+  taxa de compra por canal:
+ Email Social Search 
+  0.40   0.25   0.50 

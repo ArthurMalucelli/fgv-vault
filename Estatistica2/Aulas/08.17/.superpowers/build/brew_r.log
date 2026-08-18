@@ -1,0 +1,571 @@
+==> Auto-updating Homebrew...
+Adjust how often this is run with `$HOMEBREW_AUTO_UPDATE_SECS` or disable with
+`$HOMEBREW_NO_AUTO_UPDATE=1`. Hide these hints with `$HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+==> Downloading https://ghcr.io/v2/homebrew/core/portable-ruby/blobs/sha256:83a3ff85d83acf0e3dd8105de0fdb01da96b7c0eaf2dfaae2ba6500ec2ae4a64
+#=#=#                                                                          ##O#-#                                                                         ##O=#  #                                                                       ###                                                                        4.7%#############                                                             18.7%#####################                                                     30.2%#################################                                         46.4%#############################################                             63.3%###########################################################               83.1%######################################################################## 100.0%
+==> Pouring portable-ruby-4.0.6.arm64_big_sur.bottle.tar.gz
+==> Auto-updated Homebrew!
+Updated 4 taps (paperfoot/tap, 199-biotechnologies/tap, homebrew/core and homebrew/cask).
+==> New Formulae
+advai-cli: CLI for managing skills and external CLIs
+apm: Dependency manager for AI agent configuration
+awww: Answer to your Wayland Wallpaper Woes
+b4n: Terminal user interface (TUI) for Kubernetes API written in Rust
+baml: Programming language for agents
+bismark: Bisulfite read mapper and methylation caller
+bittensor: SDK and command-line tool for the Bittensor network
+bluetuith: Cross-platform TUI bluetooth manager
+bracken: Bayesian estimation of species abundance from Kraken output
+checksec: Security feature auditing for ELF binaries and Linux kernels
+chopper: Filter and trim long-read sequencing data by quality and length
+cliphist: Wayland clipboard manager with support for multimedia
+cuttlefish: Build compacted de Bruijn graphs from references or reads
+cyclonedx-npm: Creates CycloneDX Software Bill of Materials (SBOM) from npm projects
+deepline: CLI for Deepline data enrichment and durable plays
+delly: Structural variant discovery by paired-end and split-read analysis
+dnsglobe: Global DNS propagation checker TUI
+droast: Opinionated Dockerfile linter
+dskditto: Ultra-fast duplicate file finder TUI/GUI
+esbmc: Efficient SMT-based context-bounded model checker for C, C++, and Python
+evnx: Comprehensive CLI tool for managing .env files
+faker: Python-based fake data generator
+fanficfare: Download fanfiction and original stories as e-books
+fastani: Fast whole-genome similarity (ANI) estimation
+flite: Small fast and portable speech synthesis system
+fluxcd: Open and extensible continuous delivery solution for Kubernetes
+flyline: Supercharged Bash plugin replacement for readline
+fusesoc: Package manager and build abstraction tool for HDL code
+gcx: CLI for managing Grafana Cloud resources
+git-pkgs-brief: Tool that detects and reports a project's toolchain, configuration, and more
+git-pkgs-forge: Go library and CLI for working with git forges
+git-pkgs-proxy: Lightweight caching proxy for package registries
+gita: Manage multiple git repos with sanity
+godns: Dynamic DNS client with multiple providers support
+gof5: F5 BIG-IP VPN client
+goimapnotify: Execute scripts on IMAP mailbox changes using IDLE
+gss-ntlmssp: NTLM authentication plugin for GSSAPI
+honker: SQLite message queue extension
+httpx2: HTTP client library for Python
+humanbound: Adversarial security testing engine, SDK, and CLI for AI agents
+inshellisense: IDE style command-line auto complete
+kata: Local-first, federated issue tracker for humans and coding agents
+kiesel: JavaScript engine written in Zig
+lazy-tmux: Save all your tmux sessions and lazy restore them
+lazyrsync: Terminal UI for rsync, written in Rust
+lfk: Terminal user interface for navigating and managing Kubernetes clusters
+libjaylink: Provide interoperability with JLINK hardware
+librefang: Self-hostable operating system for autonomous AI agents
+libyang: YANG data modeling language library
+libyojimbo: Secure client/server network protocol library for multiplayer games
+lief-patchelf: Robust, modern reimplementation of patchelf based on the LIEF
+livebook-cli: Code notebooks for Elixir developers
+lld@22: LLVM Project Linker
+llvm@22: Next-gen compiler infrastructure
+lunarr: Self-hosted media streaming server and Plex alternative for movies and TV
+mcpsnoop: Transparent proxy and TUI for debugging MCP traffic
+mktxp: Prometheus Exporter for Mikrotik RouterOS devices
+modal: Client library and CLI for Modal
+mosdepth: Fast BAM/CRAM depth calculation for WGS, exome, or targeted sequencing
+nanoq: Minimal but speedy quality control and summaries of nanopore reads
+nats: Utility for NATS Server and JetStream administration
+near: Human-friendly console utility for interacting with NEAR Protocol
+netcode: Secure client/server protocol for multiplayer games built on top of UDP
+network-doctor: Network troubleshooting TUI
+nullhub: Management console for the Null ecosystem
+octl: Modern CLI for Outscale
+oh-my-reddit: Beautiful Reddit threads, live in your terminal
+open-code-review: AI-powered code review tool with deterministic pipelines and an LLM agent
+opencrabs: Autonomous, self-improving AI agent in a single Rust binary
+opencv@4: Open source computer vision library
+openkermit: Scriptable network and serial communication for UNIX and VMS
+openlore: Persistent architectural memory and structural cognition for AI coding agents
+ovh-ttyrec: Enhanced (but compatible) version of the classic ttyrec
+oxvg: Fastest SVG toolchain for optimisation, minification, linting, and actions
+pear: Peer-to-peer application runtime
+perlnavigator: Perl language server
+pixtuoid: Terminal pixel-art office for AI coding agents
+podcast-dl: CLI for downloading and archiving podcasts
+qobine-tui: Tui player for Qobuz
+qobine-web: Server and web based player for Qobuz
+rammap: Extensible and performant aligner and read mapper
+rapid-mlx: Fast local AI engine for Apple Silicon with an OpenAI-compatible API
+rawtoaces: Utility for converting camera RAW image files to ACES
+reliable: Simple packet acknowledgement system for UDP-based protocols
+rocq-micromega-plugin: Micromega decision procedures plugin for the Rocq prover
+rumbledb: JSONiq and XQuery query engine on Apache Spark
+rust-wasm: Rust standard library and sysroot for WebAssembly targets
+scrutineer: Security through scrutiny
+seqwish: Alignment to variation graph inducer
+serialize: Single-header bitpacking serializer for C++ aimed at game networking
+smithery-cli: Install and list Model Context Protocol servers from Smithery
+soar: Fast, modern package manager for Static Binaries, Portable Formats and more
+solod: Strict subset of Go with transpiler that translates to regular C
+svlang: SystemVerilog compiler and language services
+systemd-lsp: Language server for systemd unit files
+tmux-fingers: Copy pasting in terminal with vimium/vimperator like hints
+treehouse: Manage worktrees without managing worktrees
+trim-galore: Quality and adapter trimming for FastQ sequencing reads
+tuicr: Code review TUI with vim keybindings
+tytanic: Test runner for Typst projects
+usbtree: Live USB device tree in your terminal
+utiluti: macOS command-line tool to work with default apps
+vapoursynth-vszip: VapourSynth Zig Image Process
+vi-sql: Terminal UI for SQL databases
+virtiofsd: Vhost-user virtio-fs device backend written in Rust
+wgsl-analyzer: Language server implementation for WGSL and WESL
+wild: Very fast linker for Linux
+worm-scraper: Scrape Worm, Ward, and Glow-worm web serials into EPUB ebooks
+woxi: Interpreter for a subset of the Wolfram Language
+xmedcon: Medical image conversion toolkit
+zsh-patina: Blazingly fast Zsh syntax highlighter
+==> New Casks
+airsync: Continuity tools for use with Android devices
+android-cli: Command-line interface for Android app development with AI agents
+aphera: Raw photo editing software
+arcbox: Runtime for containers, Linux virtual machines, and AI agent sandboxes
+bettercmdtab@beta: Replacement for the built-in Cmd+Tab app switcher
+billy: Invoice manager
+block-buzz: Workspace for humans and AI agents
+canario: Terminal emulator
+caskhub: Native GUI for Homebrew casks
+cate: Infinite zoomable canvas with editor, terminal, and browser panels
+changes: Git GUI
+chatgpt-classic: OpenAI's previous ChatGPT desktop app
+clarc: Desktop client for Claude Code
+claude-status-bar: Menu bar status indicator for Claude Code
+cleanmymac-cli: Command-line interface for CleanMyMac
+cmtrace-open: Log viewer for ConfigMgr, Intune, and Windows diagnostic logs
+codexia: GUI and toolkit for Codex CLI and Claude Code
+degr: Temperature and clock screensaver
+diversion: Cloud-native version control CLI and agent
+diversion-app: Desktop app for Diversion version control
+dnclient-server: Peer-to-peer VPN client daemon for managed nebula networks
+ds4-control: Menu bar pane for DeepSeek V4 via DwarfStar
+esphome-device-builder: Desktop app to create, edit and install your ESPHome device configurations
+font-annotationmono-nerd-font
+font-googlesanscode-nerd-font
+font-jetendard
+font-luciole
+font-nexon-bazzi
+font-nexon-football-gothic
+font-nexon-kart-gothic
+font-nexon-lv1-gothic
+font-nexon-lv2-gothic
+font-nexon-maplestory
+gamehub: Compatibility layer for running Windows and Steam games
+glean: Workplace search and AI assistant
+grok-bot: AI teammates that work across your apps and tools
+headroom: Reduce token usage for Claude Code and Codex
+hermes-desktop: Open-source desktop AI agent
+juicy: Menu bar battery monitor with custom charge alerts and health tracking
+kirocrew: Persistent AI development workspace with multi-agent support
+koe: Zero-GUI voice input tool
+koreader: Document viewer for e-ink devices
+lemonade-server: Local LLM server with GPU and NPU acceleration
+libation: Audible audiobook manager and liberator
+linguax: Menu-bar utility for third-party mice with smooth scrolling and mapping
+lm-studio-bionic: AI agent for working with open models
+logseq-og: Privacy-first, open-source platform for knowledge sharing and management
+luna-display: Use your iPad as a wireless second display
+luna-secondary: Turn a computer or tablet into a second display
+markdown-preview: Markdown previewer with bundled Quick Look extension
+meetingrecorder: Recorder for meetings capturing mic and system audio
+mend: Application security scanning CLI
+mongrel: Database workbench with terminals, containers, Kubernetes, and API client
+moonfin: Media streaming client for Jellyfin and Emby
+muse-code: Interactive terminal coding agent
+neodisk: Read-only disk space visualiser
+neon-vision-editor: Native code and text editor
+onit-sidekick: AI chat panel
+opendisplay: Second-display utility for iPhone and iPad over USB and Wi-Fi
+openwhispr: Privacy-first voice-to-text dictation with AI agents
+orbit: Multiple Google accounts in isolated sessions in one window
+owlocr: On-device OCR for screenshots, images, and PDFs
+pastebot@2: Workflow application to improve productivity
+perplexity: AI-powered answer engine with Personal Computer agent
+petdex: Desktop pet that reflects coding agent activity
+phosphene: Custom video wallpapers for the desktop and lock screen
+prisma-access-browser: Secure enterprise browser with built-in threat and data protection
+proxybridge: Proxy client with per-application traffic routing rules
+redot: Multi-platform 2D and 3D game engine
+roslynpad: C# editor and runner based on Roslyn
+sentry-cli: Command-line utility to interact with Sentry
+sessionwatcher: Menu bar monitor for AI coding assistant usage and limits
+siliconscope: System monitor for Apple Silicon with ANE, Media Engine and bandwidth tracking
+sina-finance: Stock market data and financial news platform
+smallstepagent: Device identity and certificate management daemon
+sogouinput: Input method supporting full and double spelling
+space-rabbit: Removes animations when switching between Spaces
+spacejump: Menu bar utility to name and switch desktop Spaces
+subtitle-edit: Subtitle editor
+switchy: Switch Magic Keyboard, Trackpad and Mouse between Macs
+tauritavern: SillyTavern-compatible native client
+textream: Teleprompter that highlights scripts in real time as you speak
+tickernotch: Tickers, news, weather and social counters beside the notch or in the menu bar
+tight-studio: Screen recorder and video editor
+unity-cli: Command-line interface for Unity
+unity-hub@beta: Management tool for Unity
+vicinae: Application launcher and command palette
+vorssaint: Menu bar toolkit with keep-awake, system monitor and volume mixer
+warp-agent-cli: Agentic development environment for command-line workflows
+willow-voice: AI-powered voice dictation and writing assistant
+work-louder-input: Keyboard configurator for Work Louder devices
+zcode: AI-assisted development environment
+
+You have 101 outdated formulae and 8 outdated casks installed.
+
+Warning: The following taps are not trusted:
+  199-biotechnologies/tap
+  oven-sh/bun
+
+Homebrew is currently ignoring formulae, casks and commands from these taps because tap trust is required.
+
+Prefer trusting only the specific formulae, casks or commands you need.
+Trust installed formulae from these taps with:
+  brew trust --formula oven-sh/bun/bun
+Trust other specific casks and commands with:
+  brew trust --cask <user>/<tap>/<cask>
+  brew trust --command <user>/<tap>/<command>
+Whole-tap trust is broader and includes all current and future formulae,
+casks and commands from the listed taps. Trust whole taps with:
+  brew trust 199-biotechnologies/tap oven-sh/bun
+Untap them with:
+  brew untap 199-biotechnologies/tap oven-sh/bun
+To disable trust checks:
+  export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+This is not recommended and will be removed in a later release.
+For more information, see:
+  https://docs.brew.sh/Tap-Trust
+==> Downloading bottle manifests
+✔︎ Bottle Manifest r (4.6.1)
+==> Would install 1 formula:
+r
+==> Would install 2 dependencies for r:
+libtommath
+tcl-tk
+==> Would upgrade 10 dependencies for r:
+json-c
+fontconfig
+glib
+isl
+gcc
+jpeg-turbo
+libomp
+openblas
+ca-certificates
+openssl@3
+==> Fetching downloads for: r
+✔︎ Bottle Manifest json-c (0.19)
+✔︎ Bottle json-c (0.19)
+✔︎ Bottle Manifest fontconfig (2.18.3)
+✔︎ Bottle fontconfig (2.18.3)
+✔︎ Bottle Manifest glib (2.88.3)
+✔︎ Bottle Manifest isl (0.28)
+✔︎ Bottle isl (0.28)
+✔︎ Bottle Manifest gcc (16.1.0)
+✔︎ Bottle Manifest jpeg-turbo (3.2.0)
+✔︎ Bottle Manifest libomp (22.1.8)
+✔︎ Bottle Manifest openblas (0.3.34)
+✔︎ Bottle Manifest libtommath (1.3.0)
+✔︎ Bottle Manifest ca-certificates (2026-08-13)
+✔︎ Bottle Manifest openssl@3 (3.6.3)
+✔︎ Bottle jpeg-turbo (3.2.0)
+✔︎ Bottle libomp (22.1.8)
+✔︎ Bottle ca-certificates (2026-08-13)
+✔︎ Bottle Manifest tcl-tk (9.0.4)
+✔︎ Bottle libtommath (1.3.0)
+✔︎ Bottle glib (2.88.3)
+✔︎ Bottle r (4.6.1)
+✔︎ Bottle openssl@3 (3.6.3)
+✔︎ Bottle gcc (16.1.0)
+✔︎ Bottle tcl-tk (9.0.4)
+✔︎ Bottle openblas (0.3.34)
+==> Installing dependencies for r: json-c, fontconfig, glib, gcc, jpeg-turbo, libomp, libtommath, ca-certificates, openssl@3 and tcl-tk
+==> Upgrading r dependency: json-c
+==> Pouring json-c--0.19.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/json-c/0.19: 34 files, 360.5KB
+==> Upgrading r dependency: fontconfig
+==> Pouring fontconfig--2.18.3.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/fontconfig/2.18.3: 102 files, 1.9MB
+==> Upgrading r dependency: glib
+==> Pouring glib--2.88.3.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/glib/2.88.3: 501 files, 39.6MB
+==> Upgrading r dependency: gcc
+==> Upgrading gcc dependency: isl
+==> Pouring isl--0.28.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/isl/0.28: 80 files, 8.0MB
+==> Installing gcc
+==> Pouring gcc--16.1.0.arm64_tahoe.bottle.3.tar.gz
+🍺  /opt/homebrew/Cellar/gcc/16.1.0: 1,705 files, 498.8MB
+==> Upgrading r dependency: jpeg-turbo
+==> Pouring jpeg-turbo--3.2.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/jpeg-turbo/3.2.0: 47 files, 4.2MB
+==> Upgrading r dependency: libomp
+==> Pouring libomp--22.1.8.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libomp/22.1.8: 11 files, 1.8MB
+==> Installing r dependency: libtommath
+==> Pouring libtommath--1.3.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libtommath/1.3.0: 12 files, 506.9KB
+==> Upgrading r dependency: ca-certificates
+==> Pouring ca-certificates--2026-08-13.all.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/ca-certificates/2026-08-13: 5 files, 204.3KB
+==> Upgrading r dependency: openssl@3
+==> Pouring openssl@3--3.6.3.arm64_tahoe.bottle.1.tar.gz
+🍺  /opt/homebrew/Cellar/openssl@3/3.6.3: 7,633 files, 37.6MB
+==> Installing r dependency: tcl-tk
+==> Pouring tcl-tk--9.0.4.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/tcl-tk/9.0.4: 3,155 files, 39.9MB
+==> Installing r
+==> Pouring r--4.6.1.arm64_tahoe.bottle.1.tar.gz
+🍺  /opt/homebrew/Cellar/r/4.6.1: 2,525 files, 77.8MB
+==> Running `brew cleanup r`...
+Disable this behaviour by setting `HOMEBREW_NO_INSTALL_CLEANUP=1`.
+Hide these hints with `HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+==> `brew cleanup` has not been run in the last 30 days, running now...
+Disable this behaviour by setting `HOMEBREW_NO_INSTALL_CLEANUP=1`.
+Hide these hints with `HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ada-url--3.4.3... (344.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ada-url_bottle_manifest--3.4.3... (8.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/aom--3.13.3... (4.2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/aom_bottle_manifest--3.13.3... (24.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/brotli--1.2.0... (793.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/brotli_bottle_manifest--1.2.0... (8.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/c-ares--1.34.6... (304.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/c-ares_bottle_manifest--1.34.6... (7.5KB)
+Removing: /opt/homebrew/Cellar/ca-certificates/2026-03-19... (4 files, 237.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ca-certificates--2026-03-19... (132.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ca-certificates_bottle_manifest--2026-03-19... (2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cairo--1.18.4... (1.6MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cairo_bottle_manifest--1.18.4-2... (29.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cocoapods--1.16.2_2... (10MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cocoapods_bottle_manifest--1.16.2_2... (14.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/dav1d--1.5.3... (364.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/dav1d_bottle_manifest--1.5.3... (7.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/fmt--12.1.0... (282.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/fmt_bottle_manifest--12.1.0... (7.3KB)
+Removing: /opt/homebrew/Cellar/fontconfig/2.17.1... (98 files, 1.6MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/fontconfig--2.17.1... (400.1KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/fontconfig_bottle_manifest--2.17.1-1... (17.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/freetype--2.14.3... (996.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/freetype_bottle_manifest--2.14.3... (9.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/fribidi--1.0.16... (99.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/fribidi_bottle_manifest--1.0.16... (10KB)
+Removing: /opt/homebrew/Cellar/gcc/15.2.0_1... (1,602 files, 460.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gcc--15.2.0_1... (152.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gcc_bottle_manifest--15.2.0_1... (23.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gettext--1.0... (10.2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gettext_bottle_manifest--1.0... (13.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/giflib--6.1.3... (143.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/giflib_bottle_manifest--6.1.3... (7.7KB)
+Removing: /opt/homebrew/Cellar/glib/2.88.0... (506 files, 40.0MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/glib--2.88.0... (9.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/glib_bottle_manifest--2.88.0... (20.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gmp--6.3.0... (1MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gmp_bottle_manifest--6.3.0... (13.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gnupg--2.5.18... (5.6MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gnupg_bottle_manifest--2.5.18... (34.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gnutls--3.8.12... (3.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gnutls_bottle_manifest--3.8.12... (19.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gobject-introspection--1.86.0... (1.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gobject-introspection_bottle_manifest--1.86.0-1... (36.1KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gpgme--2.0.1... (785.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gpgme_bottle_manifest--2.0.1... (33.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gpgmepp--2.0.0... (193.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/gpgmepp_bottle_manifest--2.0.0... (41.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/graphite2--1.3.14... (92.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/graphite2_bottle_manifest--1.3.14-2... (8.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/harfbuzz--14.1.0... (3.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/harfbuzz_bottle_manifest--14.1.0... (34.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/hdrhistogram_c--0.11.9... (43.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/hdrhistogram_c_bottle_manifest--0.11.9-1... (7.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/icu4c@78--78.3... (31.8MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/icu4c@78_bottle_manifest--78.3... (9.7KB)
+Removing: /opt/homebrew/Cellar/isl/0.27... (74 files, 8.0MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/isl--0.27... (1.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/isl_bottle_manifest--0.27... (14.5KB)
+Removing: /opt/homebrew/Cellar/jpeg-turbo/3.1.4.1... (47 files, 3.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/jpeg-turbo--3.1.4.1... (1.1MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/jpeg-turbo_bottle_manifest--3.1.4.1... (8.4KB)
+Removing: /opt/homebrew/Cellar/json-c/0.18... (34 files, 365.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/json-c--0.18... (101.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/json-c_bottle_manifest--0.18... (9.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/lame--3.100... (792.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/lame_bottle_manifest--3.100... (16KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libarchive--3.8.7... (1.6MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libarchive_bottle_manifest--3.8.7... (12.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libassuan--3.0.2... (175.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libassuan_bottle_manifest--3.0.2... (12.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libb2--0.98.1... (36.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libb2_bottle_manifest--0.98.1... (15.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libdatrie--0.2.14... (70.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libdatrie_bottle_manifest--0.2.14... (7.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libde265--1.0.18... (174.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libde265_bottle_manifest--1.0.18... (7.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libevent--2.1.12_1... (738.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libevent_bottle_manifest--2.1.12_1... (17KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libgpg-error--1.59... (578KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libgpg-error_bottle_manifest--1.59... (9.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libheif_bottle_manifest--1.21.2_1... (20.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libidn2--2.3.8... (309.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libidn2_bottle_manifest--2.3.8... (12.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libksba--1.6.8... (178.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libksba_bottle_manifest--1.6.8... (9.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libnghttp3--1.15.0... (188.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libnghttp3_bottle_manifest--1.15.0... (7.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libngtcp2--1.21.0... (396.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libngtcp2_bottle_manifest--1.21.0... (9.3KB)
+Removing: /opt/homebrew/Cellar/libomp/22.1.4... (11 files, 1.8MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libomp--22.1.4... (590KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libomp_bottle_manifest--22.1.4... (12.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libtasn1--4.21.0... (165.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libtasn1_bottle_manifest--4.21.0... (7.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libthai--0.1.30... (277.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libthai_bottle_manifest--0.1.30... (8.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libtiff--4.7.1_1... (1.9MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libtiff_bottle_manifest--4.7.1_1... (12.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libunistring--1.4.2... (1.9MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libunistring_bottle_manifest--1.4.2... (7.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libusb--1.0.29... (192.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libusb_bottle_manifest--1.0.29... (16.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libuv--1.52.1... (375.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libuv_bottle_manifest--1.52.1... (7.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libvmaf--3.1.0... (1.1MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libvmaf_bottle_manifest--3.1.0... (7.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libvpx--1.16.0... (1.9MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libvpx_bottle_manifest--1.16.0... (7.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libx11--1.8.13... (2.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libx11_bottle_manifest--1.8.13... (14.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxau--1.0.12... (33.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxau_bottle_manifest--1.0.12... (10.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxcb--1.17.0... (999.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxcb_bottle_manifest--1.17.0-1... (19.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxdmcp--1.1.5... (36.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxdmcp_bottle_manifest--1.1.5... (12.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxext--1.3.7... (109.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxext_bottle_manifest--1.3.7... (11.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxrender--0.9.12... (54.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libxrender_bottle_manifest--0.9.12... (14.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libyaml--0.2.5... (107.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libyaml_bottle_manifest--0.2.5... (14.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/little-cms2--2.18... (434.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/little-cms2_bottle_manifest--2.18... (12.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/llhttp--9.3.1... (36.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/llhttp_bottle_manifest--9.3.1... (7.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/lz4--1.10.0... (279.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/lz4_bottle_manifest--1.10.0-1... (13.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/lzo--2.10... (149.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/lzo_bottle_manifest--2.10... (16.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/mpdecimal--4.0.1... (186.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/mpdecimal_bottle_manifest--4.0.1... (11.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nettle--3.10.2... (987.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nettle_bottle_manifest--3.10.2... (11.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/node--25.8.1_1... (18.4MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/node_bottle_manifest--25.8.1_1... (27.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/npth--1.8... (39.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/npth_bottle_manifest--1.8... (9.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nspr--4.38.2... (332.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nspr--4.39... (330.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nspr_bottle_manifest--4.38.2... (7.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nss--3.122... (6.2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/nss_bottle_manifest--3.122... (14.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/openjpeg--2.5.4... (2.2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/openjpeg_bottle_manifest--2.5.4... (14.0KB)
+Removing: /opt/homebrew/Cellar/openssl@3/3.6.2... (7,627 files, 37.6MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/openssl@3--3.6.2... (10.9MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/openssl@3_bottle_manifest--3.6.2... (12.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/opus--1.6.1... (505.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/opus_bottle_manifest--1.6.1... (7.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/p11-kit--0.26.2... (992.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/p11-kit_bottle_manifest--0.26.2... (10.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pango--1.57.1... (894.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pango_bottle_manifest--1.57.1... (37.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pcre2--10.47_1... (2.4MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pcre2_bottle_manifest--10.47_1... (11.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pinentry--1.3.2... (132.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pinentry_bottle_manifest--1.3.2... (20KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pixman--0.46.4... (416.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pixman_bottle_manifest--0.46.4-1... (9.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pkgconf--2.5.1... (121.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pkgconf_bottle_manifest--2.5.1... (12.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/poppler--26.04.0... (9.8MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/poppler_bottle_manifest--26.04.0... (65.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/python@3.12--3.12.13... (18MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/python@3.12_bottle_manifest--3.12.13... (28.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/python@3.14--3.14.4... (19.1MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/python@3.14_bottle_manifest--3.14.4... (31.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/readline--8.3.3... (757.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/readline_bottle_manifest--8.3.3... (10.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ruby--4.0.2... (17MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ruby_bottle_manifest--4.0.2-1... (19KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/simdjson--4.4.0... (1.4MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/simdjson_bottle_manifest--4.4.0... (7.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/sqlite--3.51.3... (2.4MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/sqlite--3.53.0... (2.4MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/sqlite_bottle_manifest--3.51.3... (11.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/sqlite_bottle_manifest--3.53.0... (11.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/svt-av1--4.1.0... (1.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/svt-av1_bottle_manifest--4.1.0... (7.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/unbound--1.24.2... (3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/unbound_bottle_manifest--1.24.2... (14KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/uvwasi--0.0.23... (70.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/uvwasi_bottle_manifest--0.0.23-1... (8.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/webp--1.6.0... (901.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/webp_bottle_manifest--1.6.0... (19.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/x264--r3222... (2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/x264_bottle_manifest--r3222... (9.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/xorgproto--2025.1... (720KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/xorgproto_bottle_manifest--2025.1... (13.1KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/xz--5.8.3... (770.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/xz_bottle_manifest--5.8.3... (11.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/zstd--1.5.7_1... (793.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/zstd_bottle_manifest--1.5.7_1... (13.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/jbig2dec_bottle_manifest--0.20... (12.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libraqm--0.10.5... (17.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libidn_bottle_manifest--1.43... (10.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pngquant--3.0.3... (316.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cffi_bottle_manifest--2.0.0_1... (10.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pngquant_bottle_manifest--3.0.3-1... (19.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libidn--1.43... (313.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/tesseract-lang_bottle_manifest--4.1.0-2... (6.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/portable-ruby-4.0.5_1.arm64_big_sur.bottle.tar.gz... (12.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libraqm_bottle_manifest--0.10.5... (33.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/jbig2enc_bottle_manifest--0.30... (20.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/leptonica_bottle_manifest--1.87.0-1... (17.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/qpdf--12.3.2... (2.8MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/jbig2dec--0.20... (127.3KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/sdl2_bottle_manifest--2.32.10... (23.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pycparser_bottle_manifest--3.0... (2.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libimagequant_bottle_manifest--4.4.1... (7.5KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/img2pdf_bottle_manifest--0.6.3... (55.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pillow--12.2.0... (1.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/unpaper--7.0.0_3... (43.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pydantic_bottle_manifest--2.13.0... (7.1KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cffi--2.0.0_1... (522.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libavif_bottle_manifest--1.4.1... (26.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/cryptography_bottle_manifest--46.0.7... (11.7KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/leptonica--1.87.0... (2.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/unpaper_bottle_manifest--7.0.0_3... (125.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/qpdf_bottle_manifest--12.3.2-1... (11.0KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ocrmypdf_bottle_manifest--17.4.1... (93.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/tesseract_bottle_manifest--5.5.2... (42.4KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/ghostscript_bottle_manifest--10.07.0... (46.9KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/tesseract--5.5.2... (13.2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/whisperkit-cli_bottle_manifest--0.18.0... (4.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/bun--1.3.12.zip... (22.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pybind11_bottle_manifest--3.0.3... (2.2KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pillow_bottle_manifest--12.2.0... (54.6KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/libimagequant--4.4.1... (3.5MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/tesseract-lang--4.1.0... (344.9MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/pycparser--3.0... (103.8KB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/sdl2--2.32.10... (1.8MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/Cask/flutter_macos_arm64_3.41.6-stable.zip--3.41.6.zip... (2.1GB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/Cask/LibreOffice_26.2.2_MacOS_aarch64.dmg--26.2.2.dmg... (294.7MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/Cask/QLMarkdown.zip--1.5.0.zip... (21.6MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/Cask/download?build=arm--1.104.14... (77.9MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/Cask/Stats.dmg--2.12.12.dmg... (7.3MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/bootsnap/16e4b77f396cb05f9c9d7cc3db325ed737f1a41f52ffbca011c77ad70f50850b... (1,041 files, 9.2MB)
+Removing: /Users/arthurmalucelli/Library/Caches/Homebrew/bootsnap/148d3a0082c45793313d4cfa2955969a9805ea8fb6e34e5cf51ee0d39c52a728... (1,043 files, 9.4MB)
+Removing: /Users/arthurmalucelli/Library/Logs/Homebrew/search-cli... (120B)
+Removing: /opt/homebrew/var/homebrew/tmp/.cellar/openblas... (29 files, 40.3MB)
+Pruned 0 symbolic links and 2 directories from /opt/homebrew
+brew exit=0
