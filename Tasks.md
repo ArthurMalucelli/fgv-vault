@@ -46,7 +46,6 @@ Marcar como feita: clica no checkbox ou troca `[ ]` por `[x]`.
 
 ### Apartamento novo
 
-- [ ] Verificar por que o ar-condicionado Daikin não está gelando: checar a condensadora externa e, se necessário, acionar assistência para testar compressor, válvulas e vazamento #casa
 - [ ] Instalar chuveirinho no banheiro #casa
 - [ ] Instalar cuba/prateleira para shampoo e produtos dentro do box #casa
 - [ ] Instalar gancho para toalhas de rosto #casa
