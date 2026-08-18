@@ -6,18 +6,27 @@
 
 | Matéria | Faltas acumuladas | Observação |
 |---|---:|---|
-| Contabilidade Financeira | — | A informar |
-| Direito Empresarial | — | A informar |
-| Estudos Organizacionais | — | A informar |
-| Estatística II | — | A informar |
-| Matemática Aplicada I | — | A informar |
-| Psicologia | — | A informar |
-| Tecnologia, Dados e Negócios | — | A informar |
+| Contabilidade Financeira | 2 | Dia 03/08 inteiro |
+| Direito Empresarial | 2 | Dia 03/08 inteiro |
+| Estudos Organizacionais | 2 | Dia 03/08 inteiro |
+| Estatística II | 4 | Dias 04/08 e 11/08 |
+| Matemática Aplicada I | 4 | Dias 04/08 e 13/08 inteiros |
+| Psicologia | 4 | Dias 04/08 e 13/08 inteiros |
+| Tecnologia, Dados e Negócios | 0 | Nenhuma falta informada |
 
 ## Histórico
 
 | Data | Matéria | Quantidade adicionada | Motivo/observação |
 |---|---|---:|---|
+| 2026-08-03 | Direito Empresarial | 2 | Faltou o dia inteiro |
+| 2026-08-03 | Contabilidade Financeira | 2 | Faltou o dia inteiro |
+| 2026-08-03 | Estudos Organizacionais | 2 | Faltou o dia inteiro |
+| 2026-08-04 | Estatística II | 2 | Faltou o dia inteiro |
+| 2026-08-04 | Matemática Aplicada I | 2 | Faltou o dia inteiro |
+| 2026-08-04 | Psicologia | 2 | Faltou o dia inteiro |
+| 2026-08-11 | Estatística II | 2 | Faltou somente a esta matéria |
+| 2026-08-13 | Matemática Aplicada I | 2 | Faltou o dia inteiro |
+| 2026-08-13 | Psicologia | 2 | Faltou o dia inteiro |
 
 ## Regra de contagem
 
