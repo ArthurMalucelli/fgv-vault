@@ -9,10 +9,35 @@ Revisão hands-on de [[Teste de hipotese|teste de hipótese]] pra Provinha 1 (25
 
 ## 0. Como usar
 
-1. Lê o bloco do teste aqui (enunciado, hipóteses, fórmula, decisão).
-2. Abre a aba correspondente do `TestesHipotese.xlsx`, clica nas células de fórmula, muda um input azul e vê a decisão virar.
-3. Abre o R no terminal e cola o bloco correspondente do `TestesHipotese.R`. Olha cada objeto (`t_calc`, `t_crit`, valor-p) antes de rodar a função pronta.
-4. Só depois faz os exercícios da seção 5 nas duas ferramentas, sem olhar o gabarito da seção 7.
+Três coisas abertas ao mesmo tempo: este md no Obsidian (a aula), o `TestesHipotese.xlsx` no Excel, o `TestesHipotese.R` no VS Code com o terminal rodando `R` (setup na seção 1).
+
+**Ciclo por teste** (vale pros 7 blocos da seção 4):
+
+1. Lê só o enunciado. Antes de ler o resto, escreve no papel H0, H1, cauda e qual teste é (tabela da seção 2 se travar). Só então lê os passos 1 a 3 e confere.
+2. Excel: abre a aba do teste. Clica célula por célula do bloco de passos e lê a fórmula na barra (o bloco "Excel" de cada teste aqui é o mesmo, célula: fórmula). Apaga a célula do valor-p e reescreve a fórmula você mesmo. Muda um input azul (μ₀, α, um dado) e vê a decisão virar.
+3. R: cola o bloco no console, lê o output. Digita os objetos um a um (`ep`, `t_calc`, `qt(...)`, `pt(...)`) e confere que batem com o Excel. Muda o mesmo input que mudou no Excel, roda de novo, mesma virada.
+4. Lê os passos 4 e 5 e a pegadinha. Escreve a frase de interpretação com tuas palavras, sem olhar a daqui. Compara.
+5. Anota uma linha: "teste X: quando usar, fórmula, função Excel, função R". No fim são 7 linhas, o cheat sheet de véspera.
+
+**Ordem e sessões** (Provinha 1 em 25/08):
+
+| Sessão | O quê | Tempo |
+|---|---|---|
+| 1 | Seções 1 e 2 só lendo. Ciclo em 4.1 e 4.2 (Z e t de uma média, os mais cobrados) | 1h |
+| 2 | Ciclo em 4.3, 4.4, 4.5 (pareado, Welch, proporção) | 1h |
+| 3 | Ciclo em 4.6 e 4.7 (qui-quadrado), de preferência depois da aula de ter 18/08 | 45 min |
+| 4 | Exercícios E1 a E4 (roteiro abaixo) | 1h |
+| 5 (véspera) | Reler seção 6. Pegar 2 enunciados da seção 4, cobrir a resposta, resolver do zero no papel com os 5 passos e o Excel só de calculadora | 45 min |
+
+**Exercícios (sessão 4), um por vez:**
+
+1. Lê o enunciado (seção 5) e decide o teste com a tabela da seção 2. Em E3 esse é o ponto: pareado ou Welch antes de qualquer conta.
+2. Excel: aba nova, copia a estrutura da aba parecida (E1 usa o bloco 2b da `2_T_Media`, E2 a `5_Proporcao`, E3a a `3_Pareado`, E3b a `4_Welch`, E4 a `6_Qui_Aderencia`) e cola os dados da aba `Exercicios`. Monta os passos você mesmo.
+3. R: digita (não cola) as linhas: estatística na mão, crítico, valor-p, depois a função pronta. Os vetores de dados estão prontos no bloco 8 do script, esses pode colar.
+4. Escreve a frase de interpretação.
+5. Só agora abre a seção 7 (gabarito) e descomenta o bloco 9 do script. Se um número não bater, procura o erro no teu Excel primeiro (referência de célula, cauda, `STDEV.S`), depois no R.
+
+**Sinal de pronto**: um enunciado novo (inventa: "a espera média era 8 min, amostra de 15 deu 8,6 com s 1,1, piorou?"), 5 passos no papel, conta no Excel e no R, frase de interpretação, tudo sem abrir a seção 4. Onde travar é o que falta revisar.
 
 ## 1. Setup
 
