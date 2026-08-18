@@ -19,6 +19,13 @@
 | Data | Matéria | Quantidade adicionada | Motivo/observação |
 |---|---|---:|---|
 
+## Regra de contagem
+
+- Cada disciplina aparece em um bloco de duas aulas seguidas.
+- Se Arthur disser que faltou a uma aula/disciplina, adicionar **2 faltas** nessa matéria.
+- Se disser que faltou o dia todo, consultar a agenda daquele dia e adicionar **2 faltas em cada matéria que teve aula**.
+- Registrar a data e cada matéria separadamente no histórico para evitar duplicidade.
+
 ## Notas
 
 - Os totais só serão alterados a partir de informação do Arthur ou registro oficial verificável.
