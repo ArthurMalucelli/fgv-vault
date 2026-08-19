@@ -76,6 +76,30 @@ Receita de serviços                     40.000
 = Lucro líquido                          11.700
 ```
 
+### Versão por função (com CSP)
+
+Regra da professora: atividade-fim vira custo (CSP em serviços), atividade-meio vira [[Despesas Operacionais]], banco vira [[Resultado Financeiro]]. Tudo que o enunciado descreve é estúdio e produção, então vai pro CSP.
+
+```
+Receita bruta de serviços                        40.000
+(−) Deduções (ISS etc.)                               0   não informado
+= Receita líquida                                40.000
+(−) CSP                                         (26.500)
+      Materiais de estúdio consumidos             7.500
+      Salários equipe de edição e suporte         9.000
+      Aluguel do estúdio (1 de 3 meses)           8.000
+      Depreciação dos equipamentos                2.000
+= [[Lucro Bruto]]                                13.500   margem bruta 33,75%
+(−) Despesas operacionais (vendas / adm)              0   nenhuma no enunciado
+= [[EBIT]]                                       13.500
+(−) Despesas financeiras (juros 1,5% × 120.000)  (1.800)
+= LAIR                                           11.700
+(−) IR / CSLL                                         0   não informado
+= Lucro líquido                                  11.700
+```
+
+Julgamentos: "suporte" nos salários poderia ser administrativo e o aluguel poderia ser parte escritório, mas o enunciado não dá split, então não inventa. O split só mexe em lucro bruto e EBIT; lucro líquido e Lucro Acumulado ficam em 11.700 de qualquer jeito. O adiantamento de 15.000 não aparece na DRE.
+
 ## Fluxo de caixa de janeiro ([[DFC]], regime de caixa)
 
 ```
