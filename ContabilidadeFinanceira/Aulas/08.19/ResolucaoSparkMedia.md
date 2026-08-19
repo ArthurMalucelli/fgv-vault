@@ -115,6 +115,8 @@ Saídas
 Caixa inicial 20.000 → caixa final 9.000
 ```
 
+Por coluna, no formato da planilha (FCO / FCI / FCF): col 1 +10.000, col 1' +15.000, col 2 (24.000), col 3 (12.000), cols 4, 5 e Ajustes zero. FCI e FCF zerados em janeiro: empréstimo, capital e equipamentos são de 31/12, antes do saldo inicial. A linha Variação no Caixa de cada coluna tem que bater com o movimento de Caixa da mesma coluna no balanço.
+
 ## Conciliação lucro → caixa
 
 | Item | Valor | Por quê |
