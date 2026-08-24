@@ -91,4 +91,13 @@ Responder no formato:
 
 **Correção conceitual:** memória importa muito no argumento do livro. O problema não é “decorar” em qualquer sentido, mas depender de repetição textual e reconhecimento passivo. Explicar com palavras próprias é um avanço, porém ainda precisa ser testado por recuperação sem consulta e aplicação em situações novas.
 
-**Pendente para completar a nota 3–2–1:** registrar duas conexões concretas com matérias da FGV e uma ação prática para o próximo estudo.
+**Conexão com a FGV:** Arthur não identifica a releitura como um problema recorrente; já prefere quizzes e flashcards. O principal gargalo é a baixa frequência de execução, não a escolha inicial do método. Ainda assim, quizzes de múltipla escolha e flashcards podem gerar reconhecimento passivo quando a resposta é vista cedo demais ou quando não há aplicação.
+
+**Ação prática definida:**
+- Após cada aula relevante, criar 5–10 perguntas ou flashcards em até 24 horas.
+- Responder antes de revelar a solução e revisar os erros, não apenas contabilizar acertos.
+- Revisar em intervalos aproximados de 1, 3, 7 e 14 dias.
+- Em matérias quantitativas ou baseadas em casos, incluir ao menos um problema novo sem consultar a resolução.
+- Fazer uma revisão cumulativa curta aos domingos.
+
+**Nota 3–2–1 concluída:** três ideias recuperadas; conexões feitas com o método de estudo já usado na FGV e com seu problema de consistência; ação convertida em protocolo mensurável.
