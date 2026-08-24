@@ -74,5 +74,15 @@ Responder no formato:
 `Sono X/2 | Proteína X/2 | Treino X | Estudo X blocos | Leitura X páginas/X notas | Idioma X/2 | Social X/2 | Falha principal: ___ | Correção: ___`
 
 ## Início
-- 23/08/2026: iniciar *Make It Stick*, ler por 30 minutos e produzir a primeira nota 3–2–1.
+- 23/08/2026: iniciou *Make It Stick* e terminou o capítulo 1.
 - Primeiro check-in automático: 25/08/2026 às 20h.
+
+## Diário de leitura
+
+### 23/08/2026 — *Make It Stick*, capítulo 1
+
+**Recuperação inicial do Arthur:** reler repetidamente pode produzir a sensação enganosa de que o conteúdo foi aprendido. A familiaridade com o texto é confundida com domínio, criando uma perigosa ilusão de conhecimento.
+
+**Refinamento:** reler não é completamente inútil; pode ajudar na primeira exposição ou numa revisão direcionada. O erro é tratá-la como estratégia principal e usar reconhecimento como prova de aprendizagem. O teste real é fechar o material e conseguir explicar, aplicar ou resolver sem pistas. A recuperação ativa tanto revela lacunas quanto fortalece a memória.
+
+**Pendente para completar a nota 3–2–1:** registrar mais duas ideias do capítulo, duas conexões com a FGV e uma ação prática para o próximo estudo.
