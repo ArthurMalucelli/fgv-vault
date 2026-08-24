@@ -101,3 +101,5 @@ Responder no formato:
 - Fazer uma revisão cumulativa curta aos domingos.
 
 **Nota 3–2–1 concluída:** três ideias recuperadas; conexões feitas com o método de estudo já usado na FGV e com seu problema de consistência; ação convertida em protocolo mensurável.
+
+**Percepção ao terminar:** Arthur gostou da leitura e conseguiu conectar as ideias com experiências próprias. Isso indica elaboração e relevância pessoal, mas será validado por uma tentativa de recuperação espaçada no dia seguinte, sem reler as notas primeiro.
