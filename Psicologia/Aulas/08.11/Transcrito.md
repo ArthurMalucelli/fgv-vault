@@ -1,7 +1,6 @@
 ---
 materia: Psicologia
 data: 2026-08-11
-professor: Larissa
 tema: Apresentação do curso e o problema mente-cérebro
 topicos: [fator humano nas organizações, monismo, dualismo, problema mente-cérebro, behaviorismo, psicologia cognitiva, psicanálise, avaliação do curso]
 tags: [aula, transcrito]
