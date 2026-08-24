@@ -16,6 +16,7 @@ Evoluir simultaneamente em corpo, inteligência, disciplina e presença social p
 1. **Make It Stick**, de Peter Brown, Henry Roediger e Mark McDaniel.
 2. **The Scout Mindset**, de Julia Galef.
 3. **Memórias do Subsolo**, de Fiódor Dostoiévski — próxima leitura desejada.
+4. **O Problema do Puer Aeternus**, de Marie-Louise von Franz — abordagem junguiana sobre o arquétipo do “eterno jovem”.
 
 ### Cronograma
 - Semana 1: *Make It Stick*, capítulos 1–3. Pergunta: por que estudar por mais tempo não significa necessariamente aprender mais?
