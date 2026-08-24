@@ -48,9 +48,9 @@ tags: [resumo]
 
 ## Prova parcial 1 (anunciada nesta aula)
 
-- Sexta 21/08, 12h, laboratório de informática, turma dividida em salas (alocação liberada antes).
+- Sexta 28/08, 14h-15h30 (evento no calendar), laboratório de informática, turma dividida em salas (alocação liberada antes).
 - Computador sem internet: só o questionário no Eclass + planilha Excel em branco (montar balanço/DRE, estrutura dada sem fórmulas).
-- Atividades pré-prova (simulado) liberadas na quarta 19/08, sem tempo, até 3 tentativas.
+- Atividades pré-prova (simulado) liberadas na quarta, sem tempo, até 3 tentativas.
 - Quem perde a parcial faz na semana de provas planificada.
 - Prova ≠ lista: mesmas perguntas com formatos diferentes; só a parte de planilha é procedimental.
 - Pré-aula no Eclass: PDF, planilha, respondido e videoaula passo a passo.
