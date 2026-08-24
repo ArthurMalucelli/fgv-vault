@@ -5,7 +5,7 @@ tema: Identificação de empresas pela estrutura da DRE e do Balanço Patrimonia
 tags: [atividade, resolucao, DRE, balanco-patrimonial, analise-vertical]
 ---
 
-# Resolução — Identificação de empresas pela DRE e pelo BP
+# Resolução: identificação de empresas pela DRE e pelo BP
 
 ## Enunciado
 
@@ -19,59 +19,81 @@ tags: [atividade, resolucao, DRE, balanco-patrimonial, analise-vertical]
 
 ## Resposta final
 
-- **A — Empresa 2:** concessionária rodoviária
-- **B — Empresa 5:** banco múltiplo
-- **C — Empresa 3:** varejo alimentar reestruturado
-- **D — Empresa 6:** aluguel de carros e gestão de frotas
-- **E — Empresa 4:** agronegócio
-- **F — Empresa 1:** mineradora
+- **A, Empresa 2:** concessionária rodoviária
+- **B, Empresa 5:** banco múltiplo
+- **C, Empresa 3:** varejo alimentar reestruturado
+- **D, Empresa 6:** aluguel de carros e gestão de frotas
+- **E, Empresa 4:** agronegócio
+- **F, Empresa 1:** mineradora
 
-**Gabarito:** A–2 | B–5 | C–3 | D–6 | E–4 | F–1
+**Gabarito:** A-2 | B-5 | C-3 | D-6 | E-4 | F-1
 
 ## Justificativas
 
-### A — Empresa 2: concessionária rodoviária
+Método: [[Análise Vertical]] (common-size). Cada número é % do Ativo Total no BP e % da Receita na DRE. O tamanho some e o que resta é a estrutura, e a estrutura é o modelo de negócio.
 
-- **Intangível de 74%:** representa principalmente o direito de exploração da concessão.
-- Não há estoque relevante e o ativo circulante é de apenas 8%.
-- Margem bruta de 62% e EBIT de 57%, compatíveis com uma operação de concessão previsível e escalável.
-- Endividamento alto, coerente com os investimentos de longo prazo em infraestrutura.
+### A, Empresa 2: concessionária rodoviária
 
-### B — Empresa 5: banco múltiplo
+- **[[Intangível]] de 74% do ativo:** a rodovia não é ativo da empresa (pertence ao poder concedente). O que ela registra é o direito de exploração da concessão, por isso o imobilizado é de só 1%.
+- [[Margem Bruta]] de 62% e [[EBIT]] de 57%: pedágio tem custo marginal baixíssimo e receita altamente previsível. Despesa de vendas de 0%: o tráfego chega sozinho, não existe esforço comercial.
+- Dívida bruta de 75% do ativo (46% no circulante + 29% no longo prazo) contra [[Patrimônio Líquido|PL]] de 13%: alavancagem típica de concessão, dívida emitida contra fluxo de pedágio estável. Resultado financeiro de -11% da receita.
+- IR cheio, cerca de 33% do lucro antes de impostos (15 sobre 46), sem benefício fiscal relevante.
 
-- **Aplicações financeiras de 52%** e contas a receber de 30% dominam o ativo.
-- Imobilizado de apenas 1%, pois a operação bancária não depende de infraestrutura produtiva pesada.
-- Grande volume de obrigações financeiras e despesas gerais e administrativas de 22%.
+### B, Empresa 5: banco múltiplo
 
-### C — Empresa 3: varejo alimentar reestruturado
+- **PL de 9% do ativo, alavancagem de ~11x:** nenhum setor não financeiro opera assim. A estrutura de capital sozinha entrega o banco.
+- Ativo quase todo financeiro: aplicações financeiras de 52% + contas a receber de 30% (carteira de crédito e títulos). Imobilizado e intangível de 1% cada, estoque zero.
+- Os "empréstimos e financiamentos" de 69% no passivo circulante são captação (depósitos e funding), não dívida bancária comum. Repare que o BP nem segrega circulante e não circulante (linhas em branco): plano de contas de instituição financeira.
+- Na DRE, o "custo" de 70% é despesa de captação (intermediação financeira), e o resultado financeiro é 0% porque, pra banco, o financeiro É a operação. G&A de 22% da receita: rede de agências e pessoal, cara de segmento popular.
 
-- Estoques de 9%, fornecedores de 15% e despesas de vendas de 16% são característicos do varejo.
-- Direito de uso de 14% reflete imóveis e lojas arrendados.
-- **Operações descontinuadas de −12%** são a evidência decisiva da separação das operações internacionais.
+### C, Empresa 3: varejo alimentar reestruturado
 
-### D — Empresa 6: aluguel de carros e gestão de frotas
+- **Resultado de [[Operações Descontinuadas]] de -12% da receita:** única empresa com essa linha relevante. É a assinatura da separação das operações internacionais que o enunciado descreve.
+- Fornecedores de 15% do passivo + [[Estoque|estoques]] de 9%: supermercado financia a gôndola com prazo de fornecedor.
+- Despesa de vendas de -16% (lojas, pessoal, marketing) e EBIT de só 4% sobre margem bruta de 25%: margem fina clássica de varejo alimentar.
+- [[Direito de Uso em Arrendamento]] de 14% do ativo, espelhado em outras obrigações de longo prazo de 21%: lojas alugadas dentro do balanço.
 
-- **Imobilizado de 64%**, formado principalmente pelos veículos da frota.
-- Dívida financeira elevada: 9% no curto prazo e 41% no longo prazo.
-- Resultado financeiro de −14%, compatível com o custo de financiar a frota.
+### D, Empresa 6: aluguel de carros e gestão de frotas
 
-### E — Empresa 4: agronegócio
+- **[[Imobilizado]] de 64% (63% em operação):** a frota é o ativo.
+- Empréstimos de longo prazo de 41% do passivo e [[Resultado Financeiro]] de -14% da receita: carro comprado com dívida; o juro come o EBIT de 20% e sobra lucro de 6%.
+- **IR de 0% com lucro positivo:** depreciação acelerada da frota + [[JCP]] zeram o imposto corrente. Nenhuma outra coluna tem isso; é marca registrada do setor de locação.
+- O custo de 71% da receita carrega a [[Depreciação|depreciação]] pesada da frota e o custo dos seminovos vendidos.
 
-- **Ativos biológicos de 9%**, conta distintiva de empresas agrícolas.
-- Estoques de 23%, imobilizado de 46% e direito de uso de 18% são coerentes com produção, máquinas, terras e arrendamentos.
-- Resultado financeiro negativo, compatível com uma operação intensiva em ativos e capital de giro.
+### E, Empresa 4: agronegócio
 
-### F — Empresa 1: mineradora
+- **[[Ativo Biológico|Ativos biológicos]] de 9%:** lavoura em formação. A linha só existe no agro e fecha o match sozinha.
+- Estoques de 23% do ativo: safra colhida aguardando comercialização (grão é commodity estocável).
+- O enunciado fala em terras próprias e arrendadas, e o BP mostra os dois lados: imobilizado de 46% (terras e máquinas próprias) + direito de uso de 18% (terras arrendadas).
+- Caixa + aplicações de 20%: colchão pra atravessar a sazonalidade do ciclo de safra. EBIT de 21% com resultado financeiro de -8% (dívida de custeio).
 
-- Imobilizado de 51%, associado a minas, ferrovias, máquinas e infraestrutura pesada.
-- **Provisões totais de 31%**, compatíveis com recuperação ambiental, descomissionamento e outras obrigações da mineração.
-- Margem bruta de 42%, EBIT de 31% e lucro líquido de 19%, influenciados pelo preço das commodities.
+### F, Empresa 1: mineradora
+
+- **[[Provisões]] de 31% do passivo (26% no longo prazo + 5% no circulante), de longe a maior do grupo:** desativação de minas e obrigações socioambientais. Conversa com as outras despesas operacionais de -10% da receita (provisões e eventos passando pelo resultado).
+- Imobilizado de 51% + realizável de longo prazo de 14%: minas, ferrovias e portos.
+- Margem bruta de 42% e EBIT de 31% com despesa de vendas de 0%: o preço é dado pelo mercado global de commodities, vende sem esforço comercial.
+- PL de 43%, a mais capitalizada do grupo, com participação de minoritários de 2% (controladas consolidadas).
+
+## Pares que confundem (anti-pegadinha)
+
+- **1 vs 6, as duas imobilizado-pesado:** a 1 tem provisões gigantes, PL de 43% e IR normal; a 6 tem dívida de longo prazo de 41%, resultado financeiro de -14% e IR zero. Mineradora se capitaliza, locadora se alavanca.
+- **3 vs 4, as duas com estoque:** ativos biológicos só existem na 4; fornecedores altos e operações descontinuadas só na 3. Estoque de 23% (safra) vs 9% (gôndola).
+- **2 vs 1/6, infraestrutura:** concessão vira intangível (o ativo físico não é dela); mina e frota viram imobilizado (são delas). Mesma lógica de ativo pesado, conta contábil oposta.
+
+## Palpites de nomes reais (pra discussão em sala)
+
+- A: Ecorodovias ou CCR (hoje Motiva)
+- B: Bradesco (ou Banco do Brasil)
+- C: Grupo Pão de Açúcar (cisão recente das operações internacionais)
+- D: Localiza
+- E: SLC Agrícola
+- F: Vale
 
 ## Padrões para reconhecer empresas pelas demonstrações
 
-- **Concessão:** intangível muito alto e margens operacionais elevadas.
-- **Banco:** aplicações financeiras e recebíveis dominam o ativo; quase não há estoque ou imobilizado.
-- **Varejo:** estoques, fornecedores, despesas de vendas e arrendamentos relevantes.
-- **Locadora:** frota aparece no imobilizado e normalmente é financiada por dívida.
-- **Agronegócio:** presença de ativos biológicos, estoques e ativos produtivos.
-- **Mineração:** imobilizado e provisões ambientais elevados, com margens sensíveis às commodities.
+- **Concessão:** intangível muito alto, margens operacionais elevadas, dívida longa contra receita previsível.
+- **Banco:** PL fino (~10% do ativo), ativo dominado por aplicações e recebíveis, quase nada de estoque ou imobilizado.
+- **Varejo:** estoques, fornecedores, despesa de vendas e arrendamento de lojas relevantes, margem fina.
+- **Locadora:** frota no imobilizado financiada por dívida, resultado financeiro pesado, IR perto de zero.
+- **Agronegócio:** ativos biológicos, estoque de safra, terras próprias no imobilizado e arrendadas no direito de uso.
+- **Mineração:** imobilizado e provisões ambientais elevados, margens sensíveis a commodities, sem despesa de vendas.
