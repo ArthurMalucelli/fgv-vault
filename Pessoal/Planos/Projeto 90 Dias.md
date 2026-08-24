@@ -85,4 +85,10 @@ Responder no formato:
 
 **Refinamento:** reler não é completamente inútil; pode ajudar na primeira exposição ou numa revisão direcionada. O erro é tratá-la como estratégia principal e usar reconhecimento como prova de aprendizagem. O teste real é fechar o material e conseguir explicar, aplicar ou resolver sem pistas. A recuperação ativa tanto revela lacunas quanto fortalece a memória.
 
-**Pendente para completar a nota 3–2–1:** registrar mais duas ideias do capítulo, duas conexões com a FGV e uma ação prática para o próximo estudo.
+**Ideias adicionais recuperadas pelo Arthur:**
+- A releitura permanece popular porque é um hábito de estudo amplamente transmitido e parece intuitivamente correto; o exemplo do aluno que lê, resume e relê, mas ainda vai mal, mostra que esforço aparente não garante aprendizagem.
+- A facilidade crescente durante a releitura produz uma falsa sensação de progresso. Reconhecer ou repetir o texto não prova que o aluno consegue recuperar, explicar e aplicar o conhecimento sem apoio.
+
+**Correção conceitual:** memória importa muito no argumento do livro. O problema não é “decorar” em qualquer sentido, mas depender de repetição textual e reconhecimento passivo. Explicar com palavras próprias é um avanço, porém ainda precisa ser testado por recuperação sem consulta e aplicação em situações novas.
+
+**Pendente para completar a nota 3–2–1:** registrar duas conexões concretas com matérias da FGV e uma ação prática para o próximo estudo.
