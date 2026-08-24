@@ -97,3 +97,24 @@ Método: [[Análise Vertical]] (common-size). Cada número é % do Ativo Total n
 - **Locadora:** frota no imobilizado financiada por dívida, resultado financeiro pesado, IR perto de zero.
 - **Agronegócio:** ativos biológicos, estoque de safra, terras próprias no imobilizado e arrendadas no direito de uso.
 - **Mineração:** imobilizado e provisões ambientais elevados, margens sensíveis a commodities, sem despesa de vendas.
+
+## Dois conceitos que travaram (e a explicação que destravou)
+
+### Resultado financeiro 0% no banco
+
+A linha de resultado financeiro guarda o juro que sobra fora da operação. No banco não sobra nenhum: o juro recebido da carteira é a receita, o juro pago na captação é o custo, e o spread é o resultado bruto. A gaveta fica vazia porque juro é o negócio.
+
+Mini exemplo: capta 1.000 a 10% ao ano (paga 100), empresta a 18% (recebe 180).
+
+<pre>Receita               180   (juro recebido)
+Custo                -100   (juro pago na captação)
+Resultado bruto        80   (spread)
+Resultado financeiro    0   (gaveta vazia)</pre>
+
+Teste geral pra qualquer empresa: se o juro faz parte de entregar o produto ao cliente, vai pra cima (receita ou custo); se veio só de como a empresa se financiou, vai pra baixo (resultado financeiro). Na loja, captar dinheiro é meio pra comprar estoque, juro vai pra baixo. No banco, captar dinheiro é comprar a mercadoria que ele revende, juro vai pra cima.
+
+### Provisões na mineradora
+
+Provisão é dívida de valor borrado: obrigação presente, causada por evento passado, com saída provável de dinheiro, registrada por estimativa. Abrir a mina já cria a obrigação de fechar e recuperar a área décadas depois, então o passivo entra no balanço hoje (a valor presente), e a despesa aparece por competência muito antes do caixa sair.
+
+Não confundir com proteção de preço: queda de commodity não cria obrigação com ninguém, logo não gera provisão. Preço se enfrenta com PL gordo (absorve anos ruins) e hedge (trava preço); o efeito contábil de preço baixo aparece como impairment do ativo. Âncora: cavar o buraco já cria a conta de tampá-lo.
