@@ -37,11 +37,12 @@ Marcar como feita: clica no checkbox ou troca `[ ]` por `[x]`.
 
 <!-- A skill adiciona tasks aqui automaticamente quando processa transcript -->
 
-- [ ] Imprimir o caso da aula de TDN (professora recomendou trazer impresso) #tdn 📅 2026-08-21
-- [ ] Fazer o exercício de Excel de teste de proporções no eClass #est2 📅 2026-08-18
+- [x] Imprimir o caso da aula de TDN (professora recomendou trazer impresso) #tdn 📅 2026-08-21 ✅ 2026-08-24
+- [x] Fazer o exercício de Excel de teste de proporções no eClass #est2 📅 2026-08-18 ✅ 2026-08-24
 - [ ] Prova parcial 1 de Contabilidade, 14h-15h30 no laboratório de informática (questionário Eclass + planilha em branco, sem internet) #cont 📅 2026-08-28 🔺
 - [ ] Plantão de dúvidas online de Contabilidade à noite (véspera da prova) #cont 📅 2026-08-26
 - [ ] Refazer a atividade pré-prova de Contabilidade como simulado de 2h (até 3 tentativas, sem nota) #cont 📅 2026-08-27 ⏫
+- [ ] Quiz de Estatística II na aula (1ª Provinha, qui-quadrado, ~1h, 10 questões, R/Excel/mão) #est2 📅 2026-08-25 🔺
 
 ## Adicionadas manualmente
 
