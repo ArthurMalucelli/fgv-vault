@@ -73,7 +73,14 @@ Começar com apenas **um idioma durante 8–12 semanas**, evitando dividir a pr�
 ## Placar do check-in de 48 horas
 Responder no formato:
 
-`Sono X/2 | Proteína X/2 | Treino X | Estudo X blocos | Leitura X páginas/X notas | Idioma X/2 | Social X/2 | Falha principal: ___ | Correção: ___`
+`Sono X/2 | Proteína X/2 | Treino X | Estudo X blocos | Recuperação ativa X/2 | Leitura X páginas/X notas | Idioma X/2 | Social X/2 | Falha principal: ___ | Correção: ___`
+
+## Histórico de check-ins
+
+### 25/08/2026 às 20h — cobrança enviada
+- Janela avaliada: 24–25/08/2026.
+- Solicitados dados de sono, proteína, treino previsto, estudo profundo, recuperação ativa em até 24h das aulas, leitura com notas 3–2–1, idioma, ações sociais desconfortáveis e desperdício de tempo.
+- Aguardando resposta do Arthur; nenhum item foi contabilizado sem evidência de execução.
 
 ## Início
 - 23/08/2026: iniciou *Make It Stick* e terminou o capítulo 1.
