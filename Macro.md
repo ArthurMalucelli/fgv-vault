@@ -19,4 +19,13 @@ Agora, se a capacidade aumenta por produtividade, infraestrutura ou tecnologia, 
 
 **INFLAÇÃO NÚCLEO** -> Reduz a influencia de itens muitos volateis para identificar a tendencia que persiste.
 
-O perigoso são os ****
+O perigoso são os **efeitos de segunda ordem**, energia sobe, ou seja frete e produção encarecem, trabalhadores pedem salarios maiores, empresas reajustam preços , expectativas sobem e espalham, e a **inflação fica persistente.**
+
+**Sem este efeito de segunda ordem, uma alta temporaria do petroleo pode desaparecer da inflação**
+
+**Emprego, Salários e produtividade**
+Mercado de trabalho forte sustenta renda e consumo, mas se os salarios subirem sem que a produtividade corresponda, o custo por unidade prduzida aumenta de mais.
+
+Custo unitario do trabalho = Crescimento salarial - crescimento da produtividade.
+
+**Se o juro real supera o crescimento por muito temp, a estabilização d**
