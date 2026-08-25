@@ -28,4 +28,4 @@ Mercado de trabalho forte sustenta renda e consumo, mas se os salarios subirem s
 
 Custo unitario do trabalho = Crescimento salarial - crescimento da produtividade.
 
-**Se o juro real supera o crescimento por muito temp, a estabilização d**
+**Se a divida cresce mais rapido que a economia, o governo precisa economizar pra impedirq ue ela fique cada vez maior em relação ao PIB**
