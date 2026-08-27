@@ -47,4 +47,14 @@ Treino 1 (Ponto de Ouro):
 - Salário é a empresa pagando pra jogar; dividendo é o dono sacando o prêmio depois do apito.
 - Fechamentos que a planilha tem que provar: Diferença = 0 em toda coluna, lucro da DRE alimenta o PL, caixa final da DFC = caixa do BP.
 
+Treino 2 (Retrô Mantos):
+
+- Compra não é custo; venda é. [[CMV]] = só a fração do lote efetivamente vendida.
+- A [[DRE]] é a coluna de efeitos de resultado do BP aberta em linhas. Deriva dela, não monta de cabeça.
+- Dividendo é a única mudança de [[Lucros Acumulados]] que a DRE não espelha.
+- Diferença zerada NÃO valida classificação: erro lançado simétrico dos dois lados fecha a equação e continua errado.
+- 9 transações = 9 colunas usadas. Coluna sobrando é transação engolida.
+- Checks finais obrigatórios: lucro da DRE = soma dos efeitos de resultado no PL; caixa final da [[DFC]] = caixa do BP.
+- Padrão de erro pessoal nos treinos: leitura apressada da condição de pagamento e recebimento. Sublinhar em cada transação antes de lançar qualquer número.
+
 (Seções dos próximos treinos entram aqui.)
