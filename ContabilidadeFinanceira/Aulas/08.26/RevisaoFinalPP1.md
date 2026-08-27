@@ -57,4 +57,14 @@ Treino 2 (Retrô Mantos):
 - Checks finais obrigatórios: lucro da DRE = soma dos efeitos de resultado no PL; caixa final da [[DFC]] = caixa do BP.
 - Padrão de erro pessoal nos treinos: leitura apressada da condição de pagamento e recebimento. Sublinhar em cada transação antes de lançar qualquer número.
 
+Treino 3 (Torra & Prensa):
+
+- A linha Caixa do BP é o extrato bancário: registra dinheiro movido, pelo valor inteiro, sempre. Competência mora no Lucro Acumulado e nas contas-ponte, nunca no caixa.
+- [[Despesa Antecipada|Aluguel antecipado]] tem 3 pedaços: dinheiro sai inteiro (Caixa), consumo do mês vira despesa (LA/DRE), meses futuros viram Despesas Antecipadas POSITIVAS no ativo (é um direito).
+- [[Adiantamento de Cliente|Adiantamento recebido]]: Caixa entra, passivo nasce, receita zero até entregar. Não existe conta de ativo pra adiantamento recebido.
+- Na [[DFC]], adiantamento recebido de cliente é recebimento OPERACIONAL.
+- Não batizar passivo com nome de ativo: "Clientes a Receber" nunca é conta de passivo.
+- Checks permanentes na planilha, antes de dizer "acabei": caixa da DFC menos caixa do BP = 0, e lucro da DRE menos (variação do LA sem dividendos) = 0.
+- Vitória consolidada: dividendo declarado saiu no automático na 4ª repetição. Método que funciona: repetir a transação fraca em todo treino até virar reflexo.
+
 (Seções dos próximos treinos entram aqui.)
