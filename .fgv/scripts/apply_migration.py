@@ -27,6 +27,8 @@ OID_PATTERN = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 JOURNAL_NAME = "migration-apply-journal.json"
 JOURNAL_PATH = f".fgv/{JOURNAL_NAME}"
+DIRECTORY_TEMPORARY_PREFIX = ".migration-apply-directory."
+DIRECTORY_QUARANTINE_PREFIX = ".migration-apply-removed."
 JOURNAL_FIELDS = (
     "schema_version",
     "expected_head",
@@ -36,13 +38,69 @@ JOURNAL_FIELDS = (
     "phase",
     "move_count",
     "completed_moves",
+    "planned_directories",
     "created_directories",
+    "directory_intent",
 )
+CREATED_DIRECTORY_FIELDS = ("path", "device", "inode")
+DIRECTORY_INTENT_FIELDS = ("path", "temporary_name", "device", "inode")
 TEMPORARY_OPEN_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
 ATOMIC_RENAME_FLAGS = {
     "darwin": ("renameatx_np", 0x00000004),
     "linux": ("renameat2", 0x00000001),
 }
+LINUX_LOCAL_FILESYSTEMS = {
+    0x0000137D,
+    0x0000EF53,
+    0x2FC12FC1,
+    0x3153464A,
+    0x3434,
+    0x52654973,
+    0x58465342,
+    0x794C7630,
+    0x9123683E,
+    0xF2F52010,
+}
+DARWIN_MNT_LOCAL = 0x00001000
+
+
+class _DarwinStatFS(ctypes.Structure):
+    _fields_ = (
+        ("f_bsize", ctypes.c_uint32),
+        ("f_iosize", ctypes.c_int32),
+        ("f_blocks", ctypes.c_uint64),
+        ("f_bfree", ctypes.c_uint64),
+        ("f_bavail", ctypes.c_uint64),
+        ("f_files", ctypes.c_uint64),
+        ("f_ffree", ctypes.c_uint64),
+        ("f_fsid", ctypes.c_int32 * 2),
+        ("f_owner", ctypes.c_uint32),
+        ("f_type", ctypes.c_uint32),
+        ("f_flags", ctypes.c_uint32),
+        ("f_fssubtype", ctypes.c_uint32),
+        ("f_fstypename", ctypes.c_char * 16),
+        ("f_mntonname", ctypes.c_char * 1024),
+        ("f_mntfromname", ctypes.c_char * 1024),
+        ("f_flags_ext", ctypes.c_uint32),
+        ("f_reserved", ctypes.c_uint32 * 7),
+    )
+
+
+class _LinuxStatFS(ctypes.Structure):
+    _fields_ = (
+        ("f_type", ctypes.c_long),
+        ("f_bsize", ctypes.c_long),
+        ("f_blocks", ctypes.c_ulong),
+        ("f_bfree", ctypes.c_ulong),
+        ("f_bavail", ctypes.c_ulong),
+        ("f_files", ctypes.c_ulong),
+        ("f_ffree", ctypes.c_ulong),
+        ("f_fsid", ctypes.c_int * 2),
+        ("f_namelen", ctypes.c_long),
+        ("f_frsize", ctypes.c_long),
+        ("f_flags", ctypes.c_long),
+        ("f_spare", ctypes.c_long * 4),
+    )
 
 
 class MigrationApplyError(RuntimeError):
@@ -78,13 +136,29 @@ class RecoveryJournal:
     phase: str
     move_count: int
     completed_moves: int
-    created_directories: tuple[str, ...]
+    planned_directories: tuple[str, ...]
+    created_directories: list["CreatedDirectory"]
+    directory_intent: "DirectoryIntent | None"
+
+
+@dataclass(frozen=True)
+class CreatedDirectory:
+    path: str
+    device: int
+    inode: int
+
+
+@dataclass(frozen=True)
+class DirectoryIntent:
+    path: str
+    temporary_name: str
+    device: int | None
+    inode: int | None
 
 
 @dataclass
 class JournalEntry:
     move: Move
-    source_unlinked: bool = False
 
 
 def parse_args(arguments: list[str] | None = None) -> argparse.Namespace:
@@ -181,9 +255,6 @@ def _open_existing_directory(parent_fd: int, name: str, label: str) -> int:
 def _open_parent(
     root_fd: int,
     relative: str,
-    *,
-    create: bool = False,
-    created: list[tuple[str, ...]] | None = None,
 ) -> tuple[int, str]:
     parts = Path(relative).parts
     parent_fd = os.dup(root_fd)
@@ -193,20 +264,10 @@ def _open_parent(
             traversed.append(name)
             try:
                 metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-            except FileNotFoundError:
-                if not create:
-                    raise MigrationApplyError(
-                        f"ancestor is missing: {'/'.join(traversed)}"
-                    )
-                try:
-                    os.mkdir(name, dir_fd=parent_fd)
-                except OSError as error:
-                    raise MigrationApplyError(
-                        f"cannot create destination directory {'/'.join(traversed)}: {error}"
-                    ) from error
-                if created is not None:
-                    created.append(tuple(traversed))
-                metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except FileNotFoundError as error:
+                raise MigrationApplyError(
+                    f"ancestor is missing: {'/'.join(traversed)}"
+                ) from error
             label = f"ancestor {'/'.join(traversed)}"
             if stat.S_ISLNK(metadata.st_mode):
                 raise MigrationApplyError(f"{label} is a symlink")
@@ -343,6 +404,19 @@ def _load_manifest(
         raise MigrationApplyError(
             f"source and destination sets overlap: {min(overlap)!r}"
         )
+    reserved_prefixes = (
+        f".fgv/.{JOURNAL_NAME}.",
+        f".fgv/{DIRECTORY_TEMPORARY_PREFIX}",
+    )
+    for path in manifest_paths:
+        if (
+            path == JOURNAL_PATH
+            or path.startswith(f"{JOURNAL_PATH}/")
+            or any(path.startswith(prefix) for prefix in reserved_prefixes)
+        ):
+            raise MigrationApplyError(
+                f"reserved migration runtime path in manifest: {path}"
+            )
     return ManifestBundle(moves, hashlib.sha256(payload).hexdigest())
 
 
@@ -378,7 +452,31 @@ def _journal_record(journal: RecoveryJournal) -> dict[str, object]:
                 journal.phase,
                 journal.move_count,
                 journal.completed_moves,
-                list(journal.created_directories),
+                list(journal.planned_directories),
+                [
+                    dict(
+                        zip(
+                            CREATED_DIRECTORY_FIELDS,
+                            (directory.path, directory.device, directory.inode),
+                        )
+                    )
+                    for directory in journal.created_directories
+                ],
+                (
+                    None
+                    if journal.directory_intent is None
+                    else dict(
+                        zip(
+                            DIRECTORY_INTENT_FIELDS,
+                            (
+                                journal.directory_intent.path,
+                                journal.directory_intent.temporary_name,
+                                journal.directory_intent.device,
+                                journal.directory_intent.inode,
+                            ),
+                        )
+                    )
+                ),
             ),
         )
     )
@@ -429,6 +527,7 @@ def _read_journal(journal_directory_fd: int) -> RecoveryJournal | None:
             follow_symlinks=False,
         )
     except FileNotFoundError:
+        os.fsync(journal_directory_fd)
         return None
     if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
         raise MigrationApplyError(
@@ -499,26 +598,107 @@ def _read_journal(journal_directory_fd: int) -> RecoveryJournal | None:
         or completed_moves > move_count
     ):
         raise MigrationApplyError("CRITICAL recovery journal has invalid counts")
-    raw_directories = record["created_directories"]
-    if type(raw_directories) is not list or any(
-        type(path) is not str for path in raw_directories
+    raw_planned = record["planned_directories"]
+    if type(raw_planned) is not list or any(
+        type(path) is not str for path in raw_planned
     ):
         raise MigrationApplyError(
-            "CRITICAL recovery journal has invalid created_directories"
+            "CRITICAL recovery journal has invalid planned_directories"
         )
-    directories: list[str] = []
-    for path in raw_directories:
+    planned_directories: list[str] = []
+    for path in raw_planned:
         try:
             normalized = normalize_relative_path(path)
         except InventoryError as error:
             raise MigrationApplyError(
-                "CRITICAL recovery journal has unsafe created_directories"
+                "CRITICAL recovery journal has unsafe planned_directories"
             ) from error
-        if normalized != path or path in directories:
+        if normalized != path or path in planned_directories:
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has invalid planned_directories"
+            )
+        planned_directories.append(path)
+    raw_created = record["created_directories"]
+    if type(raw_created) is not list:
+        raise MigrationApplyError(
+            "CRITICAL recovery journal has invalid created_directories"
+        )
+    created_directories: list[CreatedDirectory] = []
+    for raw_directory in raw_created:
+        if type(raw_directory) is not dict or tuple(raw_directory) != CREATED_DIRECTORY_FIELDS:
             raise MigrationApplyError(
                 "CRITICAL recovery journal has invalid created_directories"
             )
-        directories.append(path)
+        path = raw_directory["path"]
+        device = raw_directory["device"]
+        inode = raw_directory["inode"]
+        if (
+            type(path) is not str
+            or type(device) is not int
+            or device < 0
+            or type(inode) is not int
+            or inode <= 0
+        ):
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has invalid directory ownership"
+            )
+        try:
+            normalized = normalize_relative_path(path)
+        except InventoryError as error:
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has unsafe directory ownership"
+            ) from error
+        if normalized != path or any(
+            directory.path == path for directory in created_directories
+        ):
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has invalid directory ownership"
+            )
+        created_directories.append(CreatedDirectory(path, device, inode))
+    raw_intent = record["directory_intent"]
+    directory_intent: DirectoryIntent | None = None
+    if raw_intent is not None:
+        if type(raw_intent) is not dict or tuple(raw_intent) != DIRECTORY_INTENT_FIELDS:
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has invalid directory_intent"
+            )
+        intent_path = raw_intent["path"]
+        temporary_name = raw_intent["temporary_name"]
+        device = raw_intent["device"]
+        inode = raw_intent["inode"]
+        if type(intent_path) is not str or type(temporary_name) is not str:
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has invalid directory_intent"
+            )
+        try:
+            normalized_intent = normalize_relative_path(intent_path)
+        except InventoryError as error:
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has unsafe directory_intent"
+            ) from error
+        identity_is_empty = device is None and inode is None
+        identity_is_valid = (
+            type(device) is int
+            and device >= 0
+            and type(inode) is int
+            and inode > 0
+        )
+        if (
+            normalized_intent != intent_path
+            or not temporary_name.startswith(DIRECTORY_TEMPORARY_PREFIX)
+            or "/" in temporary_name
+            or "\\" in temporary_name
+            or not (identity_is_empty or identity_is_valid)
+        ):
+            raise MigrationApplyError(
+                "CRITICAL recovery journal has invalid directory_intent"
+            )
+        directory_intent = DirectoryIntent(
+            intent_path,
+            temporary_name,
+            device,
+            inode,
+        )
     return RecoveryJournal(
         expected_head=record["expected_head"],
         manifest_path=record["manifest_path"],
@@ -527,11 +707,15 @@ def _read_journal(journal_directory_fd: int) -> RecoveryJournal | None:
         phase=record["phase"],
         move_count=move_count,
         completed_moves=completed_moves,
-        created_directories=tuple(directories),
+        planned_directories=tuple(planned_directories),
+        created_directories=created_directories,
+        directory_intent=directory_intent,
     )
 
 
-def _write_journal(journal_directory_fd: int, journal: RecoveryJournal) -> None:
+def _write_journal_temporary(
+    journal_directory_fd: int, journal: RecoveryJournal
+) -> str:
     payload = _journal_payload(journal)
     temporary_name: str | None = None
     temporary_fd: int | None = None
@@ -557,18 +741,71 @@ def _write_journal(journal_directory_fd: int, journal: RecoveryJournal) -> None:
             stream.write(payload)
             stream.flush()
             os.fsync(stream.fileno())
+        result = temporary_name
+        temporary_name = None
+        return result
+    finally:
+        if temporary_fd is not None:
+            os.close(temporary_fd)
+        if temporary_name is not None:
+            try:
+                os.unlink(temporary_name, dir_fd=journal_directory_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _install_initial_journal(
+    journal_directory_fd: int, journal: RecoveryJournal
+) -> None:
+    temporary_name = _write_journal_temporary(journal_directory_fd, journal)
+    try:
+        _rename_noreplace(
+            temporary_name,
+            JOURNAL_NAME,
+            src_dir_fd=journal_directory_fd,
+            dst_dir_fd=journal_directory_fd,
+        )
+        temporary_name = ""
+        os.fsync(journal_directory_fd)
+    except FileExistsError as error:
+        raise MigrationApplyError(
+            "CRITICAL recovery journal appeared during initial install"
+        ) from error
+    finally:
+        if temporary_name:
+            try:
+                os.unlink(temporary_name, dir_fd=journal_directory_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _write_journal(journal_directory_fd: int, journal: RecoveryJournal) -> None:
+    try:
+        metadata = os.stat(
+            JOURNAL_NAME,
+            dir_fd=journal_directory_fd,
+            follow_symlinks=False,
+        )
+    except FileNotFoundError as error:
+        raise MigrationApplyError(
+            "CRITICAL recovery journal disappeared before checkpoint"
+        ) from error
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise MigrationApplyError(
+            "CRITICAL recovery journal changed before checkpoint"
+        )
+    temporary_name = _write_journal_temporary(journal_directory_fd, journal)
+    try:
         os.replace(
             temporary_name,
             JOURNAL_NAME,
             src_dir_fd=journal_directory_fd,
             dst_dir_fd=journal_directory_fd,
         )
-        temporary_name = None
+        temporary_name = ""
         os.fsync(journal_directory_fd)
     finally:
-        if temporary_fd is not None:
-            os.close(temporary_fd)
-        if temporary_name is not None:
+        if temporary_name:
             try:
                 os.unlink(temporary_name, dir_fd=journal_directory_fd)
             except FileNotFoundError:
@@ -583,6 +820,7 @@ def _delete_journal(journal_directory_fd: int) -> None:
             follow_symlinks=False,
         )
     except FileNotFoundError:
+        os.fsync(journal_directory_fd)
         return
     if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
         raise MigrationApplyError(
@@ -592,7 +830,9 @@ def _delete_journal(journal_directory_fd: int) -> None:
     os.fsync(journal_directory_fd)
 
 
-def _hash_open_file(parent_fd: int, name: str, label: str) -> tuple[str, int, int]:
+def _hash_open_file(
+    parent_fd: int, name: str, label: str, *, sync: bool = False
+) -> tuple[str, int, int]:
     try:
         metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
     except FileNotFoundError as error:
@@ -615,6 +855,8 @@ def _hash_open_file(parent_fd: int, name: str, label: str) -> tuple[str, int, in
                 break
             digest.update(chunk)
             size += len(chunk)
+        if sync:
+            os.fsync(file_fd)
         after = os.fstat(file_fd)
         if (opened.st_dev, opened.st_ino, opened.st_size) != (
             after.st_dev,
@@ -630,10 +872,22 @@ def _hash_open_file(parent_fd: int, name: str, label: str) -> tuple[str, int, in
             os.close(file_fd)
 
 
-def _verify_file(root_fd: int, relative: str, move: Move, role: str) -> int:
+def _verify_file(
+    root_fd: int,
+    relative: str,
+    move: Move,
+    role: str,
+    *,
+    sync: bool = False,
+) -> int:
     parent_fd, name = _open_parent(root_fd, relative)
     try:
-        digest, size, device = _hash_open_file(parent_fd, name, f"{role} {relative}")
+        digest, size, device = _hash_open_file(
+            parent_fd,
+            name,
+            f"{role} {relative}",
+            sync=sync,
+        )
     finally:
         os.close(parent_fd)
     if size != move.size_bytes:
@@ -696,7 +950,12 @@ def _source_state(root_fd: int, move: Move) -> tuple[str, int | None]:
     return "present", device
 
 
-def _preflight(root_fd: int, moves: Sequence[Move]) -> Preflight:
+def _preflight(
+    root_fd: int,
+    moves: Sequence[Move],
+    *,
+    runtime_device: int | None = None,
+) -> Preflight:
     pending: list[Move] = []
     complete: list[Move] = []
     for move in moves:
@@ -709,9 +968,24 @@ def _preflight(root_fd: int, moves: Sequence[Move]) -> Preflight:
                 raise MigrationApplyError(
                     f"source and destination are on different filesystems: {move.source}"
                 )
+            if runtime_device is not None and source_device != runtime_device:
+                raise MigrationApplyError(
+                    "migration runtime and move are on different filesystems: "
+                    f"{move.source}"
+                )
             pending.append(move)
         elif source_state == "missing" and destination_state == "present":
-            _verify_file(root_fd, move.destination, move, "destination")
+            destination_device = _verify_file(
+                root_fd, move.destination, move, "destination"
+            )
+            if (
+                runtime_device is not None
+                and destination_device != runtime_device
+            ):
+                raise MigrationApplyError(
+                    "migration runtime and move are on different filesystems: "
+                    f"{move.destination}"
+                )
             complete.append(move)
         elif source_state == "present" and destination_state == "present":
             raise MigrationApplyError(
@@ -764,22 +1038,251 @@ def _planned_destination_directories(
     return tuple(planned)
 
 
-def _create_planned_directories(
-    root_fd: int, directories: Sequence[str]
+def _optional_directory_metadata(
+    parent_fd: int, name: str, label: str
+) -> os.stat_result | None:
+    try:
+        metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return None
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise MigrationApplyError(f"{label} is not a regular non-symlink directory")
+    return metadata
+
+
+def _sync_owned_directory(
+    parent_fd: int,
+    name: str,
+    *,
+    device: int,
+    inode: int,
+    label: str,
 ) -> None:
-    for relative in directories:
-        parent_fd, name = _open_parent(root_fd, relative)
+    directory_fd = _open_existing_directory(parent_fd, name, label)
+    try:
+        metadata = os.fstat(directory_fd)
+        if (metadata.st_dev, metadata.st_ino) != (device, inode):
+            raise MigrationApplyError(f"{label} ownership changed")
+        os.fsync(directory_fd)
+    finally:
+        os.close(directory_fd)
+
+
+def _open_and_sync_canonical_directory(
+    root_fd: int,
+    relative: str,
+    *,
+    device: int,
+    inode: int,
+    label: str,
+) -> int:
+    parent_fd, name = _open_parent(root_fd, relative)
+    try:
+        _sync_owned_directory(
+            parent_fd,
+            name,
+            device=device,
+            inode=inode,
+            label=label,
+        )
+        return parent_fd
+    except BaseException:
+        os.close(parent_fd)
+        raise
+
+
+def _remove_owned_directory_at(
+    parent_fd: int,
+    name: str,
+    *,
+    device: int,
+    inode: int,
+    label: str,
+) -> None:
+    quarantine_token = hashlib.sha256(
+        f"{name}\0{device}\0{inode}".encode("utf-8")
+    ).hexdigest()[:32]
+    quarantine_name = (
+        f"{DIRECTORY_QUARANTINE_PREFIX}{quarantine_token}.tmp"
+    )
+
+    def metadata_for(candidate: str) -> os.stat_result | None:
         try:
+            return os.stat(
+                candidate,
+                dir_fd=parent_fd,
+                follow_symlinks=False,
+            )
+        except FileNotFoundError:
+            return None
+
+    original = metadata_for(name)
+    quarantined = metadata_for(quarantine_name)
+    expected_identity = (device, inode)
+    if original is None:
+        if quarantined is None:
+            os.fsync(parent_fd)
+            return
+        quarantine_identity = (quarantined.st_dev, quarantined.st_ino)
+        if (
+            stat.S_ISLNK(quarantined.st_mode)
+            or not stat.S_ISDIR(quarantined.st_mode)
+            or quarantine_identity != expected_identity
+        ):
             try:
-                os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-            except FileNotFoundError:
-                pass
-            else:
+                _rename_noreplace(
+                    quarantine_name,
+                    name,
+                    src_dir_fd=parent_fd,
+                    dst_dir_fd=parent_fd,
+                )
+                _fsync_move_directories(
+                    origin_parent_fd=parent_fd,
+                    target_parent_fd=parent_fd,
+                )
+            except BaseException as error:
+                raise MigrationApplyError(
+                    f"CRITICAL cannot restore raced {label}: {error}"
+                ) from error
+            raise MigrationApplyError(f"{label} ownership changed")
+    else:
+        if quarantined is not None:
+            raise MigrationApplyError(
+                f"CRITICAL quarantine collision while removing {label}"
+            )
+        if (
+            stat.S_ISLNK(original.st_mode)
+            or not stat.S_ISDIR(original.st_mode)
+            or (original.st_dev, original.st_ino) != expected_identity
+        ):
+            raise MigrationApplyError(f"{label} ownership changed")
+        try:
+            _rename_noreplace(
+                name,
+                quarantine_name,
+                src_dir_fd=parent_fd,
+                dst_dir_fd=parent_fd,
+            )
+        except FileExistsError as error:
+            raise MigrationApplyError(
+                f"CRITICAL quarantine collision while removing {label}"
+            ) from error
+        quarantined = metadata_for(quarantine_name)
+        if quarantined is None or (
+            stat.S_ISLNK(quarantined.st_mode)
+            or not stat.S_ISDIR(quarantined.st_mode)
+            or (quarantined.st_dev, quarantined.st_ino) != expected_identity
+        ):
+            try:
+                _rename_noreplace(
+                    quarantine_name,
+                    name,
+                    src_dir_fd=parent_fd,
+                    dst_dir_fd=parent_fd,
+                )
+                _fsync_move_directories(
+                    origin_parent_fd=parent_fd,
+                    target_parent_fd=parent_fd,
+                )
+            except BaseException as error:
+                raise MigrationApplyError(
+                    f"CRITICAL cannot restore raced {label}: {error}"
+                ) from error
+            raise MigrationApplyError(f"{label} ownership changed")
+
+    try:
+        os.rmdir(quarantine_name, dir_fd=parent_fd)
+    except OSError as error:
+        raise MigrationApplyError(f"cannot remove {label}: {error}") from error
+    os.fsync(parent_fd)
+
+
+def _create_planned_directories(
+    root_fd: int,
+    journal_directory_fd: int,
+    journal: RecoveryJournal,
+) -> None:
+    for relative in journal.planned_directories[len(journal.created_directories) :]:
+        temporary_name: str | None = None
+        for _ in range(100):
+            candidate = (
+                f"{DIRECTORY_TEMPORARY_PREFIX}{secrets.token_hex(16)}.tmp"
+            )
+            journal.directory_intent = DirectoryIntent(
+                relative,
+                candidate,
+                None,
+                None,
+            )
+            _write_journal(journal_directory_fd, journal)
+            try:
+                os.mkdir(candidate, mode=0o700, dir_fd=journal_directory_fd)
+            except FileExistsError:
+                continue
+            temporary_name = candidate
+            break
+        if temporary_name is None:
+            raise MigrationApplyError(
+                "cannot allocate a unique temporary migration directory"
+            )
+        temporary_fd = _open_existing_directory(
+            journal_directory_fd,
+            temporary_name,
+            f"temporary directory {temporary_name}",
+        )
+        try:
+            metadata = os.fstat(temporary_fd)
+            os.fsync(temporary_fd)
+        finally:
+            os.close(temporary_fd)
+        os.fsync(journal_directory_fd)
+        intent = DirectoryIntent(
+            relative,
+            temporary_name,
+            metadata.st_dev,
+            metadata.st_ino,
+        )
+        journal.directory_intent = intent
+        _write_journal(journal_directory_fd, journal)
+        parent_fd, name = _open_parent(root_fd, relative)
+        canonical_parent_fd: int | None = None
+        try:
+            if os.fstat(parent_fd).st_dev != metadata.st_dev:
+                raise MigrationApplyError(
+                    "migration runtime and destination are on different filesystems: "
+                    f"{relative}"
+                )
+            _ensure_destination_absent(parent_fd, name, relative)
+            try:
+                _rename_noreplace(
+                    temporary_name,
+                    name,
+                    src_dir_fd=journal_directory_fd,
+                    dst_dir_fd=parent_fd,
+                )
+            except FileExistsError as error:
                 raise MigrationApplyError(
                     f"destination directory appeared after preflight: {relative}"
-                )
-            os.mkdir(name, dir_fd=parent_fd)
+                ) from error
+            canonical_parent_fd = _open_and_sync_canonical_directory(
+                root_fd,
+                relative,
+                device=metadata.st_dev,
+                inode=metadata.st_ino,
+                label=f"created destination directory {relative}",
+            )
+            _fsync_move_directories(
+                origin_parent_fd=journal_directory_fd,
+                target_parent_fd=canonical_parent_fd,
+            )
+            journal.created_directories.append(
+                CreatedDirectory(relative, metadata.st_dev, metadata.st_ino)
+            )
+            journal.directory_intent = None
+            _write_journal(journal_directory_fd, journal)
         finally:
+            if canonical_parent_fd is not None:
+                os.close(canonical_parent_fd)
             os.close(parent_fd)
 
 
@@ -830,9 +1333,9 @@ def _validate_journal_compatibility(
         )
     allowed_directories = set(_destination_directory_paths(bundle.moves))
     positions = {
-        path: index for index, path in enumerate(journal.created_directories)
+        path: index for index, path in enumerate(journal.planned_directories)
     }
-    for path in journal.created_directories:
+    for path in journal.planned_directories:
         if path not in allowed_directories:
             raise MigrationApplyError(
                 "CRITICAL recovery journal contains an unrelated directory"
@@ -842,13 +1345,214 @@ def _validate_journal_compatibility(
             raise MigrationApplyError(
                 "CRITICAL recovery journal directory order is invalid"
             )
+    created_paths = [directory.path for directory in journal.created_directories]
+    if created_paths != list(journal.planned_directories[: len(created_paths)]):
+        raise MigrationApplyError(
+            "CRITICAL recovery journal directory ownership order is invalid"
+        )
+    expected_intent = (
+        journal.planned_directories[len(created_paths)]
+        if len(created_paths) < len(journal.planned_directories)
+        else None
+    )
+    if (
+        journal.directory_intent is not None
+        and journal.directory_intent.path != expected_intent
+    ):
+        raise MigrationApplyError(
+            "CRITICAL recovery journal directory_intent order is invalid"
+        )
 
 
 def _remove_journal_directories(
-    root_fd: int, directories: Sequence[str]
+    root_fd: int, directories: Sequence[CreatedDirectory]
 ) -> None:
-    for relative in reversed(directories):
-        _remove_created_directory(root_fd, tuple(relative.split("/")))
+    for directory in reversed(directories):
+        _remove_created_directory(root_fd, directory)
+
+
+def _resolve_directory_intent(
+    root_fd: int,
+    journal_directory_fd: int,
+    journal: RecoveryJournal,
+) -> None:
+    intent = journal.directory_intent
+    if intent is None:
+        return
+    if intent.device is None or intent.inode is None:
+        journal.directory_intent = None
+        _write_journal(journal_directory_fd, journal)
+        return
+
+    temporary_metadata = _optional_directory_metadata(
+        journal_directory_fd,
+        intent.temporary_name,
+        f"temporary directory {intent.temporary_name}",
+    )
+    target_parent_fd: int | None = None
+    target_name: str | None = None
+    target_metadata: os.stat_result | None = None
+    try:
+        target_parent_fd, target_name = _open_parent(root_fd, intent.path)
+    except MigrationApplyError as error:
+        if "ancestor is missing" not in str(error):
+            raise MigrationApplyError(
+                f"CRITICAL directory intent cannot be inspected: {error}"
+            ) from error
+    if target_parent_fd is not None and target_name is not None:
+        try:
+            target_metadata = os.stat(
+                target_name,
+                dir_fd=target_parent_fd,
+                follow_symlinks=False,
+            )
+        except FileNotFoundError:
+            target_metadata = None
+
+    expected_identity = (intent.device, intent.inode)
+    try:
+        if temporary_metadata is not None:
+            if (temporary_metadata.st_dev, temporary_metadata.st_ino) != expected_identity:
+                raise MigrationApplyError(
+                    "CRITICAL temporary directory ownership changed: "
+                    f"{intent.temporary_name}"
+                )
+            if target_metadata is not None and (
+                target_metadata.st_dev,
+                target_metadata.st_ino,
+            ) == expected_identity:
+                raise MigrationApplyError(
+                    "CRITICAL directory intent has both temporary and target paths"
+                )
+            _remove_owned_directory_at(
+                journal_directory_fd,
+                intent.temporary_name,
+                device=intent.device,
+                inode=intent.inode,
+                label=f"temporary directory {intent.temporary_name}",
+            )
+            journal.directory_intent = None
+            _write_journal(journal_directory_fd, journal)
+            return
+
+        if target_metadata is None or target_parent_fd is None or target_name is None:
+            journal.directory_intent = None
+            _write_journal(journal_directory_fd, journal)
+            return
+        if (
+            stat.S_ISLNK(target_metadata.st_mode)
+            or not stat.S_ISDIR(target_metadata.st_mode)
+            or (target_metadata.st_dev, target_metadata.st_ino) != expected_identity
+        ):
+            raise MigrationApplyError(
+                f"CRITICAL destination directory ownership changed: {intent.path}"
+            )
+        canonical_parent_fd = _open_and_sync_canonical_directory(
+            root_fd,
+            intent.path,
+            device=intent.device,
+            inode=intent.inode,
+            label=f"created destination directory {intent.path}",
+        )
+        try:
+            _fsync_move_directories(
+                origin_parent_fd=journal_directory_fd,
+                target_parent_fd=canonical_parent_fd,
+            )
+        finally:
+            os.close(canonical_parent_fd)
+        journal.created_directories.append(
+            CreatedDirectory(intent.path, intent.device, intent.inode)
+        )
+        journal.directory_intent = None
+        _write_journal(journal_directory_fd, journal)
+    finally:
+        if target_parent_fd is not None:
+            os.close(target_parent_fd)
+
+
+def _open_nearest_existing_parent(root_fd: int, relative: str) -> int:
+    parent_fd = os.dup(root_fd)
+    traversed: list[str] = []
+    try:
+        for name in Path(relative).parts[:-1]:
+            traversed.append(name)
+            try:
+                metadata = os.stat(
+                    name,
+                    dir_fd=parent_fd,
+                    follow_symlinks=False,
+                )
+            except FileNotFoundError:
+                return parent_fd
+            label = f"ancestor {'/'.join(traversed)}"
+            if stat.S_ISLNK(metadata.st_mode):
+                raise MigrationApplyError(f"{label} is a symlink")
+            if not stat.S_ISDIR(metadata.st_mode):
+                raise MigrationApplyError(f"{label} is not a directory")
+            next_fd = _open_existing_directory(parent_fd, name, label)
+            os.close(parent_fd)
+            parent_fd = next_fd
+        return parent_fd
+    except BaseException:
+        os.close(parent_fd)
+        raise
+
+
+def _stabilize_observed_prefix(
+    root_fd: int,
+    moves: Sequence[Move],
+    completed: int,
+) -> None:
+    for move in moves[:completed]:
+        _verify_file(
+            root_fd,
+            move.destination,
+            move,
+            "recovery completed destination",
+            sync=True,
+        )
+        source_parent_fd = _open_nearest_existing_parent(
+            root_fd, move.source
+        )
+        destination_parent_fd: int | None = None
+        try:
+            destination_parent_fd, _ = _open_parent(
+                root_fd, move.destination
+            )
+            _fsync_move_directories(
+                origin_parent_fd=source_parent_fd,
+                target_parent_fd=destination_parent_fd,
+            )
+        finally:
+            if destination_parent_fd is not None:
+                os.close(destination_parent_fd)
+            os.close(source_parent_fd)
+
+    if completed >= len(moves):
+        return
+    pending = moves[completed]
+    _verify_file(
+        root_fd,
+        pending.source,
+        pending,
+        "recovery pending source",
+        sync=True,
+    )
+    source_parent_fd, _ = _open_parent(root_fd, pending.source)
+    destination_parent_fd: int | None = None
+    try:
+        destination_parent_fd = _open_nearest_existing_parent(
+            root_fd, pending.destination
+        )
+        _fsync_move_directories(
+            origin_parent_fd=destination_parent_fd,
+            target_parent_fd=source_parent_fd,
+        )
+    finally:
+        if destination_parent_fd is not None:
+            os.close(destination_parent_fd)
+        os.close(source_parent_fd)
 
 
 def _recover_journal(
@@ -885,6 +1589,18 @@ def _recover_journal(
         raise MigrationApplyError(
             "CRITICAL recovery journal checkpoint diverges from path state"
         )
+    directory_phase_incomplete = (
+        journal.directory_intent is not None
+        or len(journal.created_directories) < len(journal.planned_directories)
+    )
+    if directory_phase_incomplete and (
+        completed != 0 or journal.completed_moves != 0
+    ):
+        raise MigrationApplyError(
+            "CRITICAL recovery journal has moves during directory creation"
+        )
+    _stabilize_observed_prefix(root_fd, bundle.moves, completed)
+    _resolve_directory_intent(root_fd, journal_directory_fd, journal)
     if completed == len(bundle.moves):
         _delete_journal(journal_directory_fd)
         return
@@ -894,7 +1610,7 @@ def _recover_journal(
     if completed:
         for index in range(completed - 1, -1, -1):
             try:
-                _rollback_entry(root_fd, JournalEntry(bundle.moves[index], True))
+                _rollback_entry(root_fd, JournalEntry(bundle.moves[index]))
             except BaseException as error:
                 raise MigrationApplyError(
                     f"CRITICAL recovery rollback failed at move {index}: {error}"
@@ -920,13 +1636,7 @@ def _ensure_destination_absent(parent_fd: int, name: str, relative: str) -> None
     raise MigrationApplyError(f"destination already exists: {relative}")
 
 
-def _rename_noreplace(
-    source_name: str,
-    destination_name: str,
-    *,
-    src_dir_fd: int,
-    dst_dir_fd: int,
-) -> None:
+def _atomic_rename_primitive():
     platform = "linux" if sys.platform.startswith("linux") else sys.platform
     primitive = ATOMIC_RENAME_FLAGS.get(platform)
     if primitive is None:
@@ -949,6 +1659,65 @@ def _rename_noreplace(
         ctypes.c_uint,
     )
     function.restype = ctypes.c_int
+    return function, flag
+
+
+def _is_local_filesystem(file_fd: int) -> bool:
+    library = ctypes.CDLL(None, use_errno=True)
+    if sys.platform == "darwin":
+        filesystem = _DarwinStatFS()
+    elif sys.platform.startswith("linux"):
+        filesystem = _LinuxStatFS()
+    else:
+        return False
+    try:
+        function = library.fstatfs
+    except AttributeError as error:
+        raise MigrationApplyError(
+            "cannot verify that the migration filesystem is local"
+        ) from error
+    function.argtypes = (ctypes.c_int, ctypes.c_void_p)
+    function.restype = ctypes.c_int
+    if function(file_fd, ctypes.byref(filesystem)) != 0:
+        error_number = ctypes.get_errno()
+        raise MigrationApplyError(
+            "cannot verify that the migration filesystem is local: "
+            f"{os.strerror(error_number)}"
+        )
+    if sys.platform == "darwin":
+        return bool(filesystem.f_flags & DARWIN_MNT_LOCAL)
+    return filesystem.f_type in LINUX_LOCAL_FILESYSTEMS
+
+
+def _require_runtime_filesystem(root_fd: int, journal_directory_fd: int) -> None:
+    if not _is_local_filesystem(root_fd) or not _is_local_filesystem(
+        journal_directory_fd
+    ):
+        raise MigrationApplyError(
+            "migration requires a local filesystem with durable fsync"
+        )
+    if os.fstat(root_fd).st_dev != os.fstat(journal_directory_fd).st_dev:
+        raise MigrationApplyError(
+            "vault and migration journal are on different filesystems"
+        )
+    try:
+        os.fsync(root_fd)
+        os.fsync(journal_directory_fd)
+    except OSError as error:
+        raise MigrationApplyError(
+            f"migration filesystem does not support directory fsync: {error}"
+        ) from error
+    _atomic_rename_primitive()
+
+
+def _rename_noreplace(
+    source_name: str,
+    destination_name: str,
+    *,
+    src_dir_fd: int,
+    dst_dir_fd: int,
+) -> None:
+    function, flag = _atomic_rename_primitive()
     result = function(
         src_dir_fd,
         os.fsencode(source_name),
@@ -964,6 +1733,17 @@ def _rename_noreplace(
             error_number, os.strerror(error_number), destination_name
         )
     raise OSError(error_number, os.strerror(error_number), destination_name)
+
+
+def _fsync_move_directories(origin_parent_fd: int, target_parent_fd: int) -> None:
+    origin_metadata = os.fstat(origin_parent_fd)
+    target_metadata = os.fstat(target_parent_fd)
+    os.fsync(target_parent_fd)
+    if (origin_metadata.st_dev, origin_metadata.st_ino) != (
+        target_metadata.st_dev,
+        target_metadata.st_ino,
+    ):
+        os.fsync(origin_parent_fd)
 
 
 def _path_identity(root_fd: int, relative: str, label: str) -> tuple[int, int]:
@@ -991,7 +1771,10 @@ def _move_one(
     destination_parent_fd: int | None = None
     try:
         digest, size, _ = _hash_open_file(
-            source_parent_fd, source_name, f"source {move.source}"
+            source_parent_fd,
+            source_name,
+            f"source {move.source}",
+            sync=True,
         )
         if size != move.size_bytes:
             raise MigrationApplyError(f"source size mismatch for {move.source}")
@@ -1018,9 +1801,13 @@ def _move_one(
             raise MigrationApplyError(
                 f"destination appeared after preflight: {move.destination}"
             ) from error
-        entry = JournalEntry(move, source_unlinked=True)
+        entry = JournalEntry(move)
         journal.append(entry)
         try:
+            _fsync_move_directories(
+                origin_parent_fd=source_parent_fd,
+                target_parent_fd=destination_parent_fd,
+            )
             destination_metadata = os.stat(
                 destination_name,
                 dir_fd=destination_parent_fd,
@@ -1067,6 +1854,10 @@ def _move_one(
                     src_dir_fd=destination_parent_fd,
                     dst_dir_fd=source_parent_fd,
                 )
+                _fsync_move_directories(
+                    origin_parent_fd=destination_parent_fd,
+                    target_parent_fd=source_parent_fd,
+                )
                 journal.pop()
             except BaseException as cleanup_error:
                 raise MigrationApplyError(
@@ -1098,6 +1889,7 @@ def _rollback_entry(root_fd: int, entry: JournalEntry) -> None:
             destination_parent_fd,
             destination_name,
             f"rollback destination {move.destination}",
+            sync=True,
         )
         if (
             destination_size != move.size_bytes
@@ -1113,6 +1905,10 @@ def _rollback_entry(root_fd: int, entry: JournalEntry) -> None:
             src_dir_fd=destination_parent_fd,
             dst_dir_fd=source_parent_fd,
         )
+        _fsync_move_directories(
+            origin_parent_fd=destination_parent_fd,
+            target_parent_fd=source_parent_fd,
+        )
         _verify_file(root_fd, move.source, move, "rolled back source")
     finally:
         if source_parent_fd is not None:
@@ -1120,7 +1916,10 @@ def _rollback_entry(root_fd: int, entry: JournalEntry) -> None:
         os.close(destination_parent_fd)
 
 
-def _remove_created_directory(root_fd: int, parts: tuple[str, ...]) -> None:
+def _remove_created_directory(
+    root_fd: int, directory: CreatedDirectory
+) -> None:
+    parts = tuple(directory.path.split("/"))
     relative = "/".join(parts)
     parent_relative = "/".join(parts[:-1])
     if parent_relative:
@@ -1135,13 +1934,13 @@ def _remove_created_directory(root_fd: int, parts: tuple[str, ...]) -> None:
     else:
         parent_fd = os.dup(root_fd)
     try:
-        os.rmdir(parts[-1], dir_fd=parent_fd)
-    except FileNotFoundError:
-        pass
-    except OSError as error:
-        raise MigrationApplyError(
-            f"cannot remove created directory {relative}: {error}"
-        ) from error
+        _remove_owned_directory_at(
+            parent_fd,
+            parts[-1],
+            device=directory.device,
+            inode=directory.inode,
+            label=f"created directory {relative}",
+        )
     finally:
         os.close(parent_fd)
 
@@ -1153,6 +1952,16 @@ def _rollback(
     journal_directory_fd: int,
 ) -> list[str]:
     failures: list[str] = []
+    if recovery_journal.directory_intent is not None:
+        try:
+            _resolve_directory_intent(
+                root_fd,
+                journal_directory_fd,
+                recovery_journal,
+            )
+        except BaseException as error:
+            failures.append(f"cannot resolve directory intent: {error}")
+            return failures
     while journal:
         entry = journal[-1]
         move = entry.move
@@ -1215,10 +2024,12 @@ def _start_application(
     moves: Sequence[Move],
     recovery_journal: RecoveryJournal,
 ) -> int:
-    _write_journal(journal_directory_fd, recovery_journal)
+    _install_initial_journal(journal_directory_fd, recovery_journal)
     try:
         _create_planned_directories(
-            root_fd, recovery_journal.created_directories
+            root_fd,
+            journal_directory_fd,
+            recovery_journal,
         )
     except BaseException as original_error:
         failures = _rollback(
@@ -1271,6 +2082,7 @@ def main(arguments: list[str] | None = None) -> int:
             args.expected_head,
         )
         journal_directory_fd = _open_journal_directory(root_fd)
+        _require_runtime_filesystem(root_fd, journal_directory_fd)
         existing_journal = _read_journal(journal_directory_fd)
         if existing_journal is not None:
             if args.dry_run:
@@ -1286,7 +2098,11 @@ def main(arguments: list[str] | None = None) -> int:
                 bundle=bundle,
                 phase=args.phase,
             )
-        preflight = _preflight(root_fd, bundle.moves)
+        preflight = _preflight(
+            root_fd,
+            bundle.moves,
+            runtime_device=os.fstat(journal_directory_fd).st_dev,
+        )
         if args.dry_run:
             print(f"planned_moves={len(preflight.moves)}")
             print("preflight=ok")
@@ -1309,7 +2125,9 @@ def main(arguments: list[str] | None = None) -> int:
             phase=args.phase,
             move_count=len(bundle.moves),
             completed_moves=0,
-            created_directories=planned_directories,
+            planned_directories=planned_directories,
+            created_directories=[],
+            directory_intent=None,
         )
         files_moved = _start_application(
             root_fd,
