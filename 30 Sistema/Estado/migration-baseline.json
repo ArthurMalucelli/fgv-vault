@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "base": {
+    "commit": "a7f7d58a5fcbbee86c90a046eb30e168217b5c78",
+    "tree": "be1202b9388c7e927fb112d1af390a93386fae07"
+  },
+  "manifest": {
+    "path": "30 Sistema/Estado/migration-manifest.json",
+    "sha256": "3910988998703f6a9cc01dcd4b40173241c602204ce4a4c6bc83a1a67fd29c96",
+    "serialization": "json-utf8-nfc-indent-2-lf-v1"
+  },
+  "inventory": {
+    "records": 1059,
+    "unique_sources": 1059,
+    "unique_destinations": 1059,
+    "category_counts": {
+      "archive": 313,
+      "home": 7,
+      "knowledge": 505,
+      "subject": 221,
+      "system": 13
+    },
+    "binary": {
+      "method": "casefolded-suffix-allowlist-v1",
+      "extensions": [
+        ".docx",
+        ".heic",
+        ".jpg",
+        ".pdf",
+        ".pkl",
+        ".png",
+        ".ppt",
+        ".pptx",
+        ".xlsx"
+      ],
+      "count": 270
+    },
+    "aggregate": {
+      "method": "sha256-source-utf8-nul-content-sha256-bytes-size-u64be-v1",
+      "sha256": "66410ba92796156cb2918d25278f0d2be0f77d8ef0884994b4c18546d6105ed5"
+    }
+  },
+  "wikilinks": {
+    "method": "obsidian-wikilink-audit-v1",
+    "total": 5402,
+    "unresolved": 408,
+    "ambiguous": 3,
+    "accent_normalization_matches": {
+      "value": 161,
+      "status": "audited_estimate"
+    }
+  }
+}

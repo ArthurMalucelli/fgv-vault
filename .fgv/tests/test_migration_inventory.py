@@ -1,12 +1,14 @@
 import hashlib
+from collections import Counter
 from contextlib import redirect_stdout
 import io
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
+import unicodedata
 import unittest
 from unittest.mock import patch
 
@@ -30,6 +32,10 @@ from fgv_migration.rules import (
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / ".fgv/tests/fixtures/migration-mini-vault"
 SCRIPT = ROOT / ".fgv/scripts/plan_migration.py"
+REAL_MANIFEST = ROOT / "30 Sistema/Estado/migration-manifest.json"
+REAL_BASELINE = ROOT / "30 Sistema/Estado/migration-baseline.json"
+REAL_BASE_COMMIT = "a7f7d58a5fcbbee86c90a046eb30e168217b5c78"
+REAL_BASE_TREE = "be1202b9388c7e927fb112d1af390a93386fae07"
 
 
 def entry(path: str, data: bytes = b"fixture") -> InventoryEntry:
@@ -778,6 +784,214 @@ class PlannerCliTests(unittest.TestCase):
             self.assertFalse((external / "manifest.json").exists())
             manifest = json.loads((moved_parent / "manifest.json").read_bytes())
             self.assertEqual(manifest[0]["source"], "Tasks.md")
+
+
+class RealManifestContractTests(unittest.TestCase):
+    maxDiff = None
+
+    def load_manifest(self) -> tuple[bytes, list[dict[str, object]]]:
+        self.assertTrue(REAL_MANIFEST.is_file(), f"missing real manifest: {REAL_MANIFEST}")
+        payload = REAL_MANIFEST.read_bytes()
+        self.assertFalse(payload.startswith(b"\xef\xbb\xbf"))
+        self.assertNotIn(b"\r", payload)
+        self.assertTrue(payload.endswith(b"\n"))
+        return payload, json.loads(payload)
+
+    def load_baseline(self) -> dict[str, object]:
+        self.assertTrue(REAL_BASELINE.is_file(), f"missing baseline: {REAL_BASELINE}")
+        payload = REAL_BASELINE.read_bytes()
+        self.assertNotIn(b"\r", payload)
+        self.assertTrue(payload.endswith(b"\n"))
+        return json.loads(payload)
+
+    def test_real_manifest_is_complete_unique_safe_and_matches_base_tree(self) -> None:
+        _, manifest = self.load_manifest()
+        sources = [str(record["source"]) for record in manifest]
+        destinations = [str(record["destination"]) for record in manifest]
+
+        self.assertEqual(len(manifest), 1059)
+        self.assertEqual(len(set(sources)), 1059)
+        self.assertEqual(len(set(destinations)), 1059)
+        self.assertEqual(
+            Counter(str(record["category"]) for record in manifest),
+            {"home": 7, "subject": 221, "knowledge": 505, "system": 13, "archive": 313},
+        )
+        self.assertNotIn("unclassified", {record["category"] for record in manifest})
+        self.assertEqual(
+            sources,
+            sorted(sources, key=lambda value: value.encode("utf-8")),
+        )
+        for record in manifest:
+            self.assertEqual(
+                tuple(record),
+                (
+                    "schema_version",
+                    "source",
+                    "destination",
+                    "sha256",
+                    "size_bytes",
+                    "category",
+                    "phase",
+                    "reason",
+                ),
+            )
+            self.assertEqual(record["schema_version"], 1)
+
+        for record in manifest:
+            for field in ("source", "destination"):
+                value = str(record[field])
+                path = PurePosixPath(value)
+                self.assertEqual(value, unicodedata.normalize("NFC", value))
+                self.assertFalse(path.is_absolute())
+                self.assertNotIn("..", path.parts)
+                self.assertNotIn("\\", value)
+
+        resolved_commit = subprocess.run(
+            ("git", "rev-parse", "--verify", "origin/main^{commit}"),
+            cwd=ROOT,
+            check=True,
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout.strip()
+        resolved_tree = subprocess.run(
+            ("git", "rev-parse", "--verify", "origin/main^{tree}"),
+            cwd=ROOT,
+            check=True,
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout.strip()
+        self.assertEqual(resolved_commit, REAL_BASE_COMMIT)
+        self.assertEqual(resolved_tree, REAL_BASE_TREE)
+
+        inventory = inventory_from_git(ROOT, REAL_BASE_COMMIT)
+        expected = {
+            item.path: (item.sha256, item.size_bytes) for item in inventory
+        }
+        actual = {
+            str(record["source"]): (record["sha256"], record["size_bytes"])
+            for record in manifest
+        }
+        self.assertEqual(actual, expected)
+
+    def test_manifest_serialization_is_reproducible_byte_for_byte(self) -> None:
+        payload, _ = self.load_manifest()
+        environment = os.environ.copy()
+        environment["PYTHONDONTWRITEBYTECODE"] = "1"
+        environment["PYTHONPATH"] = os.pathsep.join(
+            (str(ROOT / ".fgv/src"), str(ROOT / ".fgv/scripts"))
+        )
+        with TemporaryDirectory(dir=ROOT) as first_directory, TemporaryDirectory(
+            dir=ROOT
+        ) as second_directory:
+            generated: list[bytes] = []
+            for directory in (first_directory, second_directory):
+                output = Path(directory) / "manifest.json"
+                result = subprocess.run(
+                    (
+                        sys.executable,
+                        str(SCRIPT),
+                        "--vault",
+                        str(ROOT),
+                        "--base-ref",
+                        REAL_BASE_COMMIT,
+                        "--output",
+                        str(output),
+                    ),
+                    cwd=ROOT,
+                    env=environment,
+                    check=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                generated.append(output.read_bytes())
+
+        self.assertEqual(generated[0], generated[1])
+        self.assertEqual(generated[0], payload)
+
+    def test_baseline_schema_and_hashes_are_reproducible(self) -> None:
+        manifest_bytes, manifest = self.load_manifest()
+        baseline = self.load_baseline()
+        self.assertEqual(
+            tuple(baseline),
+            ("schema_version", "base", "manifest", "inventory", "wikilinks"),
+        )
+        self.assertEqual(baseline["schema_version"], 1)
+        self.assertEqual(
+            baseline["base"],
+            {"commit": REAL_BASE_COMMIT, "tree": REAL_BASE_TREE},
+        )
+        self.assertEqual(
+            baseline["manifest"],
+            {
+                "path": "30 Sistema/Estado/migration-manifest.json",
+                "sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+                "serialization": "json-utf8-nfc-indent-2-lf-v1",
+            },
+        )
+
+        inventory = baseline["inventory"]
+        self.assertEqual(inventory["records"], 1059)
+        self.assertEqual(inventory["unique_sources"], 1059)
+        self.assertEqual(inventory["unique_destinations"], 1059)
+        self.assertEqual(
+            inventory["category_counts"],
+            {"archive": 313, "home": 7, "knowledge": 505, "subject": 221, "system": 13},
+        )
+
+        binary = inventory["binary"]
+        self.assertEqual(binary["method"], "casefolded-suffix-allowlist-v1")
+        suffixes = binary["extensions"]
+        self.assertEqual(suffixes, sorted(set(suffixes)))
+        binary_count = sum(
+            PurePosixPath(str(record["source"])).suffix.casefold() in suffixes
+            for record in manifest
+        )
+        self.assertEqual(binary["count"], binary_count)
+
+        aggregate = hashlib.sha256()
+        for record in sorted(
+            manifest, key=lambda item: str(item["source"]).encode("utf-8")
+        ):
+            aggregate.update(str(record["source"]).encode("utf-8"))
+            aggregate.update(b"\x00")
+            aggregate.update(bytes.fromhex(str(record["sha256"])))
+            aggregate.update(int(record["size_bytes"]).to_bytes(8, "big"))
+        self.assertEqual(
+            inventory["aggregate"],
+            {
+                "method": "sha256-source-utf8-nul-content-sha256-bytes-size-u64be-v1",
+                "sha256": aggregate.hexdigest(),
+            },
+        )
+
+        self.assertEqual(
+            baseline["wikilinks"],
+            {
+                "method": "obsidian-wikilink-audit-v1",
+                "total": 5402,
+                "unresolved": 408,
+                "ambiguous": 3,
+                "accent_normalization_matches": {
+                    "value": 161,
+                    "status": "audited_estimate",
+                },
+            },
+        )
+
+        serialized = json.dumps(
+            baseline,
+            ensure_ascii=False,
+            indent=2,
+            separators=(",", ": "),
+        ) + "\n"
+        self.assertEqual(REAL_BASELINE.read_bytes(), serialized.encode("utf-8"))
+
+        forbidden = ("hostname", "mtime", str(ROOT), str(Path.home()))
+        baseline_text = REAL_BASELINE.read_text(encoding="utf-8")
+        for value in forbidden:
+            self.assertNotIn(value, baseline_text)
 
 
 if __name__ == "__main__":
