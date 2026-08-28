@@ -20,7 +20,13 @@ Este arquivo é o único contrato de máquina editável do workflow FGV.
 
 ## Identidade e estados
 
-`transaction_id = sha256("fgv:v1\\0" + source_sha256 + "\\0" + subject_id + "\\0" + class_date)[:20]`
+O payload é a concatenação de bytes, nesta ordem:
+
+- bytes UTF-8 do texto formado por `fgv:v` seguido, sem delimitador, pela versão decimal do contrato sem zeros à esquerda;
+- source_sha256 tem exatamente 64 caracteres hexadecimais lowercase ASCII, sem prefixo;
+- subject_id e class_date são codificados em UTF-8, em componentes separados e nessa ordem.
+
+O separador é exatamente um byte NUL `0x00`, usado entre componentes adjacentes e sem separador no final. O digest_hex representa o digest SHA-256 do payload com 64 caracteres hexadecimais lowercase. O transaction_id usa os primeiros 20 caracteres de digest_hex.
 
 `preflight -> planned -> staged -> validated -> published -> side_effects_pending -> complete`
 

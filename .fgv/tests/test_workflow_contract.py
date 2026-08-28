@@ -1,3 +1,4 @@
+import hashlib
 import importlib
 import json
 from pathlib import Path, PurePosixPath
@@ -115,6 +116,42 @@ class WorkflowContractTests(unittest.TestCase):
             with self.subTest(invariant=invariant):
                 self.assertIn(invariant, text)
         self.assertNotIn("\N{EM DASH}", text)
+
+    def test_transaction_id_serialization_is_byte_canonical(self) -> None:
+        text = (FGV / "CORE.md").read_text(encoding="utf-8")
+        required_text = (
+            "O payload é a concatenação de bytes, nesta ordem",
+            "bytes UTF-8 do texto formado por `fgv:v` seguido, sem delimitador, "
+            "pela versão decimal do contrato",
+            "O separador é exatamente um byte NUL `0x00`",
+            "sem separador no final",
+            "source_sha256 tem exatamente 64 caracteres hexadecimais lowercase ASCII",
+            "sem prefixo",
+            "subject_id e class_date são codificados em UTF-8",
+            "digest SHA-256 do payload",
+            "64 caracteres hexadecimais lowercase",
+            "transaction_id usa os primeiros 20 caracteres",
+        )
+        for rule in required_text:
+            with self.subTest(rule=rule):
+                self.assertIn(rule, text)
+
+        module = importlib.import_module("fgv_workflow")
+        source_sha256 = "0" * 64
+        payload = b"\x00".join(
+            (
+                f"fgv:v{module.CONTRACT_VERSION}".encode("utf-8"),
+                source_sha256.encode("ascii"),
+                "contabilidade-financeira".encode("utf-8"),
+                "2026-08-28".encode("utf-8"),
+            )
+        )
+        digest_hex = hashlib.sha256(payload).hexdigest()
+        self.assertEqual(
+            digest_hex,
+            "2412855c90a3403f1f3038511d8f7e986c34bf7dbdc45e242b57efb908d262fd",
+        )
+        self.assertEqual(digest_hex[:20], "2412855c90a3403f1f30")
 
     def test_subject_registry_has_exact_current_subjects_and_paths(self) -> None:
         payload = self.load_json("config/subjects.json")
