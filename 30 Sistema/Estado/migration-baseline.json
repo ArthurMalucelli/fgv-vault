@@ -21,7 +21,7 @@
       "system": 13
     },
     "binary": {
-      "method": "casefolded-suffix-allowlist-v1",
+      "method": "casefolded-filename-ending-extension-allowlist-v1",
       "extensions": [
         ".docx",
         ".heic",
@@ -31,9 +31,10 @@
         ".png",
         ".ppt",
         ".pptx",
+        ".rdata",
         ".xlsx"
       ],
-      "count": 270
+      "count": 271
     },
     "aggregate": {
       "method": "sha256-source-utf8-nul-content-sha256-bytes-size-u64be-v1",

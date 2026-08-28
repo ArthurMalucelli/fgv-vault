@@ -941,11 +941,30 @@ class RealManifestContractTests(unittest.TestCase):
         )
 
         binary = inventory["binary"]
-        self.assertEqual(binary["method"], "casefolded-suffix-allowlist-v1")
+        self.assertEqual(
+            binary["method"],
+            "casefolded-filename-ending-extension-allowlist-v1",
+        )
         suffixes = binary["extensions"]
-        self.assertEqual(suffixes, sorted(set(suffixes)))
+        self.assertEqual(
+            suffixes,
+            [
+                ".docx",
+                ".heic",
+                ".jpg",
+                ".pdf",
+                ".pkl",
+                ".png",
+                ".ppt",
+                ".pptx",
+                ".rdata",
+                ".xlsx",
+            ],
+        )
         binary_count = sum(
-            PurePosixPath(str(record["source"])).suffix.casefold() in suffixes
+            PurePosixPath(str(record["source"]))
+            .name.casefold()
+            .endswith(tuple(suffixes))
             for record in manifest
         )
         self.assertEqual(binary["count"], binary_count)
