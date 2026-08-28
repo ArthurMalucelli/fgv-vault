@@ -209,6 +209,37 @@ class RuleTests(unittest.TestCase):
                         inbox_allowlist={"Loose Note.md": destination},
                     )
 
+    def test_allowlist_stores_normalized_destination(self) -> None:
+        manifest = build_manifest(
+            (entry("Loose Note.md"),),
+            inbox_allowlist={
+                "Loose Note.md": "00 Home/Inbox/Legado/Folder/./Note.md"
+            },
+        )
+
+        self.assertEqual(
+            manifest[0]["destination"],
+            "00 Home/Inbox/Legado/Folder/Note.md",
+        )
+
+    def test_equivalent_syntactic_destinations_collide(self) -> None:
+        canonical = "00 Home/Inbox/Legado/Folder/Note.md"
+        aliases = (
+            "00 Home/Inbox/Legado/Folder/./Note.md",
+            "00 Home/Inbox/Legado/Folder//Note.md",
+            "00 Home/Inbox/Legado/Folder/Note.md/",
+        )
+        for alias in aliases:
+            with self.subTest(alias=alias):
+                with self.assertRaises(CollisionError):
+                    build_manifest(
+                        (entry("Loose A.md"), entry("Loose B.md")),
+                        inbox_allowlist={
+                            "Loose A.md": alias,
+                            "Loose B.md": canonical,
+                        },
+                    )
+
     def test_exact_destination_collision_blocks_plan(self) -> None:
         allowlist = {
             "Loose A.md": "00 Home/Inbox/Legado/Duplicate.md",
@@ -225,7 +256,7 @@ class RuleTests(unittest.TestCase):
             "Loose A.md": "00 Home/Inbox/Legado/Caf\u00e9.md",
             "Loose B.md": "00 Home/Inbox/Legado/Cafe\u0301.md",
         }
-        with self.assertRaisesRegex(CollisionError, "NFC"):
+        with self.assertRaises(CollisionError):
             build_manifest(
                 (entry("Loose A.md"), entry("Loose B.md")),
                 inbox_allowlist=allowlist,

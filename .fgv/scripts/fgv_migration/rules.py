@@ -100,7 +100,7 @@ def _validated_allowlist(
             raise RuleError(
                 f"Inbox allowlist destination is outside 00 Home/Inbox/Legado: {destination!r}"
             )
-        validated[normalized_source] = destination
+        validated[normalized_source] = normalized_destination
     return validated
 
 
