@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import importlib
 import io
@@ -191,6 +192,7 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             sha256=hashlib.sha256(self.manifest_path.read_bytes()).hexdigest(),
             record_count=1,
         )
+        self.recovery_plan = self._make_recovery_plan()
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -234,6 +236,50 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             },
         )
 
+    def _make_recovery_plan(self):
+        module = self.require_rewriter()
+        operations = []
+        for relative, rules in self._literal_rules().items():
+            path = self.vault / relative
+            original = path.read_bytes()
+            state, output = module._classify_markdown_state(
+                original.decode("utf-8"), rules, relative
+            )
+            self.assertEqual(state, "stale")
+            operations.append(
+                module.RecoveryOperation(
+                    path=relative,
+                    original=original,
+                    output=output.encode("utf-8"),
+                    mode=path.stat().st_mode & 0o7777,
+                )
+            )
+        daily_template_exists = (
+            self.vault / "30 Sistema/Templates/Daily.md"
+        ).is_file()
+        for relative in module.CONFIG_ALLOWLIST:
+            path = self.vault / relative
+            original = path.read_bytes()
+            state, output, _ = module._plan_config(
+                daily_template_exists,
+                relative,
+                json.loads(original),
+            )
+            self.assertEqual(state, "stale")
+            operations.append(
+                module.RecoveryOperation(
+                    path=relative,
+                    original=original,
+                    output=output,
+                    mode=path.stat().st_mode & 0o7777,
+                )
+            )
+        operations.sort(key=lambda operation: operation.path.encode("utf-8"))
+        return module.RecoveryPlan(
+            manifest_auth=self.auth,
+            operations=tuple(operations),
+        )
+
     def _rewrite(self, *, check: bool = False, link_contract=None):
         module = self.require_rewriter()
         return module.rewrite_vault(
@@ -243,6 +289,7 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             markdown_specs=self._literal_rules(),
             expected_markdown_occurrences=2,
             manifest_auth=self.auth,
+            recovery_plan=self.recovery_plan,
             link_contract=link_contract,
         )
 
@@ -301,6 +348,7 @@ class VaultRewriteFixtureTests(unittest.TestCase):
         template = self.vault / "30 Sistema/Templates/Daily.md"
         template.parent.mkdir(parents=True)
         template.write_text("# Daily\n", encoding="utf-8")
+        self.recovery_plan = self._make_recovery_plan()
 
         self._rewrite()
 
@@ -404,10 +452,16 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             manifest_path=Path("state/manifest.json"),
             markdown_specs=self._literal_rules(),
             expected_markdown_occurrences=2,
+            recovery_plan=self.recovery_plan,
             link_contract=None,
         )
         with self.assertRaises(module.RewriteError):
             module.rewrite_vault(**arguments)
+        with self.assertRaises(module.RewriteError):
+            module.rewrite_vault(
+                **{key: value for key, value in arguments.items() if key != "recovery_plan"},
+                manifest_auth=self.auth,
+            )
 
         bad_contracts = (
             module.ManifestAuth(
@@ -493,6 +547,98 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             self._rewrite()
 
         self.assertEqual(self._snapshot(), before)
+
+    def test_recovery_rejects_self_consistent_tampered_original_before_write(self) -> None:
+        module = self.require_rewriter()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        with patch.object(
+            module,
+            "_checkpoint_journal",
+            side_effect=SimulatedCrash("power loss"),
+        ):
+            with self.assertRaises(SimulatedCrash):
+                self._rewrite()
+
+        journal = self.vault / ".fgv/path-rewrite-journal.json"
+        record = json.loads(journal.read_bytes())
+        unauthorized = b'{"unauthorized": true}\n'
+        record["operations"][0]["original_base64"] = base64.b64encode(
+            unauthorized
+        ).decode("ascii")
+        record["operations"][0]["original_sha256"] = hashlib.sha256(
+            unauthorized
+        ).hexdigest()
+        journal.write_text(
+            json.dumps(record, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        before = self._snapshot()
+
+        with patch.object(module, "_atomic_write_at") as atomic_write:
+            with self.assertRaises(module.RewriteError):
+                self._rewrite()
+
+        atomic_write.assert_not_called()
+        self.assertEqual(self._snapshot(), before)
+        self.assertTrue(journal.is_file())
+
+    def test_recovery_rejects_tampered_output_mode_and_order_before_write(self) -> None:
+        module = self.require_rewriter()
+
+        def tamper_output(record):
+            unauthorized = b'{"unauthorized-output": true}\n'
+            record["operations"][0]["output_base64"] = base64.b64encode(
+                unauthorized
+            ).decode("ascii")
+            record["operations"][0]["output_sha256"] = hashlib.sha256(
+                unauthorized
+            ).hexdigest()
+
+        def tamper_mode(record):
+            record["operations"][0]["mode"] ^= 0o111
+
+        def tamper_order(record):
+            record["operations"][0], record["operations"][1] = (
+                record["operations"][1],
+                record["operations"][0],
+            )
+
+        for label, mutation in (
+            ("output", tamper_output),
+            ("mode", tamper_mode),
+            ("order", tamper_order),
+        ):
+            with self.subTest(label=label), self._fresh_fixture() as fixture:
+
+                class SimulatedCrash(BaseException):
+                    pass
+
+                with patch.object(
+                    module,
+                    "_checkpoint_journal",
+                    side_effect=SimulatedCrash("power loss"),
+                ):
+                    with self.assertRaises(SimulatedCrash):
+                        fixture._rewrite()
+                journal = fixture.vault / ".fgv/path-rewrite-journal.json"
+                record = json.loads(journal.read_bytes())
+                mutation(record)
+                journal.write_text(
+                    json.dumps(record, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                before = fixture._snapshot()
+
+                with patch.object(module, "_atomic_write_at") as atomic_write:
+                    with self.assertRaises(module.RewriteError):
+                        fixture._rewrite()
+
+                atomic_write.assert_not_called()
+                self.assertEqual(fixture._snapshot(), before)
+                self.assertTrue(journal.is_file())
 
     def test_parent_symlink_swap_cannot_redirect_a_write(self) -> None:
         module = self.require_rewriter()
@@ -602,6 +748,40 @@ class ProductionContractTests(unittest.TestCase):
                 record_count=1059,
             ),
         )
+        self.assertEqual(
+            module.PRODUCTION_RECOVERY_COMMIT,
+            "d766807e02e0e6b1f09122f4d3e8b7b75bf987be",
+        )
+
+    def test_production_recovery_plan_is_reconstructed_from_pinned_git_bytes(self) -> None:
+        module = self.require_rewriter()
+        plan = module._production_recovery_plan(
+            ROOT,
+            module.DEFAULT_MANIFEST_AUTH,
+            module.MARKDOWN_SPECS,
+        )
+
+        self.assertEqual(len(plan.operations), 14)
+        self.assertEqual(plan.manifest_auth, module.DEFAULT_MANIFEST_AUTH)
+        for operation in plan.operations:
+            self.assertNotEqual(operation.original, operation.output)
+            self.assertEqual((ROOT / operation.path).read_bytes(), operation.output)
+
+    def test_production_rejects_caller_supplied_recovery_authority(self) -> None:
+        module = self.require_rewriter()
+        plan = module._production_recovery_plan(
+            ROOT,
+            module.DEFAULT_MANIFEST_AUTH,
+            module.MARKDOWN_SPECS,
+        )
+
+        with self.assertRaises(module.RewriteError):
+            module.rewrite_vault(
+                ROOT,
+                Path(module.DEFAULT_MANIFEST_AUTH.relative_path),
+                check=True,
+                recovery_plan=plan,
+            )
 
     def test_real_tree_is_exactly_stale_or_fresh_and_link_counts_do_not_regress(self) -> None:
         module = self.require_rewriter()

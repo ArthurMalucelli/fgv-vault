@@ -14,6 +14,7 @@ from pathlib import Path, PurePosixPath
 import re
 import secrets
 import stat
+import subprocess
 import sys
 import unicodedata
 from typing import Mapping, Sequence
@@ -42,7 +43,9 @@ JOURNAL_OPERATION_FIELDS = (
     "output_sha256",
     "mode",
     "original_base64",
+    "output_base64",
 )
+PRODUCTION_RECOVERY_COMMIT = "d766807e02e0e6b1f09122f4d3e8b7b75bf987be"
 
 MARKDOWN_ALLOWLIST = (
     "00 Home/Home.md",
@@ -132,6 +135,38 @@ DEFAULT_MANIFEST_AUTH = ManifestAuth(
     sha256="3910988998703f6a9cc01dcd4b40173241c602204ce4a4c6bc83a1a67fd29c96",
     record_count=1059,
 )
+
+
+@dataclass(frozen=True)
+class RecoveryOperation:
+    path: str
+    original: bytes
+    output: bytes
+    mode: int
+
+    def __post_init__(self) -> None:
+        _validated_relative(self.path, "recovery operation path")
+        if type(self.original) is not bytes or type(self.output) is not bytes:
+            raise RewriteError("recovery operation bytes must be exact bytes")
+        if type(self.mode) is not int or self.mode < 0 or self.mode > 0o7777:
+            raise RewriteError("recovery operation mode is invalid")
+
+
+@dataclass(frozen=True)
+class RecoveryPlan:
+    manifest_auth: ManifestAuth
+    operations: tuple[RecoveryOperation, ...]
+
+    def __post_init__(self) -> None:
+        if type(self.manifest_auth) is not ManifestAuth:
+            raise RewriteError("recovery plan manifest authority is invalid")
+        if type(self.operations) is not tuple or not self.operations:
+            raise RewriteError("recovery plan operations must be a non-empty tuple")
+        paths = [operation.path for operation in self.operations]
+        if paths != sorted(paths, key=lambda value: value.encode("utf-8")):
+            raise RewriteError("recovery plan operations are not canonically ordered")
+        if len(paths) != len(set(paths)):
+            raise RewriteError("recovery plan operations contain duplicate paths")
 
 
 @dataclass(frozen=True)
@@ -720,6 +755,125 @@ def _plan_config(
     raise RewriteError(f"config file is not allowlisted: {relative!r}")
 
 
+def _trusted_git(vault: Path, arguments: Sequence[str]) -> bytes:
+    environment = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+    environment["GIT_CONFIG_NOSYSTEM"] = "1"
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    environment["LC_ALL"] = "C"
+    try:
+        result = subprocess.run(
+            ("git", *arguments),
+            cwd=vault,
+            env=environment,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except OSError as error:
+        raise RewriteError(f"cannot execute Git recovery authority: {error}") from error
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        raise RewriteError(
+            f"Git recovery authority failed ({' '.join(arguments)}): {detail}"
+        )
+    return result.stdout
+
+
+def _production_recovery_plan(
+    vault: Path,
+    manifest_auth: ManifestAuth,
+    specs: Mapping[str, Sequence[LiteralRewrite]],
+) -> RecoveryPlan:
+    resolved = _trusted_git(
+        vault,
+        (
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            f"{PRODUCTION_RECOVERY_COMMIT}^{{commit}}",
+        ),
+    ).decode("ascii").strip()
+    if resolved != PRODUCTION_RECOVERY_COMMIT:
+        raise RewriteError("pinned recovery authority commit did not resolve exactly")
+
+    expected_paths = set(specs) | set(CONFIG_ALLOWLIST)
+    daily_template = "30 Sistema/Templates/Daily.md"
+    listing = _trusted_git(
+        vault,
+        ("ls-tree", "-rz", "--full-tree", PRODUCTION_RECOVERY_COMMIT),
+    )
+    tree: dict[str, tuple[str, str]] = {}
+    daily_template_exists = False
+    for record in listing.split(b"\0"):
+        if not record:
+            continue
+        try:
+            metadata, raw_path = record.split(b"\t", 1)
+            raw_mode, object_type, raw_oid = metadata.split(b" ", 2)
+            relative = raw_path.decode("utf-8", errors="strict")
+            mode = raw_mode.decode("ascii")
+            oid = raw_oid.decode("ascii")
+        except (UnicodeDecodeError, ValueError) as error:
+            raise RewriteError("Git recovery authority tree is invalid") from error
+        if relative == daily_template:
+            daily_template_exists = True
+        if relative not in expected_paths:
+            continue
+        if object_type != b"blob" or mode not in {"100644", "100755"}:
+            raise RewriteError(
+                f"Git recovery authority path is not a regular blob: {relative!r}"
+            )
+        tree[relative] = (oid, mode)
+    if set(tree) != expected_paths:
+        missing = sorted(expected_paths.difference(tree), key=lambda value: value.encode())
+        raise RewriteError(f"Git recovery authority is missing paths: {missing!r}")
+
+    trusted: list[RecoveryOperation] = []
+    for relative in sorted(expected_paths, key=lambda value: value.encode("utf-8")):
+        oid, git_mode = tree[relative]
+        original = _trusted_git(vault, ("cat-file", "blob", oid))
+        if relative in specs:
+            try:
+                text = original.decode("utf-8")
+            except UnicodeDecodeError as error:
+                raise RewriteError(
+                    f"Git recovery authority is not UTF-8: {relative!r}"
+                ) from error
+            state, rewritten = _classify_markdown_state(
+                text,
+                specs[relative],
+                relative,
+            )
+            output = rewritten.encode("utf-8")
+        else:
+            try:
+                value = json.loads(original.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                raise RewriteError(
+                    f"Git recovery authority config is invalid: {relative!r}"
+                ) from error
+            state, output, _ = _plan_config(
+                daily_template_exists,
+                relative,
+                value,
+            )
+        if state != "stale" or output == original:
+            raise RewriteError(
+                f"Git recovery authority is not the stale canonical source: {relative!r}"
+            )
+        trusted.append(
+            RecoveryOperation(
+                path=relative,
+                original=original,
+                output=output,
+                mode=0o755 if git_mode == "100755" else 0o644,
+            )
+        )
+    return RecoveryPlan(manifest_auth=manifest_auth, operations=tuple(trusted))
+
+
 def _open_operation(root_fd: int, relative: str) -> OpenOperation:
     parent_fd, name = _open_parent(root_fd, relative)
     try:
@@ -827,6 +981,64 @@ def _open_journal_directory(root_fd: int) -> int:
     return directory_fd
 
 
+def _validate_recovery_plan(
+    plan: RecoveryPlan,
+    manifest_auth: ManifestAuth,
+    expected_paths: Sequence[str],
+) -> None:
+    if type(plan) is not RecoveryPlan or plan.manifest_auth != manifest_auth:
+        raise RewriteError("recovery plan manifest authority mismatch")
+    canonical_paths = sorted(expected_paths, key=lambda value: value.encode("utf-8"))
+    if [operation.path for operation in plan.operations] != canonical_paths:
+        raise RewriteError("recovery plan scope mismatch")
+
+
+def _authenticate_open_plan(
+    operations: Sequence[OpenOperation],
+    plan: RecoveryPlan,
+) -> None:
+    trusted = plan.operations
+    if len(operations) != len(trusted):
+        raise RewriteError("planned rewrite operation count is not authenticated")
+    for operation, authority in zip(operations, trusted):
+        if (
+            operation.relative != authority.path
+            or operation.original != authority.original
+            or operation.output != authority.output
+            or operation.mode != authority.mode
+        ):
+            raise RewriteError(
+                f"planned rewrite operation is not authenticated: {operation.relative!r}"
+            )
+
+
+def _authenticate_journal_plan(
+    record: Mapping[str, object],
+    plan: RecoveryPlan,
+) -> None:
+    if record["manifest_sha256"] != plan.manifest_auth.sha256:
+        raise RewriteError("CRITICAL recovery journal manifest authority mismatch")
+    raw_operations = list(record["operations"])
+    if len(raw_operations) != len(plan.operations):
+        raise RewriteError("CRITICAL recovery journal operation count mismatch")
+    for raw, authority in zip(raw_operations, plan.operations):
+        original = base64.b64decode(str(raw["original_base64"]), validate=True)
+        output = base64.b64decode(str(raw["output_base64"]), validate=True)
+        if (
+            raw["path"] != authority.path
+            or original != authority.original
+            or output != authority.output
+            or raw["original_sha256"]
+            != hashlib.sha256(authority.original).hexdigest()
+            or raw["output_sha256"] != hashlib.sha256(authority.output).hexdigest()
+            or raw["mode"] != authority.mode
+        ):
+            raise RewriteError(
+                f"CRITICAL recovery journal plan is not authenticated: "
+                f"{raw['path']!r}"
+            )
+
+
 def _operation_record(operation: OpenOperation) -> dict[str, object]:
     return dict(
         zip(
@@ -837,6 +1049,7 @@ def _operation_record(operation: OpenOperation) -> dict[str, object]:
                 hashlib.sha256(operation.output).hexdigest(),
                 operation.mode,
                 base64.b64encode(operation.original).decode("ascii"),
+                base64.b64encode(operation.output).decode("ascii"),
             ),
         )
     )
@@ -999,6 +1212,7 @@ def _read_journal(journal_fd: int) -> dict[str, object] | None:
             or type(raw["output_sha256"]) is not str
             or type(raw["mode"]) is not int
             or type(raw["original_base64"]) is not str
+            or type(raw["output_base64"]) is not str
         ):
             raise RewriteError("CRITICAL invalid path rewrite journal operation types")
         if (
@@ -1011,17 +1225,20 @@ def _read_journal(journal_fd: int) -> dict[str, object] | None:
         _validated_relative(raw["path"], "journal path")
         try:
             original = base64.b64decode(raw["original_base64"], validate=True)
+            output = base64.b64decode(raw["output_base64"], validate=True)
         except (ValueError, TypeError) as error:
-            raise RewriteError("CRITICAL invalid journal original bytes") from error
+            raise RewriteError("CRITICAL invalid journal operation bytes") from error
         if hashlib.sha256(original).hexdigest() != raw["original_sha256"]:
             raise RewriteError("CRITICAL journal original hash mismatch")
+        if hashlib.sha256(output).hexdigest() != raw["output_sha256"]:
+            raise RewriteError("CRITICAL journal output hash mismatch")
     return record
 
 
 def _journal_operation_open(root_fd: int, raw: Mapping[str, object]) -> OpenOperation:
     operation = _open_operation(root_fd, str(raw["path"]))
     operation.original = base64.b64decode(str(raw["original_base64"]), validate=True)
-    operation.output = b""
+    operation.output = base64.b64decode(str(raw["output_base64"]), validate=True)
     operation.mode = int(raw["mode"])
     return operation
 
@@ -1030,14 +1247,13 @@ def _recover_journal(
     root_fd: int,
     journal_fd: int,
     record: Mapping[str, object],
-    auth: ManifestAuth,
-    expected_paths: set[str],
+    plan: RecoveryPlan,
 ) -> None:
-    if record["manifest_sha256"] != auth.sha256:
-        raise RewriteError("CRITICAL recovery journal manifest mismatch")
+    _authenticate_journal_plan(record, plan)
     raw_operations = list(record["operations"])
     paths = [str(raw["path"]) for raw in raw_operations]
-    if len(paths) != len(set(paths)) or set(paths) != expected_paths:
+    expected_paths = [operation.path for operation in plan.operations]
+    if len(paths) != len(set(paths)) or paths != expected_paths:
         raise RewriteError("CRITICAL recovery journal scope mismatch")
     operations: list[OpenOperation] = []
     states: list[str] = []
@@ -1284,6 +1500,7 @@ def rewrite_vault(
     markdown_specs: Mapping[str, Sequence[LiteralRewrite]] | None = None,
     expected_markdown_occurrences: int | None = None,
     manifest_auth: ManifestAuth | None = None,
+    recovery_plan: RecoveryPlan | None = None,
     link_contract: LinkContract | None | object = _DEFAULT_LINK_SENTINEL,
 ) -> RewriteReport:
     production = markdown_specs is None
@@ -1295,6 +1512,10 @@ def rewrite_vault(
         link_contract = DEFAULT_LINK_CONTRACT if production else None
     if production and link_contract is None:
         raise RewriteError("production link audit cannot be disabled")
+    if production and recovery_plan is not None:
+        raise RewriteError("production recovery authority cannot be caller-supplied")
+    if not production and recovery_plan is None:
+        raise RewriteError("custom rewrite fixtures require an explicit recovery plan")
 
     lexical_vault, root_fd = _open_vault(Path(vault))
     journal_fd: int | None = None
@@ -1319,7 +1540,26 @@ def rewrite_vault(
         _verify_manifest_backing(manifest, specs)
         journal_fd = _open_journal_directory(root_fd)
         existing_journal = _read_journal(journal_fd)
-        expected_paths = set(specs) | set(CONFIG_ALLOWLIST)
+        expected_paths = sorted(
+            set(specs) | set(CONFIG_ALLOWLIST),
+            key=lambda value: value.encode("utf-8"),
+        )
+
+        def trusted_recovery_plan() -> RecoveryPlan:
+            nonlocal recovery_plan
+            if recovery_plan is None:
+                recovery_plan = _production_recovery_plan(
+                    lexical_vault,
+                    manifest_auth,
+                    specs,
+                )
+            _validate_recovery_plan(
+                recovery_plan,
+                manifest_auth,
+                expected_paths,
+            )
+            return recovery_plan
+
         if existing_journal is not None:
             if check:
                 raise RewriteError(
@@ -1329,8 +1569,7 @@ def rewrite_vault(
                 root_fd,
                 journal_fd,
                 existing_journal,
-                manifest_auth,
-                expected_paths,
+                trusted_recovery_plan(),
             )
 
         by_relative: dict[str, OpenOperation] = {}
@@ -1404,6 +1643,10 @@ def rewrite_vault(
                 changed_operations,
                 key=lambda operation: operation.relative.encode("utf-8"),
             )
+            _authenticate_open_plan(
+                ordered_changed,
+                trusted_recovery_plan(),
+            )
             _apply_batch(
                 root_fd,
                 journal_fd,
@@ -1412,6 +1655,15 @@ def rewrite_vault(
             )
             status = "updated"
         else:
+            if planned_status == "stale":
+                ordered_changed = sorted(
+                    changed_operations,
+                    key=lambda operation: operation.relative.encode("utf-8"),
+                )
+                _authenticate_open_plan(
+                    ordered_changed,
+                    trusted_recovery_plan(),
+                )
             status = planned_status
         return RewriteReport(
             status=status,
