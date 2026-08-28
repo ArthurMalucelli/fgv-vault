@@ -2,7 +2,9 @@
 """Apply one byte-identical vault migration phase transactionally."""
 
 import argparse
+import ctypes
 from dataclasses import dataclass
+import errno
 import hashlib
 import json
 import os
@@ -20,6 +22,10 @@ from fgv_migration.rules import RuleError, validate_manifest
 DIRECTORY_OPEN_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 FILE_OPEN_FLAGS = os.O_RDONLY | os.O_NOFOLLOW
 OID_PATTERN = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})")
+ATOMIC_RENAME_FLAGS = {
+    "darwin": ("renameatx_np", 0x00000004),
+    "linux": ("renameat2", 0x00000001),
+}
 
 
 class MigrationApplyError(RuntimeError):
@@ -451,6 +457,52 @@ def _ensure_destination_absent(parent_fd: int, name: str, relative: str) -> None
     raise MigrationApplyError(f"destination already exists: {relative}")
 
 
+def _rename_noreplace(
+    source_name: str,
+    destination_name: str,
+    *,
+    src_dir_fd: int,
+    dst_dir_fd: int,
+) -> None:
+    platform = "linux" if sys.platform.startswith("linux") else sys.platform
+    primitive = ATOMIC_RENAME_FLAGS.get(platform)
+    if primitive is None:
+        raise MigrationApplyError(
+            f"atomic no-replace rename is unsupported on {sys.platform}"
+        )
+    symbol, flag = primitive
+    library = ctypes.CDLL(None, use_errno=True)
+    try:
+        function = getattr(library, symbol)
+    except AttributeError as error:
+        raise MigrationApplyError(
+            f"atomic no-replace rename primitive {symbol} is unavailable"
+        ) from error
+    function.argtypes = (
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_uint,
+    )
+    function.restype = ctypes.c_int
+    result = function(
+        src_dir_fd,
+        os.fsencode(source_name),
+        dst_dir_fd,
+        os.fsencode(destination_name),
+        flag,
+    )
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number == errno.EEXIST:
+        raise FileExistsError(
+            error_number, os.strerror(error_number), destination_name
+        )
+    raise OSError(error_number, os.strerror(error_number), destination_name)
+
+
 def _path_identity(root_fd: int, relative: str, label: str) -> tuple[int, int]:
     parent_fd, name = _open_parent(root_fd, relative)
     try:
@@ -494,62 +546,69 @@ def _move_one(
             destination_parent_fd, destination_name, move.destination
         )
         try:
-            os.link(
+            _rename_noreplace(
                 source_name,
                 destination_name,
                 src_dir_fd=source_parent_fd,
                 dst_dir_fd=destination_parent_fd,
-                follow_symlinks=False,
             )
         except FileExistsError as error:
             raise MigrationApplyError(
                 f"destination appeared after preflight: {move.destination}"
             ) from error
-        entry = JournalEntry(move)
+        entry = JournalEntry(move, source_unlinked=True)
         journal.append(entry)
         try:
-            source_metadata = os.stat(
-                source_name, dir_fd=source_parent_fd, follow_symlinks=False
-            )
             destination_metadata = os.stat(
                 destination_name,
                 dir_fd=destination_parent_fd,
                 follow_symlinks=False,
             )
-            linked_identity = (
+            moved_identity = (
                 destination_metadata.st_dev,
                 destination_metadata.st_ino,
             )
-            if (source_metadata.st_dev, source_metadata.st_ino) != linked_identity:
-                raise MigrationApplyError(
-                    f"linked destination inode mismatch: {move.destination}"
-                )
-            linked_digest, linked_size, _ = _hash_open_file(
+            moved_digest, moved_size, _ = _hash_open_file(
                 destination_parent_fd,
                 destination_name,
                 f"destination {move.destination}",
             )
-            if linked_size != move.size_bytes or linked_digest != move.sha256:
+            if moved_size != move.size_bytes or moved_digest != move.sha256:
                 raise MigrationApplyError(
-                    f"linked destination hash mismatch: {move.destination}"
+                    f"source hash mismatch after atomic move: {move.source}"
                 )
             if _path_identity(
-                root_fd, move.source, f"source {move.source}"
-            ) != linked_identity or _path_identity(
                 root_fd,
                 move.destination,
                 f"destination {move.destination}",
-            ) != linked_identity:
+            ) != moved_identity:
+                raise MigrationApplyError(
+                    f"source or destination changed after preflight: {move.source}"
+                )
+            try:
+                os.stat(
+                    source_name,
+                    dir_fd=source_parent_fd,
+                    follow_symlinks=False,
+                )
+            except FileNotFoundError:
+                pass
+            else:
                 raise MigrationApplyError(
                     f"source or destination changed after preflight: {move.source}"
                 )
         except BaseException as verification_error:
             try:
-                os.unlink(destination_name, dir_fd=destination_parent_fd)
+                _rename_noreplace(
+                    destination_name,
+                    source_name,
+                    src_dir_fd=destination_parent_fd,
+                    dst_dir_fd=source_parent_fd,
+                )
                 journal.pop()
             except BaseException as cleanup_error:
                 raise MigrationApplyError(
-                    "CRITICAL linked destination cleanup failed after "
+                    "CRITICAL atomic move cleanup failed after "
                     f"{verification_error}: {cleanup_error}"
                 ) from verification_error
             if isinstance(verification_error, MigrationApplyError):
@@ -559,8 +618,6 @@ def _move_one(
                     ) from verification_error
                 raise
             raise MigrationApplyError(str(verification_error)) from verification_error
-        os.unlink(source_name, dir_fd=source_parent_fd)
-        entry.source_unlinked = True
     finally:
         if destination_parent_fd is not None:
             os.close(destination_parent_fd)
@@ -587,40 +644,14 @@ def _rollback_entry(root_fd: int, entry: JournalEntry) -> None:
             raise MigrationApplyError(
                 f"rollback destination hash mismatch: {move.destination}"
             )
-        if entry.source_unlinked:
-            _ensure_destination_absent(source_parent_fd, source_name, move.source)
-            os.link(
-                destination_name,
-                source_name,
-                src_dir_fd=destination_parent_fd,
-                dst_dir_fd=source_parent_fd,
-                follow_symlinks=False,
-            )
-            _verify_file(root_fd, move.source, move, "rolled back source")
-        else:
-            source_digest, source_size, _ = _hash_open_file(
-                source_parent_fd, source_name, f"rollback source {move.source}"
-            )
-            if source_size != move.size_bytes or source_digest != move.sha256:
-                raise MigrationApplyError(
-                    f"rollback source hash mismatch: {move.source}"
-                )
-            source_metadata = os.stat(
-                source_name, dir_fd=source_parent_fd, follow_symlinks=False
-            )
-            destination_metadata = os.stat(
-                destination_name,
-                dir_fd=destination_parent_fd,
-                follow_symlinks=False,
-            )
-            if (source_metadata.st_dev, source_metadata.st_ino) != (
-                destination_metadata.st_dev,
-                destination_metadata.st_ino,
-            ):
-                raise MigrationApplyError(
-                    f"rollback paths do not share an inode: {move.destination}"
-                )
-        os.unlink(destination_name, dir_fd=destination_parent_fd)
+        _ensure_destination_absent(source_parent_fd, source_name, move.source)
+        _rename_noreplace(
+            destination_name,
+            source_name,
+            src_dir_fd=destination_parent_fd,
+            dst_dir_fd=source_parent_fd,
+        )
+        _verify_file(root_fd, move.source, move, "rolled back source")
     finally:
         if source_parent_fd is not None:
             os.close(source_parent_fd)

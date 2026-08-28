@@ -202,7 +202,7 @@ class MigrationApplyTests(unittest.TestCase):
                     else:
                         source.write_bytes(b"tampered")
                     before = fixture._snapshot()
-                    with patch("apply_migration.os.rename") as rename:
+                    with patch("apply_migration._rename_noreplace") as rename:
                         result, _, stderr = fixture._run()
                     self.assertEqual(result, 1)
                     self.assertTrue(stderr.startswith("error: "), stderr)
@@ -228,7 +228,7 @@ class MigrationApplyTests(unittest.TestCase):
                     else:
                         os.symlink("legacy", fixture.vault / "new")
                     before = fixture._snapshot()
-                    with patch("apply_migration.os.rename") as rename:
+                    with patch("apply_migration._rename_noreplace") as rename:
                         result, _, stderr = fixture._run()
                     self.assertEqual(result, 1)
                     self.assertIn("symlink", stderr)
@@ -238,28 +238,28 @@ class MigrationApplyTests(unittest.TestCase):
     def test_injected_midway_failure_rolls_back_moves_and_created_directories(self) -> None:
         (self.vault / "new").mkdir()
         before = self._snapshot()
-        real_link = os.link
+        real_move = apply_migration._rename_noreplace
         calls = 0
 
         def fail_second(*args, **kwargs):
             nonlocal calls
             calls += 1
             if calls == 2:
-                raise OSError("injected link failure")
-            return real_link(*args, **kwargs)
+                raise OSError("injected rename failure")
+            return real_move(*args, **kwargs)
 
-        with patch("apply_migration.os.link", side_effect=fail_second):
+        with patch("apply_migration._rename_noreplace", side_effect=fail_second):
             result, _, stderr = self._run()
 
         self.assertEqual(result, 1)
-        self.assertIn("injected link failure", stderr)
+        self.assertIn("injected rename failure", stderr)
         self.assertEqual(self._snapshot(), before)
         self.assertTrue((self.vault / "new").is_dir())
 
     def test_destination_created_after_preflight_is_never_overwritten(self) -> None:
         destination = self.vault / "new/one/a.txt"
         destination.parent.mkdir(parents=True)
-        real_link = os.link
+        real_move = apply_migration._rename_noreplace
         raced = False
 
         def race_destination(*args, **kwargs):
@@ -267,9 +267,11 @@ class MigrationApplyTests(unittest.TestCase):
             if not raced:
                 raced = True
                 destination.write_bytes(b"racer owns this path")
-            return real_link(*args, **kwargs)
+            return real_move(*args, **kwargs)
 
-        with patch("apply_migration.os.link", side_effect=race_destination):
+        with patch(
+            "apply_migration._rename_noreplace", side_effect=race_destination
+        ):
             result, _, stderr = self._run()
 
         self.assertEqual(result, 1)
@@ -280,11 +282,11 @@ class MigrationApplyTests(unittest.TestCase):
         for other in set(self.destinations.values()) - {"new/one/a.txt"}:
             self.assertFalse((self.vault / other).exists(), other)
 
-    def test_destination_parent_swap_before_link_never_unlinks_source(self) -> None:
+    def test_destination_parent_swap_before_move_never_loses_source(self) -> None:
         parent = self.vault / "new/one"
         parent.mkdir(parents=True)
         detached = self.vault / "detached"
-        real_link = os.link
+        real_move = apply_migration._rename_noreplace
         swapped = False
 
         def swap_parent(*args, **kwargs):
@@ -293,9 +295,9 @@ class MigrationApplyTests(unittest.TestCase):
                 swapped = True
                 parent.rename(detached)
                 parent.mkdir()
-            return real_link(*args, **kwargs)
+            return real_move(*args, **kwargs)
 
-        with patch("apply_migration.os.link", side_effect=swap_parent):
+        with patch("apply_migration._rename_noreplace", side_effect=swap_parent):
             result, _, stderr = self._run()
 
         self.assertEqual(result, 1)
@@ -305,25 +307,26 @@ class MigrationApplyTests(unittest.TestCase):
         self.assertEqual(list(detached.iterdir()), [])
 
     def test_rollback_failure_is_reported_as_critical(self) -> None:
-        real_link = os.link
+        real_move = apply_migration._rename_noreplace
         calls = 0
 
         def fail_apply_and_rollback(*args, **kwargs):
             nonlocal calls
             calls += 1
             if calls in {2, 3}:
-                raise OSError(f"injected link failure {calls}")
-            return real_link(*args, **kwargs)
+                raise OSError(f"injected rename failure {calls}")
+            return real_move(*args, **kwargs)
 
         with patch(
-            "apply_migration.os.link", side_effect=fail_apply_and_rollback
+            "apply_migration._rename_noreplace",
+            side_effect=fail_apply_and_rollback,
         ):
             result, _, stderr = self._run()
 
         self.assertEqual(result, 1)
         self.assertIn("CRITICAL rollback failed", stderr)
-        self.assertIn("injected link failure 2", stderr)
-        self.assertIn("injected link failure 3", stderr)
+        self.assertIn("injected rename failure 2", stderr)
+        self.assertIn("injected rename failure 3", stderr)
 
     def test_complete_application_preserves_every_hash_and_count(self) -> None:
         result, stdout, stderr = self._run()
@@ -368,24 +371,27 @@ class MigrationApplyTests(unittest.TestCase):
     def test_manifest_changed_after_preflight_cannot_redirect_moves(self) -> None:
         redirected = [dict(record) for record in self.records]
         redirected[0]["destination"] = "redirected/owned.txt"
-        real_link = os.link
+        real_move = apply_migration._rename_noreplace
         changed = False
 
-        def mutate_manifest_then_link(*args, **kwargs):
+        def mutate_manifest_then_move(*args, **kwargs):
             nonlocal changed
             if not changed:
                 changed = True
                 self._write_manifest(redirected)
-            return real_link(*args, **kwargs)
+            return real_move(*args, **kwargs)
 
-        with patch("apply_migration.os.link", side_effect=mutate_manifest_then_link):
+        with patch(
+            "apply_migration._rename_noreplace",
+            side_effect=mutate_manifest_then_move,
+        ):
             result, _, stderr = self._run()
 
         self.assertEqual(result, 0, stderr)
         self._assert_destinations_only()
         self.assertFalse((self.vault / "redirected/owned.txt").exists())
 
-    def test_source_changed_after_preflight_is_rejected_before_link(self) -> None:
+    def test_source_changed_after_preflight_is_rejected_before_move(self) -> None:
         real_hash_open_file = apply_migration._hash_open_file
         hash_calls = 0
 
@@ -398,14 +404,45 @@ class MigrationApplyTests(unittest.TestCase):
 
         with patch(
             "apply_migration._hash_open_file", side_effect=mutate_before_apply
-        ), patch("apply_migration.os.link") as link:
+        ), patch("apply_migration._rename_noreplace") as move:
             result, _, stderr = self._run()
 
         self.assertEqual(result, 1)
         self.assertIn("source hash mismatch", stderr)
-        link.assert_not_called()
+        move.assert_not_called()
         for destination in self.destinations.values():
             self.assertFalse((self.vault / destination).exists())
+
+    def test_source_substituted_at_move_window_is_never_deleted(self) -> None:
+        source = self.vault / "legacy/a.txt"
+        saved_original = self.vault / "saved-original.txt"
+        replacement = b"replacement survives\n"
+        invoked = False
+        real_move = getattr(apply_migration, "_rename_noreplace", None)
+
+        def substitute_source_then_move(*args, **kwargs):
+            nonlocal invoked
+            if not invoked:
+                invoked = True
+                source.rename(saved_original)
+                source.write_bytes(replacement)
+            if real_move is not None:
+                return real_move(*args, **kwargs)
+            return None
+
+        with patch(
+            "apply_migration._rename_noreplace",
+            side_effect=substitute_source_then_move,
+            create=True,
+        ):
+            result, _, stderr = self._run()
+
+        self.assertTrue(invoked)
+        self.assertEqual(result, 1)
+        self.assertIn("source hash mismatch", stderr)
+        self.assertEqual(source.read_bytes(), replacement)
+        self.assertEqual(saved_original.read_bytes(), self.payloads["legacy/a.txt"])
+        self.assertFalse((self.vault / "new/one/a.txt").exists())
 
     def test_manifest_must_be_regular_non_symlink_inside_vault(self) -> None:
         outside = self.vault.parent / f"{self.vault.name}-outside.json"
