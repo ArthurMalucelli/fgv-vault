@@ -3,8 +3,11 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
+import stat
 import sys
+import tempfile
 
 from fgv_migration.inventory import InventoryError, inventory_from_git
 from fgv_migration.rules import RuleError, build_manifest
@@ -29,21 +32,92 @@ def parse_args(arguments: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(arguments)
 
 
-def main(arguments: list[str] | None = None) -> int:
-    args = parse_args(arguments)
-    vault = Path(args.vault).resolve()
-    output_argument = Path(args.output)
-    output = (
-        output_argument.resolve()
-        if output_argument.is_absolute()
-        else (vault / output_argument).resolve()
-    )
+def _resolve_output_path(vault: Path, lexical_vault: Path, value: str) -> Path:
+    raw_output = Path(value)
+    if "\x00" in value or "\\" in value or ".." in raw_output.parts:
+        raise InventoryError(f"unsafe output path: {value!r}")
+
+    if raw_output.is_absolute():
+        lexical_output = Path(os.path.abspath(raw_output))
+        try:
+            relative_output = lexical_output.relative_to(lexical_vault)
+        except ValueError as error:
+            raise InventoryError(f"output must be inside vault: {value!r}") from error
+    else:
+        relative_output = raw_output
+    if not relative_output.parts:
+        raise InventoryError("output must name a file inside vault")
+    output = vault / relative_output
+
+    current = vault
+    for part in relative_output.parts[:-1]:
+        current = current / part
+        try:
+            metadata = os.lstat(current)
+        except FileNotFoundError as error:
+            raise InventoryError(
+                f"output parent is not a directory: {output.parent}"
+            ) from error
+        if stat.S_ISLNK(metadata.st_mode):
+            raise InventoryError(f"output ancestor is a symlink: {current}")
+        if not stat.S_ISDIR(metadata.st_mode):
+            raise InventoryError(
+                f"output parent is not a directory: {output.parent}"
+            )
+
+    resolved_parent = output.parent.resolve(strict=True)
+    try:
+        resolved_parent.relative_to(vault)
+    except ValueError as error:
+        raise InventoryError(f"resolved output must be inside vault: {value!r}") from error
 
     try:
-        try:
-            output_paths = (output.relative_to(vault).as_posix(),)
-        except ValueError:
-            output_paths = ()
+        leaf_metadata = os.lstat(output)
+    except FileNotFoundError:
+        pass
+    else:
+        if stat.S_ISLNK(leaf_metadata.st_mode):
+            raise InventoryError(f"output leaf is a symlink: {output}")
+        if not stat.S_ISREG(leaf_metadata.st_mode):
+            raise InventoryError(f"output is not a regular file: {output}")
+    return output
+
+
+def _atomic_write_output(output: Path, payload: bytes) -> None:
+    file_descriptor: int | None = None
+    temporary_name: str | None = None
+    try:
+        file_descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{output.name}.", suffix=".tmp", dir=output.parent
+        )
+        stream = os.fdopen(file_descriptor, "wb")
+        file_descriptor = None
+        with stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, output)
+        temporary_name = None
+    finally:
+        if file_descriptor is not None:
+            os.close(file_descriptor)
+        if temporary_name is not None:
+            try:
+                os.unlink(temporary_name)
+            except FileNotFoundError:
+                pass
+
+
+def main(arguments: list[str] | None = None) -> int:
+    args = parse_args(arguments)
+
+    try:
+        lexical_vault = Path(os.path.abspath(args.vault))
+        vault = lexical_vault.resolve(strict=True)
+        if not vault.is_dir():
+            raise InventoryError(f"vault is not a directory: {vault}")
+        output = _resolve_output_path(vault, lexical_vault, args.output)
+        output_paths = (output.relative_to(vault).as_posix(),)
         inventory = inventory_from_git(
             vault, args.base_ref, output_paths=output_paths
         )
@@ -55,11 +129,7 @@ def main(arguments: list[str] | None = None) -> int:
 
         files_written = 0
         if not args.check_only:
-            if not output.parent.is_dir():
-                raise InventoryError(
-                    f"output parent is not a directory: {output.parent}"
-                )
-            output.write_bytes(payload)
+            _atomic_write_output(output, payload)
             files_written = 1
     except (InventoryError, RuleError, OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)

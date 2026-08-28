@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
+import plan_migration
 from fgv_migration.inventory import (
     InventoryEntry,
     InventoryError,
@@ -504,6 +505,154 @@ class PlannerCliTests(unittest.TestCase):
             self.assertNotEqual(invalid_ref.returncode, 0)
             self.assertIn("missing-ref", invalid_ref.stderr)
             self.assertFalse(output.exists())
+
+    def test_output_rejects_parent_traversal_and_absolute_external_path(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            repository = root / "vault"
+            repository.mkdir()
+            self.make_git_fixture(repository)
+
+            for unsafe_output in (
+                "../outside.json",
+                str(root / "absolute-outside.json"),
+            ):
+                with self.subTest(output=unsafe_output):
+                    result = self.run_cli(
+                        "--vault",
+                        str(repository),
+                        "--base-ref",
+                        "HEAD",
+                        "--output",
+                        unsafe_output,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("output", result.stderr)
+
+            self.assertFalse((root / "outside.json").exists())
+            self.assertFalse((root / "absolute-outside.json").exists())
+
+    def test_output_rejects_symlink_ancestors_even_when_target_is_inside(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            repository = root / "vault"
+            external = root / "external"
+            repository.mkdir()
+            external.mkdir()
+            self.make_git_fixture(repository)
+            (repository / "real").mkdir()
+            os.symlink(external, repository / "external-link")
+            os.symlink(repository / "real", repository / "internal-link")
+
+            for output in (
+                repository / "external-link/manifest.json",
+                repository / "internal-link/manifest.json",
+            ):
+                with self.subTest(output=output):
+                    result = self.run_cli(
+                        "--vault",
+                        str(repository),
+                        "--base-ref",
+                        "HEAD",
+                        "--output",
+                        str(output),
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("symlink", result.stderr)
+
+            self.assertFalse((external / "manifest.json").exists())
+            self.assertFalse((repository / "real/manifest.json").exists())
+
+    def test_output_rejects_leaf_symlink_and_dangling_leaf(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            repository = root / "vault"
+            external = root / "external"
+            repository.mkdir()
+            external.mkdir()
+            self.make_git_fixture(repository)
+            target = external / "target.json"
+            target.write_bytes(b"external")
+            os.symlink(target, repository / "manifest-link.json")
+            os.symlink(
+                external / "missing.json", repository / "dangling-manifest.json"
+            )
+
+            for output in (
+                repository / "manifest-link.json",
+                repository / "dangling-manifest.json",
+            ):
+                with self.subTest(output=output):
+                    result = self.run_cli(
+                        "--vault",
+                        str(repository),
+                        "--base-ref",
+                        "HEAD",
+                        "--output",
+                        str(output),
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("symlink", result.stderr)
+
+            self.assertEqual(target.read_bytes(), b"external")
+            self.assertFalse((external / "missing.json").exists())
+
+    def test_atomic_write_preserves_previous_output_after_partial_write(self) -> None:
+        writer = getattr(plan_migration, "_atomic_write_output", None)
+        self.assertIsNotNone(writer, "atomic output writer is missing")
+        with TemporaryDirectory() as temporary_directory:
+            parent = Path(temporary_directory)
+            output = parent / "manifest.json"
+            output.write_bytes(b"previous")
+            before = {path.name for path in parent.iterdir()}
+            real_fdopen = os.fdopen
+
+            class PartialWriter:
+                def __init__(self, stream):
+                    self.stream = stream
+
+                def __enter__(self):
+                    self.stream.__enter__()
+                    return self
+
+                def __exit__(self, exception_type, exception, traceback):
+                    return self.stream.__exit__(exception_type, exception, traceback)
+
+                def write(self, payload: bytes) -> None:
+                    self.stream.write(payload[:4])
+                    raise OSError("injected partial write")
+
+            def partial_fdopen(file_descriptor, *arguments, **keywords):
+                return PartialWriter(
+                    real_fdopen(file_descriptor, *arguments, **keywords)
+                )
+
+            with patch.object(plan_migration.os, "fdopen", side_effect=partial_fdopen):
+                with self.assertRaisesRegex(OSError, "partial write"):
+                    writer(output, b"replacement payload")
+
+            self.assertEqual(output.read_bytes(), b"previous")
+            self.assertEqual({path.name for path in parent.iterdir()}, before)
+
+    def test_atomic_write_preserves_previous_output_when_replace_fails(self) -> None:
+        writer = getattr(plan_migration, "_atomic_write_output", None)
+        self.assertIsNotNone(writer, "atomic output writer is missing")
+        with TemporaryDirectory() as temporary_directory:
+            parent = Path(temporary_directory)
+            output = parent / "manifest.json"
+            output.write_bytes(b"previous")
+            before = {path.name for path in parent.iterdir()}
+
+            with patch.object(
+                plan_migration.os,
+                "replace",
+                side_effect=OSError("injected replace failure"),
+            ):
+                with self.assertRaisesRegex(OSError, "replace failure"):
+                    writer(output, b"replacement payload")
+
+            self.assertEqual(output.read_bytes(), b"previous")
+            self.assertEqual({path.name for path in parent.iterdir()}, before)
 
 
 if __name__ == "__main__":
