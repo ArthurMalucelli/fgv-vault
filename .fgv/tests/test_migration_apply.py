@@ -29,6 +29,8 @@ class MigrationApplyTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = TemporaryDirectory()
         self.vault = Path(self.temporary.name)
+        (self.vault / ".fgv").mkdir()
+        self.journal_path = self.vault / ".fgv/migration-apply-journal.json"
         self.payloads = {
             "legacy/a.txt": b"alpha\n",
             "legacy/deep/b.bin": b"\x00\xffbinary\r\n",
@@ -327,6 +329,91 @@ class MigrationApplyTests(unittest.TestCase):
         self.assertIn("CRITICAL rollback failed", stderr)
         self.assertIn("injected rename failure 2", stderr)
         self.assertIn("injected rename failure 3", stderr)
+        self.assertTrue(self.journal_path.is_file())
+
+        recovered, _, recovery_error = self._run()
+
+        self.assertEqual(recovered, 0, recovery_error)
+        self._assert_destinations_only()
+        self.assertFalse(self.journal_path.exists())
+
+    def test_corrupt_recovery_journal_blocks_without_mutation(self) -> None:
+        self.journal_path.write_bytes(b"{not-json")
+        before = self._snapshot()
+
+        result, _, stderr = self._run()
+
+        self.assertEqual(result, 1)
+        self.assertIn("CRITICAL recovery journal", stderr)
+        self.assertEqual(self._snapshot(), before)
+
+    def test_incompatible_recovery_journal_blocks_without_mutation(self) -> None:
+        real_move = apply_migration._rename_noreplace
+        calls = 0
+
+        def leave_partial_state(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls in {2, 3}:
+                raise OSError(f"injected rename failure {calls}")
+            return real_move(*args, **kwargs)
+
+        with patch(
+            "apply_migration._rename_noreplace", side_effect=leave_partial_state
+        ):
+            result, _, _ = self._run()
+        self.assertEqual(result, 1)
+        journal = json.loads(self.journal_path.read_text(encoding="utf-8"))
+        journal["expected_head"] = "0" * 40
+        self.journal_path.write_text(
+            json.dumps(journal) + "\n", encoding="utf-8"
+        )
+        before = self._snapshot()
+
+        blocked, _, stderr = self._run()
+
+        self.assertEqual(blocked, 1)
+        self.assertIn("CRITICAL recovery journal is incompatible", stderr)
+        self.assertEqual(self._snapshot(), before)
+
+    def test_all_complete_recovery_finalizes_as_no_op(self) -> None:
+        with patch(
+            "apply_migration._delete_journal",
+            side_effect=OSError("injected journal delete failure"),
+        ):
+            result, _, stderr = self._run()
+
+        self.assertEqual(result, 1)
+        self.assertIn("injected journal delete failure", stderr)
+        self._assert_destinations_only()
+        self.assertTrue(self.journal_path.is_file())
+
+        recovered, stdout, recovery_error = self._run()
+
+        self.assertEqual(recovered, 0, recovery_error)
+        self.assertIn("no_op=true", stdout)
+        self.assertFalse(self.journal_path.exists())
+
+    def test_all_pending_recovery_clears_journal_and_restarts(self) -> None:
+        with patch(
+            "apply_migration._create_planned_directories",
+            side_effect=OSError("injected pre-move failure"),
+        ), patch(
+            "apply_migration._delete_journal",
+            side_effect=OSError("injected journal retention"),
+        ):
+            result, _, stderr = self._run()
+
+        self.assertEqual(result, 1)
+        self.assertIn("CRITICAL rollback failed", stderr)
+        self._assert_sources_only()
+        self.assertTrue(self.journal_path.is_file())
+
+        recovered, _, recovery_error = self._run()
+
+        self.assertEqual(recovered, 0, recovery_error)
+        self._assert_destinations_only()
+        self.assertFalse(self.journal_path.exists())
 
     def test_complete_application_preserves_every_hash_and_count(self) -> None:
         result, stdout, stderr = self._run()
@@ -334,6 +421,7 @@ class MigrationApplyTests(unittest.TestCase):
         self.assertEqual(result, 0, stderr)
         self.assertEqual(stdout, "planned_moves=3\npreflight=ok\nfiles_moved=3\n")
         self._assert_destinations_only()
+        self.assertFalse(self.journal_path.exists())
         hashes = {
             hashlib.sha256((self.vault / destination).read_bytes()).hexdigest()
             for destination in self.destinations.values()
@@ -354,6 +442,7 @@ class MigrationApplyTests(unittest.TestCase):
             "planned_moves=0\npreflight=ok\nfiles_moved=0\nno_op=true\n",
         )
         self.assertEqual(self._snapshot(), before)
+        self.assertFalse(self.journal_path.exists())
 
     def test_partially_moved_state_fails_closed_without_further_changes(self) -> None:
         source = self.vault / "legacy/a.txt"
