@@ -291,6 +291,32 @@ class TransactionFixtureTests(unittest.TestCase):
             if path.is_file() and ".git" not in path.parts
         }
 
+    @staticmethod
+    def swap_leaf(
+        parent_fd: int,
+        name: str,
+        backup_name: str,
+        replacement: bytes = b"concurrent owner\n",
+    ) -> None:
+        os.rename(
+            name,
+            backup_name,
+            src_dir_fd=parent_fd,
+            dst_dir_fd=parent_fd,
+        )
+        descriptor = os.open(
+            name,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+            0o600,
+            dir_fd=parent_fd,
+        )
+        try:
+            os.write(descriptor, replacement)
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+        os.fsync(parent_fd)
+
     def test_dry_run_writes_nothing_and_manifest_is_closed_deterministic(self):
         module = self.module()
         before = self.snapshot()
@@ -328,6 +354,613 @@ class TransactionFixtureTests(unittest.TestCase):
         no_op = self.execute(apply=True)
         self.assertEqual(no_op.status, "no_op")
         self.assertEqual(no_op.rename_operations, 2)
+
+    def test_authenticated_fresh_apply_is_noop_after_head_advances_and_preserves_mtime(self):
+        applied = self.execute(apply=True)
+        self.assertEqual(applied.status, "applied")
+        _git(self.fixture.vault, "add", "-A")
+        _git(
+            self.fixture.vault,
+            "-c",
+            "user.name=Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "record applied lesson names",
+        )
+        self.assertNotEqual(_git(self.fixture.vault, "rev-parse", "HEAD"), self.fixture.head)
+        tracked = [
+            self.fixture.class_dir / "Resumo - Funções, Limites e Domínio.md",
+            self.fixture.class_dir / "Transcrito - Funções, Limites e Domínio.md",
+            self.fixture.vault / "30 Sistema/Estado/lesson-rename-manifest.json",
+        ]
+        before = {path: path.stat().st_mtime_ns for path in tracked}
+
+        no_op = self.execute(apply=True)
+
+        self.assertEqual(no_op.status, "no_op")
+        self.assertEqual({path: path.stat().st_mtime_ns for path in tracked}, before)
+        self.assertFalse(
+            (self.fixture.vault / ".fgv/lesson-rename-journal.json").exists()
+        )
+
+    def test_manifest_validation_rejects_wrong_exact_types_even_with_fresh_aggregate(self):
+        module = self.module()
+        original = json.loads(self.execute().plan.manifest_bytes)
+        top_level_mutations = {
+            "schema": 1,
+            "schema_version": True,
+            "authority_commit": 1,
+            "authority_tree": 1,
+            "record_count": True,
+            "aggregate_sha256": True,
+            "records": {},
+        }
+        record_string_fields = (
+            "source",
+            "destination",
+            "subject_id",
+            "class_date",
+            "kind",
+            "topic",
+            "original_sha256",
+            "original_mode",
+            "final_sha256",
+            "final_mode",
+            "original_body_sha256",
+            "final_body_sha256",
+            "content_class",
+            "transform_id",
+        )
+        record_integer_fields = (
+            "original_size_bytes",
+            "final_size_bytes",
+            "transform_occurrences",
+        )
+
+        cases: list[tuple[str, str | None, object]] = [
+            (f"top.{field}", None, replacement)
+            for field, replacement in top_level_mutations.items()
+        ]
+        cases.extend(
+            (f"record.{field}", field, True) for field in record_string_fields
+        )
+        cases.extend(
+            (f"record.{field}", field, True) for field in record_integer_fields
+        )
+        for label, record_field, replacement in cases:
+            with self.subTest(field=label):
+                value = json.loads(json.dumps(original, ensure_ascii=False))
+                if record_field is None:
+                    value[label.removeprefix("top.")] = replacement
+                else:
+                    value["records"][0][record_field] = replacement
+                if (
+                    type(value.get("authority_commit")) is str
+                    and type(value.get("authority_tree")) is str
+                    and type(value.get("records")) is list
+                    and label != "top.aggregate_sha256"
+                ):
+                    value["aggregate_sha256"] = module._aggregate_manifest(
+                        value["authority_commit"],
+                        value["authority_tree"],
+                        value["records"],
+                    )
+                payload = module._serialize_manifest(value)
+                with self.assertRaises(module.RenameError):
+                    module.validate_manifest_bytes(payload, self.fixture.head)
+
+    def test_manifest_validation_rejects_invalid_string_formats_with_fresh_aggregate(self):
+        module = self.module()
+        original = json.loads(self.execute().plan.manifest_bytes)
+        mutations = {
+            "subject_id": "Not Canonical",
+            "class_date": "2026-8-6",
+            "topic": "",
+            "original_mode": "0644",
+            "final_mode": "0644",
+            "original_sha256": "g" * 64,
+            "final_sha256": "g" * 64,
+            "original_body_sha256": "g" * 64,
+            "final_body_sha256": "g" * 64,
+            "content_class": "other",
+            "transform_id": "other",
+        }
+        for field, replacement in mutations.items():
+            with self.subTest(field=field):
+                value = json.loads(json.dumps(original, ensure_ascii=False))
+                value["records"][0][field] = replacement
+                value["aggregate_sha256"] = module._aggregate_manifest(
+                    value["authority_commit"],
+                    value["authority_tree"],
+                    value["records"],
+                )
+                with self.assertRaises(module.RenameError):
+                    module.validate_manifest_bytes(
+                        module._serialize_manifest(value), self.fixture.head
+                    )
+
+    def test_source_delete_quarantines_and_restores_a_leaf_swapped_after_authentication(self):
+        module = self.module()
+        swapped = False
+        source_name = "Resumo.md"
+        backup_name = "authenticated-source.backup"
+
+        def race(parent_fd, name, label):
+            nonlocal swapped
+            if not swapped and name == source_name:
+                swapped = True
+                self.swap_leaf(parent_fd, name, backup_name)
+
+        with patch.object(
+            module,
+            "_before_leaf_quarantine_move",
+            side_effect=race,
+            create=True,
+        ):
+            with self.assertRaises(module.RenameError):
+                self.execute(apply=True)
+
+        self.assertTrue(swapped)
+        self.assertEqual(
+            (self.fixture.class_dir / source_name).read_bytes(),
+            b"concurrent owner\n",
+        )
+        self.assertTrue((self.fixture.class_dir / backup_name).is_file())
+        self.assertTrue(
+            (self.fixture.vault / ".fgv/lesson-rename-journal.json").is_file()
+        )
+        self.assertFalse(
+            any(
+                path.name.startswith(".lesson-rename-quarantine-")
+                for path in self.fixture.class_dir.iterdir()
+            )
+        )
+
+    def test_rollback_destination_and_manifest_removal_restore_swapped_leaf(self):
+        module = self.module()
+        plan = self.execute().plan
+        operation = plan.operations[0]
+        cases = (
+            ("rollback destination", operation.final, 0o644),
+            ("lesson rename manifest", plan.manifest_bytes, 0o644),
+        )
+        for label, expected, mode in cases:
+            with self.subTest(site=label), TemporaryDirectory() as raw:
+                directory = Path(raw)
+                name = "owned-leaf"
+                backup_name = "authenticated-leaf.backup"
+                (directory / name).write_bytes(expected)
+                os.chmod(directory / name, mode)
+                parent_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+                swapped = False
+
+                def race(race_fd, race_name, race_label):
+                    nonlocal swapped
+                    if not swapped:
+                        swapped = True
+                        self.swap_leaf(race_fd, race_name, backup_name)
+
+                try:
+                    with patch.object(
+                        module,
+                        "_before_leaf_quarantine_move",
+                        side_effect=race,
+                        create=True,
+                    ):
+                        with self.assertRaises(module.RenameError):
+                            module._unlink_exact(
+                                parent_fd,
+                                name,
+                                expected,
+                                mode,
+                                label,
+                            )
+                    self.assertTrue(swapped)
+                    self.assertEqual(
+                        (directory / name).read_bytes(), b"concurrent owner\n"
+                    )
+                    self.assertEqual((directory / backup_name).read_bytes(), expected)
+                    self.assertFalse(
+                        any(
+                            path.name.startswith(".lesson-rename-quarantine-")
+                            for path in directory.iterdir()
+                        )
+                    )
+                finally:
+                    os.close(parent_fd)
+
+    def test_journal_checkpoint_and_cleanup_restore_swapped_leaf(self):
+        module = self.module()
+        actions = ("checkpoint", "cleanup")
+        for action in actions:
+            with self.subTest(action=action):
+                fixture = GitVaultFixture()
+                root_fd = journal_fd = None
+                try:
+                    plan = module.build_plan(
+                        fixture.vault,
+                        fixture.head,
+                        expected_active=2,
+                        expected_archive=1,
+                    )
+                    _, root_fd = module._open_vault(fixture.vault)
+                    journal_fd = module._open_journal_directory(root_fd)
+                    module._install_journal(journal_fd, plan)
+                    swapped = False
+                    backup_name = f"authenticated-journal-{action}.backup"
+
+                    def race(race_fd, name, label):
+                        nonlocal swapped
+                        if not swapped and name == module.JOURNAL_NAME:
+                            swapped = True
+                            self.swap_leaf(race_fd, name, backup_name)
+
+                    with patch.object(
+                        module,
+                        "_before_leaf_quarantine_move",
+                        side_effect=race,
+                        create=True,
+                    ):
+                        with self.assertRaises(module.RenameError):
+                            if action == "checkpoint":
+                                module._checkpoint_journal(journal_fd, plan, 1)
+                            else:
+                                module._delete_journal(journal_fd, plan)
+                    self.assertTrue(swapped)
+                    journal = fixture.vault / ".fgv" / module.JOURNAL_NAME
+                    self.assertEqual(journal.read_bytes(), b"concurrent owner\n")
+                    self.assertTrue((fixture.vault / ".fgv" / backup_name).is_file())
+                    self.assertFalse(
+                        any(
+                            path.name.startswith(".lesson-rename-quarantine-")
+                            for path in (fixture.vault / ".fgv").iterdir()
+                        )
+                    )
+                finally:
+                    if journal_fd is not None:
+                        os.close(journal_fd)
+                    if root_fd is not None:
+                        os.close(root_fd)
+                    fixture.close()
+
+    def test_final_quarantine_delete_swap_never_deletes_replacement(self):
+        module = self.module()
+        for label in (
+            "source delete",
+            "rollback destination",
+            "lesson rename manifest",
+            "lesson rename journal cleanup",
+        ):
+            with self.subTest(site=label), TemporaryDirectory() as raw:
+                directory = Path(raw)
+                canonical = "owned-leaf"
+                backup = "authenticated-quarantine.backup"
+                expected = b"authenticated owner\n"
+                (directory / canonical).write_bytes(expected)
+                parent_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+                swapped = False
+
+                def race(race_fd, quarantine_name, race_label):
+                    nonlocal swapped
+                    if swapped:
+                        return
+                    swapped = True
+                    self.swap_leaf(race_fd, quarantine_name, backup)
+
+                try:
+                    with patch.object(
+                        module,
+                        "_before_quarantine_delete",
+                        side_effect=race,
+                        create=True,
+                    ):
+                        with self.assertRaises(module.RenameError):
+                            module._unlink_exact(
+                                parent_fd,
+                                canonical,
+                                expected,
+                                0o644,
+                                label,
+                            )
+                    self.assertTrue(swapped)
+                    self.assertEqual(
+                        (directory / canonical).read_bytes(), b"concurrent owner\n"
+                    )
+                    self.assertEqual((directory / backup).read_bytes(), expected)
+                    self.assertFalse(
+                        any(
+                            path.name.startswith(".lesson-rename-")
+                            for path in directory.iterdir()
+                        )
+                    )
+                finally:
+                    os.close(parent_fd)
+
+    def test_final_journal_checkpoint_quarantine_swap_restores_without_overwrite(self):
+        module = self.module()
+        plan = self.execute().plan
+        _, root_fd = module._open_vault(self.fixture.vault)
+        journal_fd = module._open_journal_directory(root_fd)
+        backup = "authenticated-journal-quarantine.backup"
+        swapped = False
+
+        def race(race_fd, quarantine_name, label):
+            nonlocal swapped
+            if not swapped and label == "lesson rename journal":
+                swapped = True
+                self.swap_leaf(race_fd, quarantine_name, backup)
+
+        try:
+            module._install_journal(journal_fd, plan)
+            with patch.object(
+                module,
+                "_before_quarantine_delete",
+                side_effect=race,
+                create=True,
+            ):
+                with self.assertRaises(module.RenameError):
+                    module._checkpoint_journal(journal_fd, plan, 1)
+            self.assertTrue(swapped)
+            journal = self.fixture.vault / ".fgv" / module.JOURNAL_NAME
+            self.assertEqual(journal.read_bytes(), b"concurrent owner\n")
+            self.assertEqual(
+                (self.fixture.vault / ".fgv" / backup).read_bytes(),
+                module._journal_payload(plan, 0),
+            )
+            self.assertFalse(
+                any(
+                    path.name.startswith(".lesson-rename-")
+                    for path in (self.fixture.vault / ".fgv").iterdir()
+                )
+            )
+        finally:
+            os.close(journal_fd)
+            os.close(root_fd)
+
+    def test_known_quarantine_swap_after_exchange_preserves_both_owners(self):
+        module = self.module()
+        with TemporaryDirectory() as raw:
+            directory = Path(raw)
+            canonical = "owned-leaf"
+            backup = "authenticated-purge-marker.backup"
+            expected = b"authenticated owner\n"
+            (directory / canonical).write_bytes(expected)
+            parent_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+            swapped = False
+
+            def race(race_fd, quarantine_name, purge_name, label):
+                nonlocal swapped
+                del purge_name, label
+                if not swapped:
+                    swapped = True
+                    self.swap_leaf(race_fd, quarantine_name, backup)
+
+            try:
+                with patch.object(
+                    module,
+                    "_after_purge_exchange",
+                    side_effect=race,
+                    create=True,
+                ):
+                    with self.assertRaises(module.RenameError):
+                        module._unlink_exact(
+                            parent_fd,
+                            canonical,
+                            expected,
+                            0o644,
+                            "source delete",
+                        )
+                self.assertTrue(swapped)
+                self.assertEqual(
+                    (directory / canonical).read_bytes(), b"concurrent owner\n"
+                )
+                retained = [
+                    path
+                    for path in directory.iterdir()
+                    if path.name.startswith(module.PURGE_PREFIX)
+                    and path.name.endswith(".target")
+                ]
+                self.assertEqual(len(retained), 1)
+                self.assertEqual(retained[0].read_bytes(), expected)
+                self.assertTrue((directory / backup).is_file())
+            finally:
+                os.close(parent_fd)
+
+    def test_crash_after_purge_exchange_is_recovered_for_source_and_journal(self):
+        module = self.module()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        for site in ("source", "journal-checkpoint"):
+            with self.subTest(site=site):
+                fixture = GitVaultFixture()
+
+                def crash(parent_fd, quarantine_name, purge_name, label):
+                    del parent_fd, quarantine_name, purge_name
+                    if site == "source" and not label.endswith("/Resumo.md"):
+                        return
+                    if site == "journal-checkpoint" and label != "lesson rename journal":
+                        return
+                    raise SimulatedCrash(site)
+
+                try:
+                    with patch.object(
+                        module,
+                        "_after_purge_exchange",
+                        side_effect=crash,
+                        create=True,
+                    ):
+                        with self.assertRaises(SimulatedCrash):
+                            module.execute_rename(
+                                fixture.vault,
+                                fixture.head,
+                                apply=True,
+                                expected_active=2,
+                                expected_archive=1,
+                            )
+                    self.assertTrue(
+                        list(fixture.vault.rglob(f"{module.PURGE_PREFIX}*"))
+                    )
+                    recovered = module.execute_rename(
+                        fixture.vault,
+                        fixture.head,
+                        apply=True,
+                        expected_active=2,
+                        expected_archive=1,
+                    )
+                    self.assertEqual(recovered.status, "applied")
+                    self.assertFalse(
+                        list(fixture.vault.rglob(f"{module.PURGE_PREFIX}*"))
+                    )
+                    self.assertFalse(
+                        (fixture.vault / ".fgv/lesson-rename-journal.json").exists()
+                    )
+                finally:
+                    fixture.close()
+
+    def test_crash_after_quarantine_move_recovers_source_and_journal_boundaries(self):
+        module = self.module()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        for site in ("source", "journal-checkpoint", "journal-cleanup"):
+            with self.subTest(site=site):
+                fixture = GitVaultFixture()
+                armed = site != "journal-cleanup"
+
+                def arm_cleanup(plan):
+                    nonlocal armed
+                    del plan
+                    armed = True
+
+                def crash_after_move(parent_fd, name, quarantine_name, label):
+                    del parent_fd, name, quarantine_name
+                    if not armed:
+                        return
+                    if site == "source" and not label.endswith("/Resumo.md"):
+                        return
+                    if site.startswith("journal") and label != "lesson rename journal":
+                        return
+                    raise SimulatedCrash(site)
+
+                try:
+                    with patch.object(
+                        module,
+                        "_after_leaf_quarantine_move",
+                        side_effect=crash_after_move,
+                        create=True,
+                    ), patch.object(
+                        module,
+                        "_before_journal_delete",
+                        side_effect=arm_cleanup,
+                    ):
+                        with self.assertRaises(SimulatedCrash):
+                            module.execute_rename(
+                                fixture.vault,
+                                fixture.head,
+                                apply=True,
+                                expected_active=2,
+                                expected_archive=1,
+                            )
+                    self.assertTrue(
+                        list(fixture.vault.rglob(f"{module.QUARANTINE_PREFIX}*"))
+                    )
+                    recovered = module.execute_rename(
+                        fixture.vault,
+                        fixture.head,
+                        apply=True,
+                        expected_active=2,
+                        expected_archive=1,
+                    )
+                    self.assertEqual(recovered.status, "applied")
+                    self.assertFalse(
+                        list(fixture.vault.rglob(f"{module.QUARANTINE_PREFIX}*"))
+                    )
+                    self.assertFalse(
+                        (fixture.vault / ".fgv/lesson-rename-journal.json").exists()
+                    )
+                finally:
+                    fixture.close()
+
+    def test_crash_after_rollback_destination_quarantine_is_recovered(self):
+        module = self.module()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        def force_rollback(operation):
+            del operation
+            raise RuntimeError("force rollback")
+
+        def crash_after_move(parent_fd, name, quarantine_name, label):
+            del parent_fd, name, quarantine_name
+            if label.startswith("rollback destination "):
+                raise SimulatedCrash(label)
+
+        with patch.object(
+            module,
+            "_after_destination_publish",
+            side_effect=force_rollback,
+        ), patch.object(
+            module,
+            "_after_leaf_quarantine_move",
+            side_effect=crash_after_move,
+            create=True,
+        ):
+            with self.assertRaises(SimulatedCrash):
+                self.execute(apply=True)
+        self.assertTrue(
+            list(self.fixture.vault.rglob(f"{module.QUARANTINE_PREFIX}*"))
+        )
+
+        recovered = self.execute(apply=True)
+
+        self.assertEqual(recovered.status, "applied")
+        self.assertFalse(
+            list(self.fixture.vault.rglob(f"{module.QUARANTINE_PREFIX}*"))
+        )
+
+    def test_crash_after_manifest_quarantine_is_recovered(self):
+        module = self.module()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        with patch.object(
+            module,
+            "_before_journal_delete",
+            side_effect=SimulatedCrash("leave committed journal"),
+        ):
+            with self.assertRaises(SimulatedCrash):
+                self.execute(apply=True)
+
+        def crash_after_move(parent_fd, name, quarantine_name, label):
+            del parent_fd, name, quarantine_name
+            if label == "lesson rename manifest":
+                raise SimulatedCrash(label)
+
+        with patch.object(
+            module,
+            "_after_leaf_quarantine_move",
+            side_effect=crash_after_move,
+            create=True,
+        ):
+            with self.assertRaises(SimulatedCrash):
+                self.execute(apply=True)
+        self.assertTrue(
+            list(self.fixture.vault.rglob(f"{module.QUARANTINE_PREFIX}*"))
+        )
+
+        recovered = self.execute(apply=True)
+
+        self.assertEqual(recovered.status, "applied")
+        self.assertFalse(
+            list(self.fixture.vault.rglob(f"{module.QUARANTINE_PREFIX}*"))
+        )
 
     def test_crash_journal_is_authenticated_recovered_and_reapplied(self):
         module = self.module()

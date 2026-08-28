@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
-"""Plan and transactionally apply the audited active lesson-note renames."""
+"""Plan and transactionally apply the audited active lesson-note renames.
+
+Threat model: this transaction runs in a trusted single-user vault while other
+writers are quiescent.  It still detects accidental concurrency, symlinks, and
+leaf swaps at canonical and deterministic quarantine paths.  POSIX provides no
+compare-and-unlink-by-inode operation, so a malicious same-UID process that can
+discover and swap a fresh 192-bit private purge anchor is outside the model; it
+could already delete the vault directly.
+"""
 
 from __future__ import annotations
 
 import argparse
 import ast
+import ctypes
 from dataclasses import dataclass
 from datetime import date
+import errno
 import fcntl
 import hashlib
 import json
@@ -94,10 +104,31 @@ HEX_SHA256 = re.compile(r"[0-9a-f]{64}")
 DIRECTORY_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 FILE_FLAGS = os.O_RDONLY | os.O_NOFOLLOW
 TEMP_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+ATOMIC_RENAME_FLAGS = {
+    "darwin": ("renameatx_np", 0x00000004, 0x00000002),
+    "linux": ("renameat2", 0x00000001, 0x00000002),
+}
+QUARANTINE_PREFIX = ".lesson-rename-quarantine-"
+PURGE_PREFIX = ".lesson-rename-purge-"
+PURGE_NAME = re.compile(r"\.lesson-rename-purge-([0-9a-f]{48})\.(target|marker)")
+PURGE_MARKER_FIELDS = (
+    "schema",
+    "schema_version",
+    "token",
+    "quarantine_name",
+    "expected_sha256",
+    "expected_size_bytes",
+    "expected_mode",
+)
+SUBJECT_ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 class RenameError(ValueError):
     """The rename plan or filesystem state violates the closed contract."""
+
+
+class QuarantineRaceError(RenameError):
+    """A quarantined leaf was swapped before its atomic purge exchange."""
 
 
 @dataclass(frozen=True)
@@ -126,6 +157,23 @@ class GitEntry:
     mode: str
     oid: str
     payload: bytes
+
+
+@dataclass(frozen=True)
+class LeafSnapshot:
+    payload: bytes
+    mode: int
+    device: int
+    inode: int
+
+
+@dataclass(frozen=True)
+class PurgeRole:
+    parent: str
+    quarantine_name: str
+    expected: bytes
+    mode: int
+    label: str
 
 
 @dataclass(frozen=True)
@@ -646,51 +694,118 @@ def validate_manifest_bytes(payload: bytes, expected_head: str) -> Mapping[str, 
         raise RenameError("invalid lesson rename manifest JSON") from error
     if type(value) is not dict or tuple(value) != MANIFEST_FIELDS:
         raise RenameError("lesson rename manifest root schema is not closed")
-    if value["schema"] != SCHEMA or value["schema_version"] != 1:
-        raise RenameError("lesson rename manifest schema/version is invalid")
-    if value["authority_commit"] != expected_head:
+    if type(expected_head) is not str or HEX_OID.fullmatch(expected_head) is None:
+        raise RenameError("expected lesson rename authority commit is invalid")
+    if type(value["schema"]) is not str or value["schema"] != SCHEMA:
+        raise RenameError("lesson rename manifest schema is invalid")
+    if type(value["schema_version"]) is not int or value["schema_version"] != 1:
+        raise RenameError("lesson rename manifest schema version is invalid")
+    authority_commit = value["authority_commit"]
+    if (
+        type(authority_commit) is not str
+        or HEX_OID.fullmatch(authority_commit) is None
+        or authority_commit != expected_head
+    ):
         raise RenameError("lesson rename authority commit mismatch")
     authority_tree = value["authority_tree"]
     if type(authority_tree) is not str or HEX_OID.fullmatch(authority_tree) is None:
         raise RenameError("lesson rename authority tree is invalid")
     records = value["records"]
-    if type(records) is not list or value["record_count"] != len(records):
+    record_count = value["record_count"]
+    if type(record_count) is not int or record_count < 1:
+        raise RenameError("lesson rename record count is invalid")
+    if type(records) is not list or record_count != len(records):
         raise RenameError("lesson rename record count mismatch")
-    if type(value["record_count"]) is not int or not records:
+    aggregate_sha256 = value["aggregate_sha256"]
+    if (
+        type(aggregate_sha256) is not str
+        or HEX_SHA256.fullmatch(aggregate_sha256) is None
+    ):
+        raise RenameError("lesson rename aggregate hash is invalid")
+    if not records:
         raise RenameError("lesson rename records must be non-empty")
     previous = ""
     for record in records:
         if type(record) is not dict or tuple(record) != MANIFEST_RECORD_FIELDS:
             raise RenameError("lesson rename record schema is not closed")
+        text_fields = (
+            "source",
+            "destination",
+            "subject_id",
+            "class_date",
+            "kind",
+            "topic",
+            "original_sha256",
+            "original_mode",
+            "final_sha256",
+            "final_mode",
+            "original_body_sha256",
+            "final_body_sha256",
+            "content_class",
+            "transform_id",
+        )
+        for key in text_fields:
+            if type(record[key]) is not str:
+                raise RenameError(f"manifest {key} must be text")
+        integer_fields = (
+            "original_size_bytes",
+            "final_size_bytes",
+            "transform_occurrences",
+        )
+        for key in integer_fields:
+            if type(record[key]) is not int or record[key] < 0:
+                raise RenameError(f"manifest {key} is invalid")
         source = record["source"]
         destination = record["destination"]
-        if type(source) is not str or type(destination) is not str:
-            raise RenameError("manifest paths must be text")
         _canonical_relative(source)
         _canonical_relative(destination)
         assert_distinct_paths(source, destination)
         if previous and source <= previous:
             raise RenameError("manifest records are not strictly source-sorted")
         previous = source
-        if record["kind"] not in {"resumo", "transcrito"}:
+        source_match = CLASS_PATH.fullmatch(source)
+        if source_match is None:
+            raise RenameError("manifest source path is invalid")
+        subject_id = record["subject_id"]
+        if SUBJECT_ID.fullmatch(subject_id) is None:
+            raise RenameError("manifest subject_id is invalid")
+        kind = record["kind"]
+        if kind not in {"resumo", "transcrito"}:
             raise RenameError("manifest kind is invalid")
+        if kind != GENERIC_NAMES[PurePosixPath(source).name]:
+            raise RenameError("manifest kind does not match source")
+        topic = record["topic"]
+        if not topic or _nfc(topic) != topic:
+            raise RenameError("manifest topic is invalid")
+        destination_component = destination_name(kind, topic)
+        if (
+            PurePosixPath(destination).parent != PurePosixPath(source).parent
+            or PurePosixPath(destination).name != destination_component
+        ):
+            raise RenameError("manifest destination does not match kind/topic")
+        class_date = record["class_date"]
         try:
-            date.fromisoformat(str(record["class_date"]))
+            parsed_date = date.fromisoformat(class_date)
         except ValueError as error:
             raise RenameError("manifest class_date is invalid") from error
+        if parsed_date.isoformat() != class_date or (
+            parsed_date.year,
+            parsed_date.month,
+            parsed_date.day,
+        ) != (2026, int(source_match.group(2)), int(source_match.group(3))):
+            raise RenameError("manifest class_date does not match source")
         for key in (
             "original_sha256",
             "final_sha256",
             "original_body_sha256",
             "final_body_sha256",
         ):
-            if type(record[key]) is not str or HEX_SHA256.fullmatch(record[key]) is None:
-                raise RenameError(f"manifest {key} is invalid")
-        for key in ("original_size_bytes", "final_size_bytes", "transform_occurrences"):
-            if type(record[key]) is not int or record[key] < 0:
+            if HEX_SHA256.fullmatch(record[key]) is None:
                 raise RenameError(f"manifest {key} is invalid")
         if record["original_mode"] not in {"100644", "100755"}:
             raise RenameError("manifest original mode is invalid")
+        if record["final_mode"] not in {"100644", "100755"}:
+            raise RenameError("manifest final mode is invalid")
         if record["final_mode"] != record["original_mode"]:
             raise RenameError("manifest mode changed")
         content_class = record["content_class"]
@@ -710,11 +825,11 @@ def validate_manifest_bytes(payload: bytes, expected_head: str) -> Mapping[str, 
         else:
             raise RenameError("manifest content class is invalid")
     expected_aggregate = _aggregate_manifest(
-        expected_head,
-        str(authority_tree),
+        authority_commit,
+        authority_tree,
         records,
     )
-    if value["aggregate_sha256"] != expected_aggregate:
+    if aggregate_sha256 != expected_aggregate:
         raise RenameError("lesson rename aggregate hash mismatch")
     if _serialize_manifest(value) != payload:
         raise RenameError("lesson rename manifest serialization is not canonical")
@@ -920,13 +1035,13 @@ def _open_parent(root_fd: int, relative: str) -> tuple[int, str]:
         raise
 
 
-def _read_optional_at(
+def _read_optional_identity_at(
     parent_fd: int,
     name: str,
     label: str,
     *,
     limit: int = 64 * 1024 * 1024,
-) -> tuple[bytes, int] | None:
+) -> LeafSnapshot | None:
     descriptor: int | None = None
     try:
         try:
@@ -958,12 +1073,35 @@ def _read_optional_at(
             != (opened.st_dev, opened.st_ino, opened.st_size)
         ):
             raise RenameError(f"{label} changed while being read")
-        return b"".join(chunks), stat.S_IMODE(opened.st_mode)
+        return LeafSnapshot(
+            payload=b"".join(chunks),
+            mode=stat.S_IMODE(opened.st_mode),
+            device=opened.st_dev,
+            inode=opened.st_ino,
+        )
     except OSError as error:
         raise RenameError(f"cannot securely read {label}: {error}") from error
     finally:
         if descriptor is not None:
             os.close(descriptor)
+
+
+def _read_optional_at(
+    parent_fd: int,
+    name: str,
+    label: str,
+    *,
+    limit: int = 64 * 1024 * 1024,
+) -> tuple[bytes, int] | None:
+    snapshot = _read_optional_identity_at(
+        parent_fd,
+        name,
+        label,
+        limit=limit,
+    )
+    if snapshot is None:
+        return None
+    return snapshot.payload, snapshot.mode
 
 
 def _read_optional(root_fd: int, relative: str) -> tuple[bytes, int] | None:
@@ -992,6 +1130,460 @@ def _require_snapshot(
         raise RenameError(f"{label} is missing")
     if snapshot != (payload, mode):
         raise RenameError(f"{label} bytes or mode diverged")
+
+
+def _atomic_rename_primitive() -> tuple[object, int, int]:
+    platform = "linux" if sys.platform.startswith("linux") else sys.platform
+    primitive = ATOMIC_RENAME_FLAGS.get(platform)
+    if primitive is None:
+        raise RenameError(
+            f"atomic rename safety primitives are unsupported on {sys.platform}"
+        )
+    symbol, no_replace_flag, exchange_flag = primitive
+    library = ctypes.CDLL(None, use_errno=True)
+    try:
+        function = getattr(library, symbol)
+    except AttributeError as error:
+        raise RenameError(f"atomic rename primitive {symbol} is unavailable") from error
+    function.argtypes = (
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_uint,
+    )
+    function.restype = ctypes.c_int
+    return function, no_replace_flag, exchange_flag
+
+
+def _rename_atomic(
+    source_name: str,
+    destination_name: str,
+    *,
+    parent_fd: int,
+    exchange: bool,
+) -> None:
+    function, no_replace_flag, exchange_flag = _atomic_rename_primitive()
+    flag = exchange_flag if exchange else no_replace_flag
+    result = function(
+        parent_fd,
+        os.fsencode(source_name),
+        parent_fd,
+        os.fsencode(destination_name),
+        flag,
+    )
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number == errno.EEXIST:
+        raise FileExistsError(
+            error_number,
+            os.strerror(error_number),
+            destination_name,
+        )
+    raise OSError(error_number, os.strerror(error_number), destination_name)
+
+
+def _rename_noreplace(parent_fd: int, source_name: str, destination_name: str) -> None:
+    _rename_atomic(
+        source_name,
+        destination_name,
+        parent_fd=parent_fd,
+        exchange=False,
+    )
+
+
+def _rename_exchange(parent_fd: int, first_name: str, second_name: str) -> None:
+    _rename_atomic(
+        first_name,
+        second_name,
+        parent_fd=parent_fd,
+        exchange=True,
+    )
+
+
+def _before_leaf_quarantine_move(parent_fd: int, name: str, label: str) -> None:
+    del parent_fd, name, label
+
+
+def _after_leaf_quarantine_move(
+    parent_fd: int,
+    name: str,
+    quarantine_name: str,
+    label: str,
+) -> None:
+    del parent_fd, name, quarantine_name, label
+
+
+def _before_quarantine_delete(
+    parent_fd: int,
+    quarantine_name: str,
+    label: str,
+) -> None:
+    del parent_fd, quarantine_name, label
+
+
+def _after_purge_exchange(
+    parent_fd: int,
+    quarantine_name: str,
+    purge_name: str,
+    label: str,
+) -> None:
+    del parent_fd, quarantine_name, purge_name, label
+
+
+def _require_leaf_snapshot(
+    snapshot: LeafSnapshot | None,
+    payload: bytes,
+    mode: int,
+    label: str,
+    *,
+    identity: tuple[int, int] | None = None,
+) -> LeafSnapshot:
+    if snapshot is None:
+        raise RenameError(f"{label} is missing")
+    if snapshot.payload != payload or snapshot.mode != mode:
+        raise RenameError(f"{label} bytes or mode diverged")
+    if identity is not None and (snapshot.device, snapshot.inode) != identity:
+        raise RenameError(f"{label} inode diverged")
+    return snapshot
+
+
+def _quarantine_name(name: str, expected: bytes, mode: int) -> str:
+    token = hashlib.sha256(
+        os.fsencode(name)
+        + b"\0"
+        + hashlib.sha256(expected).digest()
+        + b"\0"
+        + f"{mode:o}".encode("ascii")
+    ).hexdigest()[:40]
+    return f"{QUARANTINE_PREFIX}{token}.tmp"
+
+
+def _purge_names(token: str) -> tuple[str, str]:
+    return (
+        f"{PURGE_PREFIX}{token}.target",
+        f"{PURGE_PREFIX}{token}.marker",
+    )
+
+
+def _purge_marker_payload(
+    token: str,
+    quarantine_name: str,
+    expected: bytes,
+    mode: int,
+) -> bytes:
+    value = dict(
+        zip(
+            PURGE_MARKER_FIELDS,
+            (
+                "fgv.lesson-rename-purge.v1",
+                1,
+                token,
+                quarantine_name,
+                _sha256(expected),
+                len(expected),
+                f"{mode:04o}",
+            ),
+        )
+    )
+    return (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
+def _parse_purge_marker(payload: bytes) -> Mapping[str, object] | None:
+    try:
+        value = json.loads(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    if type(value) is not dict or value.get("schema") != "fgv.lesson-rename-purge.v1":
+        return None
+    if tuple(value) != PURGE_MARKER_FIELDS:
+        raise RenameError("CRITICAL lesson rename purge marker schema diverged")
+    if type(value["schema"]) is not str:
+        raise RenameError("CRITICAL lesson rename purge marker schema type diverged")
+    if type(value["schema_version"]) is not int or value["schema_version"] != 1:
+        raise RenameError("CRITICAL lesson rename purge marker version diverged")
+    token = value["token"]
+    quarantine_name = value["quarantine_name"]
+    expected_sha256 = value["expected_sha256"]
+    expected_size = value["expected_size_bytes"]
+    expected_mode = value["expected_mode"]
+    if type(token) is not str or re.fullmatch(r"[0-9a-f]{48}", token) is None:
+        raise RenameError("CRITICAL lesson rename purge token diverged")
+    if (
+        type(quarantine_name) is not str
+        or "/" in quarantine_name
+        or "\x00" in quarantine_name
+        or not quarantine_name.startswith(QUARANTINE_PREFIX)
+    ):
+        raise RenameError("CRITICAL lesson rename purge quarantine name diverged")
+    if (
+        type(expected_sha256) is not str
+        or HEX_SHA256.fullmatch(expected_sha256) is None
+    ):
+        raise RenameError("CRITICAL lesson rename purge hash diverged")
+    if type(expected_size) is not int or expected_size < 0:
+        raise RenameError("CRITICAL lesson rename purge size diverged")
+    if type(expected_mode) is not str or re.fullmatch(r"0[0-7]{3}", expected_mode) is None:
+        raise RenameError("CRITICAL lesson rename purge mode diverged")
+    if (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8") != payload:
+        raise RenameError("CRITICAL lesson rename purge marker is not canonical")
+    return value
+
+
+def _marker_matches_role(
+    marker: Mapping[str, object],
+    role: PurgeRole,
+) -> bool:
+    return (
+        marker["quarantine_name"] == role.quarantine_name
+        and marker["expected_sha256"] == _sha256(role.expected)
+        and marker["expected_size_bytes"] == len(role.expected)
+        and marker["expected_mode"] == f"{role.mode:04o}"
+    )
+
+
+def _delete_private_purge_file(
+    parent_fd: int,
+    name: str,
+    expected: bytes,
+    mode: int,
+    identity: tuple[int, int] | None,
+    label: str,
+) -> None:
+    """Delete an authenticated random purge anchor within the declared model."""
+    if PURGE_NAME.fullmatch(name) is None:
+        raise RenameError(f"CRITICAL {label} is not a private purge anchor")
+    snapshot = _require_leaf_snapshot(
+        _read_optional_identity_at(parent_fd, name, label),
+        expected,
+        mode,
+        label,
+        identity=identity,
+    )
+    del snapshot
+    try:
+        os.unlink(name, dir_fd=parent_fd)
+        os.fsync(parent_fd)
+    except OSError as error:
+        raise RenameError(f"cannot delete private {label}: {error}") from error
+
+
+def _restore_quarantine_no_replace(
+    parent_fd: int,
+    quarantine_name: str,
+    original_name: str,
+    label: str,
+) -> None:
+    try:
+        _rename_noreplace(parent_fd, quarantine_name, original_name)
+        os.fsync(parent_fd)
+    except BaseException as error:
+        raise RenameError(
+            f"CRITICAL cannot restore raced {label}; quarantine retained: {error}"
+        ) from error
+
+
+def _quarantine_exact(
+    parent_fd: int,
+    name: str,
+    expected: bytes,
+    mode: int,
+    label: str,
+) -> tuple[str, LeafSnapshot]:
+    authenticated = _require_leaf_snapshot(
+        _read_optional_identity_at(parent_fd, name, label),
+        expected,
+        mode,
+        label,
+    )
+    quarantine_name = _quarantine_name(name, expected, mode)
+    if (
+        _read_optional_identity_at(
+            parent_fd,
+            quarantine_name,
+            f"quarantine for {label}",
+        )
+        is not None
+    ):
+        raise RenameError(f"CRITICAL quarantine already exists for {label}")
+    _before_leaf_quarantine_move(parent_fd, name, label)
+    try:
+        _rename_noreplace(parent_fd, name, quarantine_name)
+        os.fsync(parent_fd)
+    except FileExistsError as error:
+        raise RenameError(
+            f"CRITICAL quarantine collision while moving {label}"
+        ) from error
+    except OSError as error:
+        raise RenameError(f"cannot quarantine {label}: {error}") from error
+    _after_leaf_quarantine_move(parent_fd, name, quarantine_name, label)
+    identity = (authenticated.device, authenticated.inode)
+    try:
+        quarantined = _require_leaf_snapshot(
+            _read_optional_identity_at(parent_fd, quarantine_name, label),
+            expected,
+            mode,
+            label,
+            identity=identity,
+        )
+    except BaseException as error:
+        _restore_quarantine_no_replace(
+            parent_fd,
+            quarantine_name,
+            name,
+            label,
+        )
+        raise RenameError(
+            f"{label} changed after authentication and was restored"
+        ) from error
+    return quarantine_name, quarantined
+
+
+def _delete_authenticated_quarantine(
+    parent_fd: int,
+    quarantine_name: str,
+    expected: bytes,
+    mode: int,
+    identity: tuple[int, int],
+    label: str,
+) -> None:
+    """Purge a known quarantine without deleting a raced known-path leaf.
+
+    The supported concurrency model covers accidental writers, symlinks, and
+    swaps at canonical or deterministic quarantine names.  POSIX has no
+    compare-and-unlink-by-inode primitive, so a malicious same-UID process that
+    discovers and swaps the fresh 192-bit purge anchors is explicitly outside the
+    model; that process can already delete arbitrary vault files directly.
+    """
+    _require_leaf_snapshot(
+        _read_optional_identity_at(parent_fd, quarantine_name, label),
+        expected,
+        mode,
+        label,
+        identity=identity,
+    )
+    token = secrets.token_hex(24)
+    purge_name, marker_name = _purge_names(token)
+    marker_payload = _purge_marker_payload(
+        token,
+        quarantine_name,
+        expected,
+        mode,
+    )
+    _publish_no_replace(
+        parent_fd,
+        purge_name,
+        marker_payload,
+        0o600,
+        f"purge target for {label}",
+    )
+    marker_snapshot = _require_leaf_snapshot(
+        _read_optional_identity_at(
+            parent_fd,
+            purge_name,
+            f"purge target for {label}",
+        ),
+        marker_payload,
+        0o600,
+        f"purge target for {label}",
+    )
+    exchanged = False
+    try:
+        _before_quarantine_delete(parent_fd, quarantine_name, label)
+        _rename_exchange(parent_fd, quarantine_name, purge_name)
+        exchanged = True
+        os.fsync(parent_fd)
+        _after_purge_exchange(parent_fd, quarantine_name, purge_name, label)
+        _rename_noreplace(parent_fd, quarantine_name, marker_name)
+        os.fsync(parent_fd)
+    except BaseException:
+        if not exchanged:
+            try:
+                observed = _read_optional_identity_at(
+                    parent_fd,
+                    purge_name,
+                    f"purge target for {label}",
+                )
+                _require_leaf_snapshot(
+                    observed,
+                    marker_payload,
+                    0o600,
+                    f"purge target for {label}",
+                    identity=(marker_snapshot.device, marker_snapshot.inode),
+                )
+                os.unlink(purge_name, dir_fd=parent_fd)
+                os.fsync(parent_fd)
+            except FileNotFoundError:
+                pass
+        raise
+
+    try:
+        marker = _require_leaf_snapshot(
+            _read_optional_identity_at(parent_fd, marker_name, label),
+            marker_payload,
+            0o600,
+            label,
+            identity=(marker_snapshot.device, marker_snapshot.inode),
+        )
+    except BaseException as error:
+        _restore_quarantine_no_replace(
+            parent_fd,
+            marker_name,
+            quarantine_name,
+            label,
+        )
+        raise QuarantineRaceError(
+            f"{label} changed after purge exchange; target retained at {purge_name}"
+        ) from error
+
+    try:
+        target = _require_leaf_snapshot(
+            _read_optional_identity_at(parent_fd, purge_name, label),
+            expected,
+            mode,
+            label,
+            identity=identity,
+        )
+    except BaseException as error:
+        _restore_quarantine_no_replace(
+            parent_fd,
+            marker_name,
+            quarantine_name,
+            label,
+        )
+        _rename_exchange(parent_fd, quarantine_name, purge_name)
+        os.fsync(parent_fd)
+        try:
+            _delete_private_purge_file(
+                parent_fd,
+                purge_name,
+                marker_payload,
+                0o600,
+                (marker.device, marker.inode),
+                f"purge marker for {label}",
+            )
+        finally:
+            raise QuarantineRaceError(
+                f"{label} changed before purge and was preserved"
+            ) from error
+
+    _delete_private_purge_file(
+        parent_fd,
+        purge_name,
+        expected,
+        mode,
+        (target.device, target.inode),
+        label,
+    )
+    _delete_private_purge_file(
+        parent_fd,
+        marker_name,
+        marker_payload,
+        0o600,
+        (marker.device, marker.inode),
+        f"purge marker for {label}",
+    )
 
 
 def _write_temporary(parent_fd: int, name: str, payload: bytes, mode: int) -> str:
@@ -1069,31 +1661,67 @@ def _publish_no_replace(
 def _replace_owned_file(
     parent_fd: int,
     name: str,
+    expected: bytes,
     payload: bytes,
     mode: int,
     label: str,
 ) -> None:
-    current = _read_optional_at(parent_fd, name, label)
-    if current is None:
-        raise RenameError(f"{label} disappeared")
-    temporary = _write_temporary(parent_fd, name, payload, mode)
+    quarantine_name, quarantined = _quarantine_exact(
+        parent_fd,
+        name,
+        expected,
+        mode,
+        label,
+    )
     try:
-        os.replace(
-            temporary,
+        _publish_no_replace(
+            parent_fd,
             name,
-            src_dir_fd=parent_fd,
-            dst_dir_fd=parent_fd,
+            payload,
+            mode,
+            label,
         )
-        temporary = ""
-        os.fsync(parent_fd)
-    except OSError as error:
-        raise RenameError(f"cannot checkpoint {label}: {error}") from error
-    finally:
-        if temporary:
-            try:
-                os.unlink(temporary, dir_fd=parent_fd)
-            except FileNotFoundError:
-                pass
+    except BaseException:
+        _restore_quarantine_no_replace(
+            parent_fd,
+            quarantine_name,
+            name,
+            label,
+        )
+        raise
+    try:
+        _delete_authenticated_quarantine(
+            parent_fd,
+            quarantine_name,
+            expected,
+            mode,
+            (quarantined.device, quarantined.inode),
+            label,
+        )
+    except QuarantineRaceError:
+        replacement_label = f"replacement output for {label}"
+        replacement_quarantine, replacement = _quarantine_exact(
+            parent_fd,
+            name,
+            payload,
+            mode,
+            replacement_label,
+        )
+        _restore_quarantine_no_replace(
+            parent_fd,
+            quarantine_name,
+            name,
+            label,
+        )
+        _delete_authenticated_quarantine(
+            parent_fd,
+            replacement_quarantine,
+            payload,
+            mode,
+            (replacement.device, replacement.inode),
+            replacement_label,
+        )
+        raise
 
 
 def _open_vault(vault: Path) -> tuple[Path, int]:
@@ -1165,6 +1793,388 @@ def _journal_payload(plan: RenamePlan, completed_steps: int) -> bytes:
     ).encode("utf-8")
 
 
+def _purge_roles(plan: RenamePlan) -> tuple[PurgeRole, ...]:
+    roles: list[PurgeRole] = []
+    for completed_steps in range(len(plan.operations) + 2):
+        payload = _journal_payload(plan, completed_steps)
+        roles.append(
+            PurgeRole(
+                parent=".fgv",
+                quarantine_name=_quarantine_name(JOURNAL_NAME, payload, 0o600),
+                expected=payload,
+                mode=0o600,
+                label=f"lesson rename journal checkpoint {completed_steps}",
+            )
+        )
+    for operation in plan.operations:
+        source = PurePosixPath(operation.source)
+        destination = PurePosixPath(operation.destination)
+        if source.parent != destination.parent:
+            raise RenameError("lesson rename operation crosses directories")
+        parent = source.parent.as_posix()
+        mode = _expected_mode(operation.mode)
+        roles.extend(
+            (
+                PurgeRole(
+                    parent=parent,
+                    quarantine_name=_quarantine_name(
+                        source.name,
+                        operation.original,
+                        mode,
+                    ),
+                    expected=operation.original,
+                    mode=mode,
+                    label=f"source quarantine {operation.source}",
+                ),
+                PurgeRole(
+                    parent=parent,
+                    quarantine_name=_quarantine_name(
+                        destination.name,
+                        operation.final,
+                        mode,
+                    ),
+                    expected=operation.final,
+                    mode=mode,
+                    label=f"destination quarantine {operation.destination}",
+                ),
+            )
+        )
+    manifest_path = PurePosixPath(MANIFEST_RELATIVE)
+    roles.append(
+        PurgeRole(
+            parent=manifest_path.parent.as_posix(),
+            quarantine_name=_quarantine_name(
+                manifest_path.name,
+                plan.manifest_bytes,
+                0o644,
+            ),
+            expected=plan.manifest_bytes,
+            mode=0o644,
+            label="lesson rename manifest quarantine",
+        )
+    )
+    keys = [(role.parent, role.quarantine_name) for role in roles]
+    if len(keys) != len(set(keys)):
+        raise RenameError("CRITICAL lesson rename purge roles collide")
+    return tuple(roles)
+
+
+def _reconcile_parent_purges(
+    parent_fd: int,
+    parent: str,
+    roles: Sequence[PurgeRole],
+    *,
+    apply: bool,
+) -> bool:
+    entries = os.listdir(parent_fd)
+    random_names = sorted(name for name in entries if name.startswith(PURGE_PREFIX))
+    invalid_random = [name for name in random_names if PURGE_NAME.fullmatch(name) is None]
+    if invalid_random:
+        raise RenameError(
+            f"CRITICAL unknown lesson rename purge anchor in {parent}: "
+            + ", ".join(invalid_random)
+        )
+
+    role_by_quarantine = {role.quarantine_name: role for role in roles}
+    marker_locations: dict[
+        str,
+        list[tuple[str, str, LeafSnapshot, Mapping[str, object]]],
+    ] = {}
+
+    names_to_scan = set(random_names)
+    names_to_scan.update(
+        name for name in entries if name.startswith(QUARANTINE_PREFIX)
+    )
+    for name in sorted(names_to_scan):
+        snapshot = _read_optional_identity_at(
+            parent_fd,
+            name,
+            f"lesson rename purge candidate {parent}/{name}",
+        )
+        if snapshot is None:
+            continue
+        marker = _parse_purge_marker(snapshot.payload)
+        if marker is None:
+            if name.endswith(".marker"):
+                raise RenameError(
+                    f"CRITICAL lesson rename purge marker bytes diverged: {parent}/{name}"
+                )
+            continue
+        token = str(marker["token"])
+        if name.startswith(PURGE_PREFIX):
+            match = PURGE_NAME.fullmatch(name)
+            if match is None or match.group(1) != token:
+                raise RenameError(
+                    f"CRITICAL lesson rename purge anchor token diverged: {parent}/{name}"
+                )
+            location = match.group(2)
+        else:
+            location = "quarantine"
+            if marker["quarantine_name"] != name:
+                raise RenameError(
+                    f"CRITICAL lesson rename purge marker path diverged: {parent}/{name}"
+                )
+        marker_locations.setdefault(token, []).append(
+            (location, name, snapshot, marker)
+        )
+
+    tokens = {PURGE_NAME.fullmatch(name).group(1) for name in random_names}
+    tokens.update(marker_locations)
+    for token in sorted(tokens):
+        locations = marker_locations.get(token, [])
+        if len(locations) != 1:
+            raise RenameError(
+                f"CRITICAL purge transaction {token} has {len(locations)} markers"
+            )
+        location, location_name, marker_snapshot, marker = locations[0]
+        quarantine_name = str(marker["quarantine_name"])
+        role = role_by_quarantine.get(quarantine_name)
+        if role is None or not _marker_matches_role(marker, role):
+            raise RenameError(
+                f"CRITICAL purge transaction {token} is not bound to the plan"
+            )
+        marker_payload = _purge_marker_payload(
+            token,
+            role.quarantine_name,
+            role.expected,
+            role.mode,
+        )
+        _require_leaf_snapshot(
+            marker_snapshot,
+            marker_payload,
+            0o600,
+            f"purge marker for {role.label}",
+        )
+        purge_name, marker_name = _purge_names(token)
+        quarantine = _read_optional_identity_at(
+            parent_fd,
+            quarantine_name,
+            role.label,
+        )
+        target = _read_optional_identity_at(
+            parent_fd,
+            purge_name,
+            f"purge target for {role.label}",
+        )
+        private_marker = _read_optional_identity_at(
+            parent_fd,
+            marker_name,
+            f"purge marker for {role.label}",
+        )
+
+        if location == "target":
+            _require_leaf_snapshot(
+                quarantine,
+                role.expected,
+                role.mode,
+                role.label,
+            )
+            if private_marker is not None:
+                raise RenameError(
+                    f"CRITICAL prepared purge has a second marker for {role.label}"
+                )
+            if apply:
+                _delete_private_purge_file(
+                    parent_fd,
+                    purge_name,
+                    marker_payload,
+                    0o600,
+                    (marker_snapshot.device, marker_snapshot.inode),
+                    f"prepared purge marker for {role.label}",
+                )
+            continue
+
+        if location == "quarantine":
+            _require_leaf_snapshot(
+                target,
+                role.expected,
+                role.mode,
+                f"purge target for {role.label}",
+            )
+            if private_marker is not None or location_name != quarantine_name:
+                raise RenameError(
+                    f"CRITICAL exchanged purge state diverged for {role.label}"
+                )
+            if not apply:
+                continue
+            try:
+                _rename_noreplace(parent_fd, quarantine_name, marker_name)
+                os.fsync(parent_fd)
+            except (FileExistsError, OSError) as error:
+                raise RenameError(
+                    f"CRITICAL cannot advance purge marker for {role.label}: {error}"
+                ) from error
+            private_marker = _require_leaf_snapshot(
+                _read_optional_identity_at(
+                    parent_fd,
+                    marker_name,
+                    f"purge marker for {role.label}",
+                ),
+                marker_payload,
+                0o600,
+                f"purge marker for {role.label}",
+                identity=(marker_snapshot.device, marker_snapshot.inode),
+            )
+            quarantine = None
+
+        if location not in {"marker", "quarantine"}:
+            raise RenameError(f"CRITICAL unknown purge state for {role.label}")
+        if quarantine is not None:
+            raise RenameError(
+                f"CRITICAL canonical quarantine survived purge for {role.label}"
+            )
+        private_marker = _require_leaf_snapshot(
+            private_marker,
+            marker_payload,
+            0o600,
+            f"purge marker for {role.label}",
+        )
+        if target is not None:
+            target = _require_leaf_snapshot(
+                target,
+                role.expected,
+                role.mode,
+                f"purge target for {role.label}",
+            )
+            if apply:
+                _delete_private_purge_file(
+                    parent_fd,
+                    purge_name,
+                    role.expected,
+                    role.mode,
+                    (target.device, target.inode),
+                    f"purge target for {role.label}",
+                )
+        if apply:
+            _delete_private_purge_file(
+                parent_fd,
+                marker_name,
+                marker_payload,
+                0o600,
+                (private_marker.device, private_marker.inode),
+                f"purge marker for {role.label}",
+            )
+    return bool(tokens)
+
+
+def _reconcile_all_purges(
+    root_fd: int,
+    journal_fd: int,
+    plan: RenamePlan,
+    *,
+    apply: bool,
+) -> bool:
+    grouped: dict[str, list[PurgeRole]] = {}
+    for role in _purge_roles(plan):
+        grouped.setdefault(role.parent, []).append(role)
+    found = False
+    for parent, roles in grouped.items():
+        if parent == ".fgv":
+            parent_fd = os.dup(journal_fd)
+        else:
+            parent_fd, ignored_name = _open_parent(
+                root_fd,
+                f"{parent}/placeholder",
+            )
+            del ignored_name
+        try:
+            found = (
+                _reconcile_parent_purges(
+                    parent_fd,
+                    parent,
+                    roles,
+                    apply=apply,
+                )
+                or found
+            )
+        finally:
+            os.close(parent_fd)
+    return found
+
+
+def _journal_quarantine_records(
+    journal_fd: int,
+    plan: RenamePlan,
+) -> list[tuple[str, bytes, LeafSnapshot]]:
+    found: list[tuple[str, bytes, LeafSnapshot]] = []
+    expected_names: set[str] = set()
+    for completed_steps in range(len(plan.operations) + 2):
+        payload = _journal_payload(plan, completed_steps)
+        quarantine_name = _quarantine_name(JOURNAL_NAME, payload, 0o600)
+        expected_names.add(quarantine_name)
+        snapshot = _read_optional_identity_at(
+            journal_fd,
+            quarantine_name,
+            "lesson rename journal quarantine",
+            limit=8 * 1024 * 1024,
+        )
+        if snapshot is None:
+            continue
+        _require_leaf_snapshot(
+            snapshot,
+            payload,
+            0o600,
+            "lesson rename journal quarantine",
+        )
+        found.append((quarantine_name, payload, snapshot))
+    unexpected = sorted(
+        name
+        for name in os.listdir(journal_fd)
+        if name.startswith(QUARANTINE_PREFIX) and name not in expected_names
+    )
+    if unexpected:
+        raise RenameError(
+            "CRITICAL unknown lesson rename journal quarantine: "
+            + ", ".join(unexpected)
+        )
+    if len(found) > 1:
+        raise RenameError("CRITICAL multiple lesson rename journal quarantines")
+    return found
+
+
+def _journal_snapshot_step(
+    snapshot: tuple[bytes, int] | None,
+    plan: RenamePlan,
+) -> int | None:
+    if snapshot is None:
+        return None
+    for completed_steps in range(len(plan.operations) + 2):
+        if snapshot == (_journal_payload(plan, completed_steps), 0o600):
+            return completed_steps
+    raise RenameError("CRITICAL lesson rename journal has unknown bytes or mode")
+
+
+def _reconcile_journal_quarantine(journal_fd: int, plan: RenamePlan) -> bool:
+    found = _journal_quarantine_records(journal_fd, plan)
+    if not found:
+        return False
+    quarantine_name, payload, quarantined = found[0]
+    canonical = _read_optional_at(
+        journal_fd,
+        JOURNAL_NAME,
+        "lesson rename recovery journal",
+        limit=8 * 1024 * 1024,
+    )
+    canonical_step = _journal_snapshot_step(canonical, plan)
+    if canonical_step is None:
+        _restore_quarantine_no_replace(
+            journal_fd,
+            quarantine_name,
+            JOURNAL_NAME,
+            "lesson rename recovery journal",
+        )
+        return True
+    _delete_authenticated_quarantine(
+        journal_fd,
+        quarantine_name,
+        payload,
+        0o600,
+        (quarantined.device, quarantined.inode),
+        "lesson rename journal quarantine",
+    )
+    return True
+
+
 def _read_journal(journal_fd: int, plan: RenamePlan) -> Mapping[str, object] | None:
     snapshot = _read_optional_at(
         journal_fd, JOURNAL_NAME, "lesson rename recovery journal", limit=8 * 1024 * 1024
@@ -1204,11 +2214,13 @@ def _install_journal(journal_fd: int, plan: RenamePlan) -> None:
 def _checkpoint_journal(
     journal_fd: int, plan: RenamePlan, completed_steps: int
 ) -> None:
-    if _read_journal(journal_fd, plan) is None:
+    current = _read_journal(journal_fd, plan)
+    if current is None:
         raise RenameError("CRITICAL lesson rename journal disappeared")
     _replace_owned_file(
         journal_fd,
         JOURNAL_NAME,
+        _journal_payload(plan, int(current["completed_steps"])),
         _journal_payload(plan, completed_steps),
         0o600,
         "lesson rename journal",
@@ -1216,10 +2228,16 @@ def _checkpoint_journal(
 
 
 def _delete_journal(journal_fd: int, plan: RenamePlan) -> None:
-    if _read_journal(journal_fd, plan) is None:
+    current = _read_journal(journal_fd, plan)
+    if current is None:
         raise RenameError("CRITICAL lesson rename journal disappeared or changed")
-    os.unlink(JOURNAL_NAME, dir_fd=journal_fd)
-    os.fsync(journal_fd)
+    _unlink_exact(
+        journal_fd,
+        JOURNAL_NAME,
+        _journal_payload(plan, int(current["completed_steps"])),
+        0o600,
+        "lesson rename journal",
+    )
 
 
 def _classify_operation(root_fd: int, operation: RenameOperation) -> str:
@@ -1437,9 +2455,199 @@ def _unlink_exact(
     mode: int,
     label: str,
 ) -> None:
-    _require_snapshot(_read_optional_at(parent_fd, name, label), expected, mode, label)
-    os.unlink(name, dir_fd=parent_fd)
-    os.fsync(parent_fd)
+    quarantine_name, quarantined = _quarantine_exact(
+        parent_fd,
+        name,
+        expected,
+        mode,
+        label,
+    )
+    try:
+        _delete_authenticated_quarantine(
+            parent_fd,
+            quarantine_name,
+            expected,
+            mode,
+            (quarantined.device, quarantined.inode),
+            label,
+        )
+    except QuarantineRaceError:
+        _restore_quarantine_no_replace(
+            parent_fd,
+            quarantine_name,
+            name,
+            label,
+        )
+        raise
+
+
+def _normalize_recovery_quarantines(root_fd: int, plan: RenamePlan) -> None:
+    by_parent: dict[str, list[RenameOperation]] = {}
+    for operation in plan.operations:
+        parent = PurePosixPath(operation.source).parent.as_posix()
+        by_parent.setdefault(parent, []).append(operation)
+    for parent, operations in by_parent.items():
+        parent_fd, ignored_name = _open_parent(root_fd, f"{parent}/placeholder")
+        del ignored_name
+        try:
+            expected_names: set[str] = set()
+            for operation in operations:
+                mode = _expected_mode(operation.mode)
+                expected_names.add(
+                    _quarantine_name(
+                        PurePosixPath(operation.source).name,
+                        operation.original,
+                        mode,
+                    )
+                )
+                expected_names.add(
+                    _quarantine_name(
+                        PurePosixPath(operation.destination).name,
+                        operation.final,
+                        mode,
+                    )
+                )
+            unexpected = sorted(
+                name
+                for name in os.listdir(parent_fd)
+                if name.startswith(QUARANTINE_PREFIX) and name not in expected_names
+            )
+            if unexpected:
+                raise RenameError(
+                    f"CRITICAL unknown quarantine in {parent}: "
+                    + ", ".join(unexpected)
+                )
+            for operation in operations:
+                mode = _expected_mode(operation.mode)
+                source_name = PurePosixPath(operation.source).name
+                destination_name = PurePosixPath(operation.destination).name
+                source_quarantine = _quarantine_name(
+                    source_name,
+                    operation.original,
+                    mode,
+                )
+                destination_quarantine = _quarantine_name(
+                    destination_name,
+                    operation.final,
+                    mode,
+                )
+                source_quarantined = _read_optional_identity_at(
+                    parent_fd,
+                    source_quarantine,
+                    f"source quarantine {operation.source}",
+                )
+                destination_quarantined = _read_optional_identity_at(
+                    parent_fd,
+                    destination_quarantine,
+                    f"destination quarantine {operation.destination}",
+                )
+                if source_quarantined is not None and destination_quarantined is not None:
+                    raise RenameError(
+                        f"CRITICAL multiple quarantines for {operation.source}"
+                    )
+                if source_quarantined is not None:
+                    _require_leaf_snapshot(
+                        source_quarantined,
+                        operation.original,
+                        mode,
+                        f"source quarantine {operation.source}",
+                    )
+                    source = _read_optional_at(parent_fd, source_name, operation.source)
+                    destination = _read_optional_at(
+                        parent_fd,
+                        destination_name,
+                        operation.destination,
+                    )
+                    if source is not None or destination != (operation.final, mode):
+                        raise RenameError(
+                            f"CRITICAL source quarantine state diverged: {operation.source}"
+                        )
+                    _restore_quarantine_no_replace(
+                        parent_fd,
+                        source_quarantine,
+                        source_name,
+                        operation.source,
+                    )
+                if destination_quarantined is not None:
+                    _require_leaf_snapshot(
+                        destination_quarantined,
+                        operation.final,
+                        mode,
+                        f"destination quarantine {operation.destination}",
+                    )
+                    source = _read_optional_at(parent_fd, source_name, operation.source)
+                    destination = _read_optional_at(
+                        parent_fd,
+                        destination_name,
+                        operation.destination,
+                    )
+                    if source != (operation.original, mode) or destination is not None:
+                        raise RenameError(
+                            "CRITICAL destination quarantine state diverged: "
+                            f"{operation.destination}"
+                        )
+                    _delete_authenticated_quarantine(
+                        parent_fd,
+                        destination_quarantine,
+                        operation.final,
+                        mode,
+                        (
+                            destination_quarantined.device,
+                            destination_quarantined.inode,
+                        ),
+                        f"destination quarantine {operation.destination}",
+                    )
+        finally:
+            os.close(parent_fd)
+
+    manifest_parent_fd, manifest_name = _open_parent(root_fd, MANIFEST_RELATIVE)
+    try:
+        manifest_quarantine = _quarantine_name(
+            manifest_name,
+            plan.manifest_bytes,
+            0o644,
+        )
+        unexpected = sorted(
+            name
+            for name in os.listdir(manifest_parent_fd)
+            if name.startswith(QUARANTINE_PREFIX) and name != manifest_quarantine
+        )
+        if unexpected:
+            raise RenameError(
+                "CRITICAL unknown lesson rename manifest quarantine: "
+                + ", ".join(unexpected)
+            )
+        quarantined = _read_optional_identity_at(
+            manifest_parent_fd,
+            manifest_quarantine,
+            "lesson rename manifest quarantine",
+        )
+        if quarantined is not None:
+            _require_leaf_snapshot(
+                quarantined,
+                plan.manifest_bytes,
+                0o644,
+                "lesson rename manifest quarantine",
+            )
+            if (
+                _read_optional_at(
+                    manifest_parent_fd,
+                    manifest_name,
+                    "lesson rename manifest",
+                )
+                is not None
+            ):
+                raise RenameError(
+                    "CRITICAL canonical manifest exists beside its quarantine"
+                )
+            _restore_quarantine_no_replace(
+                manifest_parent_fd,
+                manifest_quarantine,
+                manifest_name,
+                "lesson rename manifest",
+            )
+    finally:
+        os.close(manifest_parent_fd)
 
 
 def _rollback_operation(root_fd: int, operation: RenameOperation) -> None:
@@ -1659,11 +2867,42 @@ def execute_rename(
             expected_archive=expected_archive,
         )
         journal_fd = _open_journal_directory(root_fd)
+        authority_checked = False
+        purge_present = _reconcile_all_purges(
+            root_fd,
+            journal_fd,
+            plan,
+            apply=False,
+        )
+        if purge_present:
+            if not apply:
+                raise RenameError(
+                    "lesson rename private purge recovery requires an apply invocation"
+                )
+            _require_apply_authority(lexical_vault, expected_head)
+            authority_checked = True
+            _reconcile_all_purges(
+                root_fd,
+                journal_fd,
+                plan,
+                apply=True,
+            )
+        if _journal_quarantine_records(journal_fd, plan):
+            if not apply:
+                raise RenameError(
+                    "lesson rename journal quarantine requires an apply invocation"
+                )
+            _require_apply_authority(lexical_vault, expected_head)
+            authority_checked = True
+            _reconcile_journal_quarantine(journal_fd, plan)
         existing_journal = _read_journal(journal_fd, plan)
         if existing_journal is not None:
             if not apply:
                 raise RenameError("recovery journal requires an apply invocation")
-            _require_apply_authority(lexical_vault, expected_head)
+            if not authority_checked:
+                _require_apply_authority(lexical_vault, expected_head)
+                authority_checked = True
+            _normalize_recovery_quarantines(root_fd, plan)
             _require_dirty_contract(lexical_vault, plan, "recovery")
             _recover_journal(root_fd, journal_fd, existing_journal, plan)
 
@@ -1671,10 +2910,11 @@ def execute_rename(
         if not apply:
             return _report("planned" if state == "stale" else "no_op", plan)
 
-        _require_apply_authority(lexical_vault, expected_head)
-        _require_dirty_contract(lexical_vault, plan, state)
         if state == "fresh":
             return _report("no_op", plan)
+
+        _require_apply_authority(lexical_vault, expected_head)
+        _require_dirty_contract(lexical_vault, plan, state)
 
         opened = _open_stale_operations(root_fd, plan)
         _apply_plan(root_fd, journal_fd, plan, opened)
