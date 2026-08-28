@@ -25,7 +25,7 @@ Caso de ContabilidadeFinanceira (aulas de 12/08 e 17/08) sobre apuração de res
 
 ## Material
 
-Pasta `ContabilidadeFinanceira/Aulas/08.12/` (caso A: PDF, [[ResolucaoCasoZezinhoA]], ZezinhoDFs.xlsx) e `Aulas/08.17/Slides/` (caso B, mês 3).
+Pasta `10 Matérias/ContabilidadeFinanceira/Aulas/08.12/` (caso A: PDF, [[ResolucaoCasoZezinhoA]], ZezinhoDFs.xlsx) e `Aulas/08.17/Slides/` (caso B, mês 3).
 
 ## Onde aparece nas aulas
 

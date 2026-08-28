@@ -9,7 +9,7 @@ tags: [spec]
 
 ## Objetivo
 
-Resolver a atividade "Marcus Dent" (Profa. Edilene, fechamento do tema 4, regime de caixa vs competência) e deixar no vault um material de estudo com duas peças: uma resolução em markdown e uma planilha em fórmulas. Enunciado em `ContabilidadeFinanceira/Aulas/08.19/Slides/Atividade Marcus Dent 2024-2.pdf`.
+Resolver a atividade "Marcus Dent" (Profa. Edilene, fechamento do tema 4, regime de caixa vs competência) e deixar no vault um material de estudo com duas peças: uma resolução em markdown e uma planilha em fórmulas. Enunciado em `10 Matérias/ContabilidadeFinanceira/Aulas/08.19/Slides/Atividade Marcus Dent 2024-2.pdf`.
 
 Pedido da professora: lucro ou prejuízo do mês, caixa gerado ou utilizado no mês, balanço no início e no fim do mês, tabela comparativa Fluxo de Caixa vs DRE. Extra aprovado: reconciliação lucro até variação de caixa pelo método indireto.
 
@@ -47,7 +47,7 @@ Decisões técnicas explicitadas no md: empréstimo e juros ficam no não circul
 
 ## Entregáveis
 
-Ambos em `~/FGV/ContabilidadeFinanceira/Aulas/08.19/`. O PDF do enunciado fica onde está, em `Slides/`.
+Ambos em `~/FGV/10 Matérias/ContabilidadeFinanceira/Aulas/08.19/`. O PDF do enunciado fica onde está, em `Slides/`.
 
 ### ResolucaoCasoMarcusDent.md
 
@@ -81,7 +81,7 @@ Gerar com openpyxl, recalcular com LibreOffice headless e verificar que todos os
 
 Linkar nas notas já existentes: Regime de Caixa, Regime de Competência, DRE, DFC, Balanço Patrimonial, Equação Patrimonial, Depreciação, Despesa Antecipada, Adiantamento de Cliente (alias "receita antecipada", sem criar duplicata), Contas a Receber, Contas a Pagar, Estoque, Método Indireto, Lucros Acumulados, Resultado Financeiro, EBIT, Ativo Circulante, Ativo Não Circulante, Caso Zezinho Pipoqueiro (comparação).
 
-Criar com o template `Vault/Templates/Conceito.md`: Caso Marcus Dent, Passivo Circulante, Passivo Não Circulante, Imobilizado, Juros a Pagar, Reconhecimento da Receita, Confrontação. Preencher só o que a aula e o enunciado sustentam, o resto fica `// preencher`.
+Criar com o template `30 Sistema/Templates/Conceito.md`: Caso Marcus Dent, Passivo Circulante, Passivo Não Circulante, Imobilizado, Juros a Pagar, Reconhecimento da Receita, Confrontação. Preencher só o que a aula e o enunciado sustentam, o resto fica `// preencher`.
 
 ## Fora de escopo
 

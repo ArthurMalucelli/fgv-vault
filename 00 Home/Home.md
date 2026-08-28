@@ -26,19 +26,24 @@ Vault de estudos da FGV EAESP. Cada matéria ativa tem pasta própria na raiz, c
 
 ```
 ~/FGV/
-├── <Matéria>/            (matérias do semestre corrente)
-│   └── Aulas/
-│       └── MM.DD/
-│           ├── Transcrito.md
-│           └── Resumo.md
-├── S1/                   (arquivo do semestre 2026.1, mesma estrutura)
-└── Vault/
-    ├── Index.md          (este arquivo)
-    ├── Tasks.md          (lista de prazos consolidada, único arquivo de tasks)
-    ├── Conceitos/        (notas atômicas: SELIC, Greenwashing, etc.)
-    ├── Templates/        (templates de aula, resumo, conceito)
-    ├── Attachments/      (imagens e arquivos colados)
-    └── Daily/            (daily notes, se ativar)
+├── 00 Home/
+│   ├── Home.md
+│   ├── Tasks.md
+│   └── Daily/
+├── 10 Matérias/
+│   └── <Matéria>/
+│       └── Aulas/MM.DD/
+├── 20 Conhecimento/
+│   └── Conceitos/
+├── 30 Sistema/
+│   ├── Automacoes/
+│   ├── Estado/
+│   ├── Specs/
+│   ├── Templates/
+│   ├── Tutor/
+│   └── Anexos/
+└── 90 Arquivo/
+    └── 2026.1/
 ```
 
 ## Convenções
@@ -89,7 +94,7 @@ LIMIT 10
 TABLE WITHOUT ID
   file.link as "Conceito",
   length(file.inlinks) as "Citações"
-FROM "Vault/Conceitos"
+FROM "20 Conhecimento/Conceitos"
 SORT length(file.inlinks) DESC
 LIMIT 15
 ```

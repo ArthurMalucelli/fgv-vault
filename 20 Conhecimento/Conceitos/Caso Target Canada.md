@@ -12,7 +12,7 @@ Caso da Atividade Monitorada 1 de TDN, aplicada e entregue em sala em 14.08.2026
 
 ## Fórmula / aplicação
 
-PDF do caso e resumo em `TecnologiaDadosNegocios/Aulas/08.14/Material/`.
+PDF do caso e resumo em `10 Matérias/TecnologiaDadosNegocios/Aulas/08.14/Material/`.
 
 ## Onde aparece nas aulas
 

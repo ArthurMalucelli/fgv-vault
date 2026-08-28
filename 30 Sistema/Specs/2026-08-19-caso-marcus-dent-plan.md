@@ -15,13 +15,13 @@ tags: [plan]
 
 **Tech Stack:** Python 3 + openpyxl; LibreOffice headless via `recalc.py` da skill xlsx; git no vault `~/FGV`.
 
-Spec: `~/FGV/Vault/Specs/2026-08-19-caso-marcus-dent-design.md`.
+Spec: `~/FGV/30 Sistema/Specs/2026-08-19-caso-marcus-dent-design.md`.
 
 Caminhos usados em todas as tasks:
 
 ```bash
 VAULT=/Users/arthurmalucelli/FGV
-AULA=$VAULT/ContabilidadeFinanceira/Aulas/08.19
+AULA="$VAULT/10 Matérias/ContabilidadeFinanceira/Aulas/08.19"
 SCR=/private/tmp/claude-501/-Users-arthurmalucelli/f53a9de1-4730-4235-a5cd-a3c9b3c48003/scratchpad/marcusdent
 XLSX_SCRIPTS="/Users/arthurmalucelli/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/f3275e4f-979d-4cd2-a4be-5b3b463fea2d/c1d131c7-b2a5-48e5-b6dc-dffeecfc54ac/skills/xlsx/scripts"
 ```
@@ -36,8 +36,8 @@ XLSX_SCRIPTS="/Users/arthurmalucelli/Library/Application Support/Claude/local-ag
 | `$SCR/build_marcus_dent_xlsx.py` | Gera `MarcusDentDFs.xlsx` com abas Premissas, Transacoes, Comparativo, Reconciliacao. |
 | `$AULA/MarcusDentDFs.xlsx` | Entregável 1 (planilha). |
 | `$AULA/ResolucaoCasoMarcusDent.md` | Entregável 2 (resolução, material de estudo com wikilinks). |
-| `$VAULT/Vault/Conceitos/{Caso Marcus Dent, Passivo Circulante, Passivo Não Circulante, Imobilizado, Juros a Pagar, Reconhecimento da Receita, Confrontação}.md` | Notas de conceito novas. |
-| `$SCR/check_wikilinks.py` | Teste: todo `[[link]]` do md e das notas novas aponta pra arquivo existente em `Vault/Conceitos/`. |
+| `$VAULT/20 Conhecimento/Conceitos/{Caso Marcus Dent, Passivo Circulante, Passivo Não Circulante, Imobilizado, Juros a Pagar, Reconhecimento da Receita, Confrontação}.md` | Notas de conceito novas. |
+| `$SCR/check_wikilinks.py` | Teste: todo `[[link]]` do md e das notas novas aponta pra arquivo existente em `20 Conhecimento/Conceitos/`. |
 
 ---
 
@@ -53,7 +53,7 @@ XLSX_SCRIPTS="/Users/arthurmalucelli/Library/Application Support/Claude/local-ag
 import sys
 import openpyxl
 
-F = "/Users/arthurmalucelli/FGV/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx"
+F = "/Users/arthurmalucelli/FGV/10 Matérias/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx"
 
 wb = openpyxl.load_workbook(F, data_only=True)
 t, c, r = wb["Transacoes"], wb["Comparativo"], wb["Reconciliacao"]
@@ -135,7 +135,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 
-OUT = "/Users/arthurmalucelli/FGV/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx"
+OUT = "/Users/arthurmalucelli/FGV/10 Matérias/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx"
 NUM = r"#,##0;\(#,##0\);\-"
 BLUE, GREEN = "FF0000FF", "FF008000"
 
@@ -364,7 +364,7 @@ Run:
 ```bash
 python3 "$SCR/build_marcus_dent_xlsx.py"
 ```
-Expected: `saved /Users/arthurmalucelli/FGV/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx`
+Expected: `saved /Users/arthurmalucelli/FGV/10 Matérias/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx`
 
 - [ ] **Step 3: Recalcular com LibreOffice (grava os valores das fórmulas no arquivo)**
 
@@ -586,16 +586,16 @@ Expected: número maior ou igual a 15 (só confirma que os valores do gabarito e
 ### Task 4: Notas de conceito novas
 
 **Files:**
-- Create: `$VAULT/Vault/Conceitos/Caso Marcus Dent.md`
-- Create: `$VAULT/Vault/Conceitos/Passivo Circulante.md`
-- Create: `$VAULT/Vault/Conceitos/Passivo Não Circulante.md`
-- Create: `$VAULT/Vault/Conceitos/Imobilizado.md`
-- Create: `$VAULT/Vault/Conceitos/Juros a Pagar.md`
-- Create: `$VAULT/Vault/Conceitos/Reconhecimento da Receita.md`
-- Create: `$VAULT/Vault/Conceitos/Confrontação.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Caso Marcus Dent.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Passivo Circulante.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Passivo Não Circulante.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Imobilizado.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Juros a Pagar.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Reconhecimento da Receita.md`
+- Create: `$VAULT/20 Conhecimento/Conceitos/Confrontação.md`
 - Create: `$SCR/check_wikilinks.py`
 
-Formato: o template `Vault/Templates/Conceito.md` (YAML `tipo: conceito`, `materias: [ContabilidadeFinanceira]`, `tags: [conceito]`; seções Definição, Fórmula / aplicação, Onde aparece nas aulas com o bloco dataview, Conceitos relacionados). O bloco dataview é sempre este, sem alterar:
+Formato: o template `30 Sistema/Templates/Conceito.md` (YAML `tipo: conceito`, `materias: [ContabilidadeFinanceira]`, `tags: [conceito]`; seções Definição, Fórmula / aplicação, Onde aparece nas aulas com o bloco dataview, Conceitos relacionados). O bloco dataview é sempre este, sem alterar:
 
 ````
 ```dataview
@@ -617,16 +617,16 @@ import sys
 
 VAULT = os.path.expanduser("~/FGV")
 TARGETS = [
-    f"{VAULT}/ContabilidadeFinanceira/Aulas/08.19/ResolucaoCasoMarcusDent.md",
-    f"{VAULT}/Vault/Conceitos/Caso Marcus Dent.md",
-    f"{VAULT}/Vault/Conceitos/Passivo Circulante.md",
-    f"{VAULT}/Vault/Conceitos/Passivo Não Circulante.md",
-    f"{VAULT}/Vault/Conceitos/Imobilizado.md",
-    f"{VAULT}/Vault/Conceitos/Juros a Pagar.md",
-    f"{VAULT}/Vault/Conceitos/Reconhecimento da Receita.md",
-    f"{VAULT}/Vault/Conceitos/Confrontação.md",
+    f"{VAULT}/10 Matérias/ContabilidadeFinanceira/Aulas/08.19/ResolucaoCasoMarcusDent.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Caso Marcus Dent.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Passivo Circulante.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Passivo Não Circulante.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Imobilizado.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Juros a Pagar.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Reconhecimento da Receita.md",
+    f"{VAULT}/20 Conhecimento/Conceitos/Confrontação.md",
 ]
-notes = {os.path.splitext(os.path.basename(p))[0] for p in glob.glob(f"{VAULT}/Vault/Conceitos/*.md")}
+notes = {os.path.splitext(os.path.basename(p))[0] for p in glob.glob(f"{VAULT}/20 Conhecimento/Conceitos/*.md")}
 # a resolução também pode ser alvo de link (Caso Marcus Dent aponta pra ela)
 notes.add("ResolucaoCasoMarcusDent")
 
@@ -683,7 +683,7 @@ Caso de ContabilidadeFinanceira (aula de 19/08) que fecha o tema 4, formas de ap
 
 ## Material
 
-Pasta `ContabilidadeFinanceira/Aulas/08.19/`: enunciado em `Slides/`, [[ResolucaoCasoMarcusDent]] e `MarcusDentDFs.xlsx`.
+Pasta `10 Matérias/ContabilidadeFinanceira/Aulas/08.19/`: enunciado em `Slides/`, [[ResolucaoCasoMarcusDent]] e `MarcusDentDFs.xlsx`.
 
 ## Onde aparece nas aulas
 
@@ -974,7 +974,7 @@ Run:
 ```bash
 python3 "$SCR/check_wikilinks.py"
 ```
-Expected: `ok`, exit 0. Se aparecer `BROKEN`, o nome do link não bate com um arquivo em `Vault/Conceitos/` (acento, maiúscula, plural): corrigir o link, não criar nota duplicada.
+Expected: `ok`, exit 0. Se aparecer `BROKEN`, o nome do link não bate com um arquivo em `20 Conhecimento/Conceitos/` (acento, maiúscula, plural): corrigir o link, não criar nota duplicada.
 
 ---
 
@@ -994,7 +994,7 @@ Expected: `ResolucaoCasoMarcusDent.md`, `MarcusDentDFs.xlsx` e `Slides/` na past
 - [ ] **Step 2: Commit**
 
 ```bash
-cd "$VAULT" && git add "ContabilidadeFinanceira/Aulas/08.19/ResolucaoCasoMarcusDent.md" "ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx" "Vault/Conceitos/Caso Marcus Dent.md" "Vault/Conceitos/Passivo Circulante.md" "Vault/Conceitos/Passivo Não Circulante.md" "Vault/Conceitos/Imobilizado.md" "Vault/Conceitos/Juros a Pagar.md" "Vault/Conceitos/Reconhecimento da Receita.md" "Vault/Conceitos/Confrontação.md" "Vault/Specs/2026-08-19-caso-marcus-dent-plan.md" && git commit -q -m "contabilidade: resolução do caso Marcus Dent (19/08)
+cd "$VAULT" && git add "10 Matérias/ContabilidadeFinanceira/Aulas/08.19/ResolucaoCasoMarcusDent.md" "10 Matérias/ContabilidadeFinanceira/Aulas/08.19/MarcusDentDFs.xlsx" "20 Conhecimento/Conceitos/Caso Marcus Dent.md" "20 Conhecimento/Conceitos/Passivo Circulante.md" "20 Conhecimento/Conceitos/Passivo Não Circulante.md" "20 Conhecimento/Conceitos/Imobilizado.md" "20 Conhecimento/Conceitos/Juros a Pagar.md" "20 Conhecimento/Conceitos/Reconhecimento da Receita.md" "20 Conhecimento/Conceitos/Confrontação.md" "30 Sistema/Specs/2026-08-19-caso-marcus-dent-plan.md" && git commit -q -m "contabilidade: resolução do caso Marcus Dent (19/08)
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>" && git log --oneline -1
 ```
@@ -1002,4 +1002,4 @@ Expected: uma linha com o hash e a mensagem do commit.
 
 - [ ] **Step 3: Confirmar pro Arthur**
 
-Listar: os dois arquivos da pasta 08.19, as sete notas de conceito criadas, o resultado do verificador (54/54) e do check de wikilinks (ok), o hash do commit. Registrar que não houve task nem update de calendar (sem prazo e sem transcript). Apontar o link quebrado pré-existente em `Vault/Conceitos/Caso Zezinho Pipoqueiro.md` (`[[ResolucaoCasoZezinhoA]]`, o arquivo se chama `ResolucaoCasoZezinho.md`) sem corrigir, conforme a regra de não tocar nota existente.
+Listar: os dois arquivos da pasta 08.19, as sete notas de conceito criadas, o resultado do verificador (54/54) e do check de wikilinks (ok), o hash do commit. Registrar que não houve task nem update de calendar (sem prazo e sem transcript). Apontar o link quebrado pré-existente em `20 Conhecimento/Conceitos/Caso Zezinho Pipoqueiro.md` (`[[ResolucaoCasoZezinhoA]]`, o arquivo se chama `ResolucaoCasoZezinho.md`) sem corrigir, conforme a regra de não tocar nota existente.

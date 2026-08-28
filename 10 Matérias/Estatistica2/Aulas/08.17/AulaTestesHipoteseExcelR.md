@@ -45,7 +45,7 @@ Três coisas abertas ao mesmo tempo: este md no Obsidian (a aula), o `TestesHipo
 
 <pre>
 brew install r          # instala (já feito nesta máquina, R 4.6.1)
-cd ~/FGV/Estatistica2/Aulas/08.17
+cd ~/FGV/10\ Matérias/Estatistica2/Aulas/08.17
 R                       # abre o console; o prompt vira "&gt;"
 q()                     # sai; responde n (não salvar workspace)
 Rscript TestesHipotese.R            # roda o script inteiro sem abrir o console
@@ -53,7 +53,7 @@ Rscript TestesHipotese.R            # roda o script inteiro sem abrir o console
 
 **Roteiro de uso (duas janelas).** O jeito de "fazer no R" nesta aula é copiar bloco a bloco do script pro console e mexer nos objetos.
 
-1. Abre o VS Code na pasta `~/FGV/Estatistica2/Aulas/08.17` e clica em `TestesHipotese.R` (o código, comentado, com os dados).
+1. Abre o VS Code na pasta `~/FGV/10 Matérias/Estatistica2/Aulas/08.17` e clica em `TestesHipotese.R` (o código, comentado, com os dados).
 2. No VS Code, View → Terminal (Ctrl+`). No terminal digita `R` e Enter: o prompt vira `>`. Código em cima, R embaixo. Sem VS Code: Terminal com `R` numa janela e o `.R` aberto no TextEdit na outra.
 3. Roda o bloco 0 primeiro (define `decide` e `alpha`): seleciona do `# ---- 0.` até antes do `# ---- 1.`, Cmd+C, clica no terminal, Cmd+V, Enter.
 4. Pra cada teste: lê a seção 4.x aqui, copia o bloco correspondente do script, cola no console, lê o output. Depois digita os objetos um por vez no `>` (`ep`, `t1_z`, `qnorm(0.95)`, `1 - pnorm(t1_z)`) e vê os números aparecerem. Muda um input (`xbar <- 505`), roda o bloco de novo, vê a decisão virar.

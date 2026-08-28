@@ -1,6 +1,6 @@
 {
   "format": "YYYY-MM-DD",
-  "folder": "Vault/Daily",
-  "template": "Vault/Templates/Daily.md",
+  "folder": "00 Home/Daily",
+  "template": "",
   "autorun": false
 }

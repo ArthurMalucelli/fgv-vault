@@ -24,7 +24,7 @@ Caso de ContabilidadeFinanceira (aula de 19/08) que fecha o tema 4, formas de ap
 
 ## Material
 
-Pasta `ContabilidadeFinanceira/Aulas/08.19/`: enunciado em `Slides/`, [[ResolucaoCasoMarcusDent]] e `MarcusDentDFs.xlsx`.
+Pasta `10 Matérias/ContabilidadeFinanceira/Aulas/08.19/`: enunciado em `Slides/`, [[ResolucaoCasoMarcusDent]] e `MarcusDentDFs.xlsx`.
 
 ## Onde aparece nas aulas
 

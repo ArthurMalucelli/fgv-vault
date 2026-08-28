@@ -14,17 +14,17 @@
 
 This isn't a code project. The deliverables are:
 
-- **Spec:** `~/FGV/Vault/automation/2026-05-25-weekly-summary-design.md` (already written, approved)
-- **Plan:** `~/FGV/Vault/automation/2026-05-25-weekly-summary-plan.md` (this file)
-- **Agent prompt:** lives inside the scheduled task config in Claude cloud. Source of truth backup goes to `~/FGV/Vault/automation/weekly-summary-prompt.md` so it can be re-deployed if needed.
-- **Operational log:** `~/FGV/Vault/automation/weekly-summary-runlog.md` (manual notes on test fires, schedule changes, issues).
+- **Spec:** `~/FGV/30 Sistema/Automacoes/2026-05-25-weekly-summary-design.md` (already written, approved)
+- **Plan:** `~/FGV/30 Sistema/Automacoes/2026-05-25-weekly-summary-plan.md` (this file)
+- **Agent prompt:** lives inside the scheduled task config in Claude cloud. Source of truth backup goes to `~/FGV/30 Sistema/Automacoes/weekly-summary-prompt.md` so it can be re-deployed if needed.
+- **Operational log:** `~/FGV/30 Sistema/Automacoes/weekly-summary-runlog.md` (manual notes on test fires, schedule changes, issues).
 
 ---
 
 ## Task 1: Verify cloud MCP connections (Calendar + Gmail)
 
 **Files:**
-- Read: `~/FGV/Vault/automation/2026-05-25-weekly-summary-design.md` (for calendar IDs)
+- Read: `~/FGV/30 Sistema/Automacoes/2026-05-25-weekly-summary-design.md` (for calendar IDs)
 
 - [x] **Step 1: Check scheduled-tasks MCP availability** ✅ 2026-08-16
 
@@ -58,7 +58,7 @@ If either MCP errors on the local check, the remote agent will also fail. Stop a
 ## Task 2: Author the agent prompt
 
 **Files:**
-- Create: `~/FGV/Vault/automation/weekly-summary-prompt.md`
+- Create: `~/FGV/30 Sistema/Automacoes/weekly-summary-prompt.md`
 
 - [x] **Step 1: Write the prompt to file** ✅ 2026-08-16
 
@@ -134,7 +134,7 @@ Email sent successfully via Gmail MCP, with a 200-like response from the send to
 
 This file is the source of truth backup. If the scheduled task gets nuked, we redeploy from here. No git, just file existence.
 
-Run: `ls -la ~/FGV/Vault/automation/weekly-summary-prompt.md`
+Run: `ls -la ~/FGV/30\ Sistema/Automacoes/weekly-summary-prompt.md`
 Expected: file exists, ~3-4 KB.
 
 ---
@@ -142,14 +142,14 @@ Expected: file exists, ~3-4 KB.
 ## Task 3: Create the scheduled task
 
 **Files:**
-- Read: `~/FGV/Vault/automation/weekly-summary-prompt.md`
+- Read: `~/FGV/30 Sistema/Automacoes/weekly-summary-prompt.md`
 
 - [x] **Step 1: Define the schedule parameters** ✅ 2026-08-16
 
 - Cron expression: `0 19 * * SUN`
 - Timezone: `America/Sao_Paulo`
 - Name: `weekly-fgv-summary`
-- Prompt: full contents of `~/FGV/Vault/automation/weekly-summary-prompt.md`
+- Prompt: full contents of `~/FGV/30 Sistema/Automacoes/weekly-summary-prompt.md`
 
 - [x] **Step 2: Create via scheduled-tasks MCP** ✅ 2026-08-16
 
@@ -168,7 +168,7 @@ If the schedule on the listed task doesn't match what we asked for (timezone got
 
 - [x] **Step 4: Save task ID to runlog** ✅ 2026-08-16
 
-Append to `~/FGV/Vault/automation/weekly-summary-runlog.md`:
+Append to `~/FGV/30 Sistema/Automacoes/weekly-summary-runlog.md`:
 
 ```
 # Weekly FGV Summary — Runlog
@@ -185,7 +185,7 @@ Append to `~/FGV/Vault/automation/weekly-summary-runlog.md`:
 ## Task 4: Dry-run test fire
 
 **Files:**
-- Modify: `~/FGV/Vault/automation/weekly-summary-runlog.md`
+- Modify: `~/FGV/30 Sistema/Automacoes/weekly-summary-runlog.md`
 
 - [x] **Step 1: Trigger the task manually** ✅ 2026-08-16
 
