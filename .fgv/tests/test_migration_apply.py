@@ -1053,6 +1053,43 @@ class MigrationApplyTests(unittest.TestCase):
         self.assertEqual(saved_original.read_bytes(), self.payloads["legacy/a.txt"])
         self.assertFalse((self.vault / "new/one/a.txt").exists())
 
+    def test_source_parent_swap_is_rejected_and_reversed_by_original_dirfds(self) -> None:
+        record = dict(self.records[0])
+        self.records = [record]
+        self._write_manifest(self.records)
+        self._commit_fixture("single move source parent race")
+        source_parent = self.vault / "legacy"
+        detached_parent = self.vault / "detached-legacy"
+        replacement = b"replacement survives source parent swap\n"
+        real_move = apply_migration._rename_noreplace
+        swapped = False
+
+        def swap_source_parent_then_move(*args, **kwargs):
+            nonlocal swapped
+            if not _is_runtime_rename(args[0], args[1]) and not swapped:
+                swapped = True
+                source_parent.rename(detached_parent)
+                source_parent.mkdir()
+                (source_parent / "a.txt").write_bytes(replacement)
+            return real_move(*args, **kwargs)
+
+        with patch(
+            "apply_migration._rename_noreplace",
+            side_effect=swap_source_parent_then_move,
+        ):
+            result, _, stderr = self._run()
+
+        self.assertTrue(swapped)
+        self.assertEqual(result, 1)
+        self.assertIn("changed after preflight", stderr)
+        self.assertEqual((source_parent / "a.txt").read_bytes(), replacement)
+        self.assertEqual(
+            (detached_parent / "a.txt").read_bytes(),
+            self.payloads["legacy/a.txt"],
+        )
+        self.assertFalse((self.vault / record["destination"]).exists())
+        self.assertFalse(self.journal_path.exists())
+
     def test_manifest_must_be_regular_non_symlink_inside_vault(self) -> None:
         outside = self.vault.parent / f"{self.vault.name}-outside.json"
         self.addCleanup(outside.unlink, missing_ok=True)

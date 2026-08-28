@@ -1762,6 +1762,27 @@ def _path_identity(root_fd: int, relative: str, label: str) -> tuple[int, int]:
         os.close(parent_fd)
 
 
+def _require_canonical_path_absent(root_fd: int, relative: str) -> None:
+    try:
+        parent_fd, name = _open_parent(root_fd, relative)
+    except MigrationApplyError as error:
+        if "ancestor is missing" in str(error):
+            return
+        raise MigrationApplyError(
+            f"source or destination changed after preflight: {relative}"
+        ) from error
+    try:
+        try:
+            os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            return
+        raise MigrationApplyError(
+            f"source or destination changed after preflight: {relative}"
+        )
+    finally:
+        os.close(parent_fd)
+
+
 def _move_one(
     root_fd: int,
     move: Move,
@@ -1834,6 +1855,7 @@ def _move_one(
                 raise MigrationApplyError(
                     f"source or destination changed after preflight: {move.source}"
                 )
+            _require_canonical_path_absent(root_fd, move.source)
             try:
                 os.stat(
                     source_name,
