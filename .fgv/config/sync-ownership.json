@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "roles": {
+    "mac-agent": {
+      "git_owner": "obsidian-git",
+      "allowed": [
+        "read",
+        "status",
+        "sync_pending"
+      ],
+      "denied": [
+        "fetch",
+        "pull",
+        "merge",
+        "rebase",
+        "commit",
+        "push"
+      ]
+    },
+    "hermes-sync": {
+      "git_owner": "fgv-sync",
+      "allowed": [
+        "status",
+        "fetch",
+        "merge-ff-only",
+        "commit-scoped",
+        "push"
+      ],
+      "retry_push_rejection": 1,
+      "force_push": false
+    }
+  },
+  "single_writer": {
+    "catalog": ".fgv/scripts/generate_state.py",
+    "dashboard": ".fgv/scripts/generate_state.py"
+  }
+}

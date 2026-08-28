@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "semester": "2026.2",
+  "timezone": "America/Sao_Paulo",
+  "subjects": [
+    {
+      "id": "contabilidade-financeira",
+      "display_name": "Contabilidade Financeira",
+      "folder": "ContabilidadeFinanceira",
+      "path": "10 Matérias/ContabilidadeFinanceira",
+      "task_tag": "#cont",
+      "aliases": [
+        "ContabilidadeFinanceira",
+        "contabilidade financeira",
+        "cont"
+      ],
+      "legacy_frontmatter_values": [
+        "ContabilidadeFinanceira"
+      ]
+    },
+    {
+      "id": "direito-empresarial",
+      "display_name": "Direito Empresarial",
+      "folder": "DireitoEmpresarial",
+      "path": "10 Matérias/DireitoEmpresarial",
+      "task_tag": "#dir",
+      "aliases": [
+        "DireitoEmpresarial",
+        "direito empresarial",
+        "dir"
+      ],
+      "legacy_frontmatter_values": [
+        "DireitoEmpresarial"
+      ]
+    },
+    {
+      "id": "estatistica-2",
+      "display_name": "Estatística II",
+      "folder": "Estatistica2",
+      "path": "10 Matérias/Estatistica2",
+      "task_tag": "#est2",
+      "aliases": [
+        "Estatistica2",
+        "Estatística II",
+        "est2"
+      ],
+      "legacy_frontmatter_values": [
+        "Estatistica2"
+      ]
+    },
+    {
+      "id": "estudos-organizacionais",
+      "display_name": "Estudos Organizacionais",
+      "folder": "EstudosOrganizacionais",
+      "path": "10 Matérias/EstudosOrganizacionais",
+      "task_tag": "#eo",
+      "aliases": [
+        "EstudosOrganizacionais",
+        "estudos organizacionais",
+        "eo"
+      ],
+      "legacy_frontmatter_values": [
+        "EstudosOrganizacionais"
+      ]
+    },
+    {
+      "id": "matematica-aplicada",
+      "display_name": "Matemática Aplicada I",
+      "folder": "MatemáticaAplicada",
+      "path": "10 Matérias/MatemáticaAplicada",
+      "task_tag": "#ma1",
+      "aliases": [
+        "MatemáticaAplicada",
+        "matemática aplicada",
+        "ma1"
+      ],
+      "legacy_frontmatter_values": [
+        "MatemáticaAplicada"
+      ]
+    },
+    {
+      "id": "psicologia",
+      "display_name": "Psicologia",
+      "folder": "Psicologia",
+      "path": "10 Matérias/Psicologia",
+      "task_tag": "#psi",
+      "aliases": [
+        "Psicologia",
+        "psi"
+      ],
+      "legacy_frontmatter_values": [
+        "Psicologia"
+      ]
+    },
+    {
+      "id": "tecnologia-dados-negocios",
+      "display_name": "Tecnologia, Dados e Negócios",
+      "folder": "TecnologiaDadosNegocios",
+      "path": "10 Matérias/TecnologiaDadosNegocios",
+      "task_tag": "#tdn",
+      "aliases": [
+        "TecnologiaDadosNegocios",
+        "tecnologia dados negócios",
+        "tdn"
+      ],
+      "legacy_frontmatter_values": [
+        "TecnologiaDadosNegocios"
+      ]
+    }
+  ]
+}
