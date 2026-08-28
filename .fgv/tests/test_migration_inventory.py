@@ -804,6 +804,20 @@ class RealManifestContractTests(unittest.TestCase):
         self.assertTrue(payload.endswith(b"\n"))
         return json.loads(payload)
 
+    def test_real_manifest_contract_uses_only_the_pinned_base_commit(self) -> None:
+        real_run = subprocess.run
+
+        def guarded_run(arguments, *args, **kwargs):
+            self.assertFalse(
+                any("origin/main" in str(argument) for argument in arguments)
+            )
+            if tuple(arguments[:3]) == ("git", "rev-parse", "--verify"):
+                self.assertEqual(arguments[3], "--end-of-options")
+            return real_run(arguments, *args, **kwargs)
+
+        with patch.object(subprocess, "run", side_effect=guarded_run):
+            self.test_real_manifest_is_complete_unique_safe_and_matches_base_tree()
+
     def test_real_manifest_is_complete_unique_safe_and_matches_base_tree(self) -> None:
         _, manifest = self.load_manifest()
         sources = [str(record["source"]) for record in manifest]
@@ -847,14 +861,26 @@ class RealManifestContractTests(unittest.TestCase):
                 self.assertNotIn("\\", value)
 
         resolved_commit = subprocess.run(
-            ("git", "rev-parse", "--verify", "origin/main^{commit}"),
+            (
+                "git",
+                "rev-parse",
+                "--verify",
+                "--end-of-options",
+                f"{REAL_BASE_COMMIT}^{{commit}}",
+            ),
             cwd=ROOT,
             check=True,
             stdout=subprocess.PIPE,
             text=True,
         ).stdout.strip()
         resolved_tree = subprocess.run(
-            ("git", "rev-parse", "--verify", "origin/main^{tree}"),
+            (
+                "git",
+                "rev-parse",
+                "--verify",
+                "--end-of-options",
+                f"{REAL_BASE_COMMIT}^{{tree}}",
+            ),
             cwd=ROOT,
             check=True,
             stdout=subprocess.PIPE,
