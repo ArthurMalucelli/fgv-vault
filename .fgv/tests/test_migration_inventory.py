@@ -1,4 +1,6 @@
 import hashlib
+from contextlib import redirect_stdout
+import io
 import json
 import os
 from pathlib import Path
@@ -702,9 +704,15 @@ class PlannerCliTests(unittest.TestCase):
                     real_fdopen(file_descriptor, *arguments, **keywords)
                 )
 
-            with patch.object(plan_migration.os, "fdopen", side_effect=partial_fdopen):
-                with self.assertRaisesRegex(OSError, "partial write"):
-                    writer(output, b"replacement payload")
+            parent_fd = os.open(parent, plan_migration.DIRECTORY_OPEN_FLAGS)
+            try:
+                with patch.object(
+                    plan_migration.os, "fdopen", side_effect=partial_fdopen
+                ):
+                    with self.assertRaisesRegex(OSError, "partial write"):
+                        writer(parent_fd, output.name, b"replacement payload")
+            finally:
+                os.close(parent_fd)
 
             self.assertEqual(output.read_bytes(), b"previous")
             self.assertEqual({path.name for path in parent.iterdir()}, before)
@@ -718,16 +726,58 @@ class PlannerCliTests(unittest.TestCase):
             output.write_bytes(b"previous")
             before = {path.name for path in parent.iterdir()}
 
-            with patch.object(
-                plan_migration.os,
-                "replace",
-                side_effect=OSError("injected replace failure"),
-            ):
-                with self.assertRaisesRegex(OSError, "replace failure"):
-                    writer(output, b"replacement payload")
+            parent_fd = os.open(parent, plan_migration.DIRECTORY_OPEN_FLAGS)
+            try:
+                with patch.object(
+                    plan_migration.os,
+                    "replace",
+                    side_effect=OSError("injected replace failure"),
+                ):
+                    with self.assertRaisesRegex(OSError, "replace failure"):
+                        writer(parent_fd, output.name, b"replacement payload")
+            finally:
+                os.close(parent_fd)
 
             self.assertEqual(output.read_bytes(), b"previous")
             self.assertEqual({path.name for path in parent.iterdir()}, before)
+
+    def test_write_stays_bound_to_validated_parent_during_ancestor_swap(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            repository = root / "vault"
+            repository.mkdir()
+            validated_parent = repository / "validated"
+            validated_parent.mkdir()
+            moved_parent = repository / "validated-original"
+            external = root / "external"
+            external.mkdir()
+
+            def swap_ancestor(*arguments, **keywords):
+                validated_parent.rename(moved_parent)
+                os.symlink(external, validated_parent)
+                return (entry("Tasks.md"),)
+
+            with patch.object(
+                plan_migration,
+                "inventory_from_git",
+                side_effect=swap_ancestor,
+            ):
+                with redirect_stdout(io.StringIO()):
+                    return_code = plan_migration.main(
+                        [
+                            "--vault",
+                            str(repository),
+                            "--base-ref",
+                            "HEAD",
+                            "--output",
+                            "validated/manifest.json",
+                        ]
+                    )
+
+            self.assertEqual(return_code, 0)
+            self.assertFalse((external / "manifest.json").exists())
+            manifest = json.loads((moved_parent / "manifest.json").read_bytes())
+            self.assertEqual(manifest[0]["source"], "Tasks.md")
 
 
 if __name__ == "__main__":
