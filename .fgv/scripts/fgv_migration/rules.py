@@ -91,18 +91,16 @@ def _validated_allowlist(
     inbox_root = PurePosixPath("00 Home/Inbox/Legado")
     for source, destination in combined.items():
         normalized_source = normalize_relative_path(source)
-        raw_destination = destination.replace("\\", "/")
-        destination_path = PurePosixPath(raw_destination)
+        normalized_destination = normalize_relative_path(destination)
+        destination_path = PurePosixPath(normalized_destination)
         if (
-            destination_path.is_absolute()
-            or ".." in destination_path.parts
-            or destination_path == inbox_root
+            destination_path == inbox_root
             or inbox_root not in destination_path.parents
         ):
             raise RuleError(
                 f"Inbox allowlist destination is outside 00 Home/Inbox/Legado: {destination!r}"
             )
-        validated[normalized_source] = raw_destination
+        validated[normalized_source] = destination
     return validated
 
 

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import hashlib
 import os
 from pathlib import Path, PurePosixPath
+import re
 import subprocess
 import unicodedata
 from typing import Iterable
@@ -36,7 +37,9 @@ class InventoryEntry:
 
 
 def normalize_relative_path(value: str) -> str:
-    normalized = unicodedata.normalize("NFC", value.replace("\\", "/"))
+    if "\x00" in value or "\\" in value:
+        raise InventoryError(f"unsafe relative path: {value!r}")
+    normalized = unicodedata.normalize("NFC", value)
     path = PurePosixPath(normalized)
     if not normalized or path.is_absolute() or ".." in path.parts:
         raise InventoryError(f"unsafe relative path: {value!r}")
@@ -117,7 +120,10 @@ def inventory_from_filesystem(
 
 
 def _run_git(vault: Path, arguments: tuple[str, ...]) -> subprocess.CompletedProcess:
-    environment = os.environ.copy()
+    environment = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
     environment["LC_ALL"] = "C"
     try:
         return subprocess.run(
@@ -141,8 +147,27 @@ def inventory_from_git(
     if not base_ref or base_ref.startswith("-") or "\x00" in base_ref or "\n" in base_ref:
         raise InventoryError(f"unsafe base-ref: {base_ref!r}")
 
+    resolved_tree = _run_git(
+        root,
+        (
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            f"{base_ref}^{{tree}}",
+        ),
+    )
+    if resolved_tree.returncode != 0:
+        detail = resolved_tree.stderr.decode("utf-8", errors="replace").strip()
+        raise InventoryError(f"cannot read base-ref {base_ref!r}: {detail}")
+    try:
+        tree_oid = resolved_tree.stdout.decode("ascii").strip()
+    except UnicodeDecodeError as error:
+        raise InventoryError(f"invalid tree OID for base-ref {base_ref!r}") from error
+    if re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", tree_oid) is None:
+        raise InventoryError(f"invalid tree OID for base-ref {base_ref!r}")
+
     outputs = _normalized_outputs(output_paths)
-    listing = _run_git(root, ("ls-tree", "-rz", "--full-tree", base_ref))
+    listing = _run_git(root, ("ls-tree", "-rz", "--full-tree", tree_oid))
     if listing.returncode != 0:
         detail = listing.stderr.decode("utf-8", errors="replace").strip()
         raise InventoryError(f"cannot read base-ref {base_ref!r}: {detail}")

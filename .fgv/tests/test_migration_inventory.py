@@ -6,15 +6,18 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from fgv_migration.inventory import (
     InventoryEntry,
     InventoryError,
     inventory_from_filesystem,
     inventory_from_git,
+    normalize_relative_path,
 )
 from fgv_migration.rules import (
     CollisionError,
+    RuleError,
     UnclassifiedError,
     build_manifest,
     classify_path,
@@ -76,6 +79,12 @@ class FilesystemInventoryTests(unittest.TestCase):
             self.assertEqual(result.path, "Caf\u00e9.md")
             self.assertFalse(Path(result.path).is_absolute())
             self.assertNotIn("\\", result.path)
+
+    def test_rejects_nul_and_backslash_in_relative_paths(self) -> None:
+        for unsafe in ("folder\\note.md", "folder/nu\x00l.md"):
+            with self.subTest(path=unsafe):
+                with self.assertRaisesRegex(InventoryError, "unsafe relative path"):
+                    normalize_relative_path(unsafe)
 
     def test_rejects_symlinks_before_returning_inventory(self) -> None:
         with TemporaryDirectory() as temporary_directory:
@@ -185,6 +194,20 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(manifest[0]["destination"], "00 Home/Inbox/Legado/Loose Note.md")
         self.assertEqual(manifest[0]["category"], "home")
 
+    def test_allowlist_rejects_unsafe_destinations(self) -> None:
+        unsafe_destinations = (
+            "00 Home\\Inbox\\Legado\\Loose Note.md",
+            "00 Home/Inbox/Legado/nu\x00l.md",
+            "00 Home/Inbox/Legado/../escape.md",
+        )
+        for destination in unsafe_destinations:
+            with self.subTest(destination=destination):
+                with self.assertRaises((InventoryError, RuleError)):
+                    build_manifest(
+                        (entry("Loose Note.md"),),
+                        inbox_allowlist={"Loose Note.md": destination},
+                    )
+
     def test_exact_destination_collision_blocks_plan(self) -> None:
         allowlist = {
             "Loose A.md": "00 Home/Inbox/Legado/Duplicate.md",
@@ -278,6 +301,56 @@ class GitInventoryTests(unittest.TestCase):
 
             with self.assertRaisesRegex(InventoryError, "symlink"):
                 inventory_from_git(repository, "HEAD")
+
+    def test_git_environment_cannot_redirect_inventory_to_another_repo(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            repository_a = root / "repo-a"
+            repository_b = root / "repo-b"
+            repository_a.mkdir()
+            repository_b.mkdir()
+            self.init_repository(repository_a)
+            self.init_repository(repository_b)
+            (repository_a / "Tasks.md").write_bytes(b"repo-a")
+            (repository_b / "Tasks.md").write_bytes(b"repo-b")
+            for repository in (repository_a, repository_b):
+                self.git(repository, "add", "Tasks.md")
+                self.git(repository, "commit", "-qm", "fixture")
+
+            hostile_environment = {
+                "GIT_DIR": str(repository_b / ".git"),
+                "GIT_WORK_TREE": str(repository_b),
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.quotePath",
+                "GIT_CONFIG_VALUE_0": "true",
+            }
+            with patch.dict(os.environ, hostile_environment, clear=False):
+                (result,) = inventory_from_git(repository_a, "HEAD")
+
+            self.assertEqual(result.sha256, hashlib.sha256(b"repo-a").hexdigest())
+
+    def test_git_replace_cannot_change_base_tree_bytes(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            repository = Path(temporary_directory)
+            self.init_repository(repository)
+            (repository / "Tasks.md").write_bytes(b"original")
+            self.git(repository, "add", "Tasks.md")
+            self.git(repository, "commit", "-qm", "original")
+            original_commit = (
+                self.git(repository, "rev-parse", "HEAD").stdout.decode("ascii").strip()
+            )
+
+            (repository / "Tasks.md").write_bytes(b"replacement")
+            self.git(repository, "add", "Tasks.md")
+            self.git(repository, "commit", "-qm", "replacement")
+            replacement_commit = (
+                self.git(repository, "rev-parse", "HEAD").stdout.decode("ascii").strip()
+            )
+            self.git(repository, "replace", original_commit, replacement_commit)
+
+            (result,) = inventory_from_git(repository, original_commit)
+
+            self.assertEqual(result.sha256, hashlib.sha256(b"original").hexdigest())
 
 
 class PlannerCliTests(unittest.TestCase):
