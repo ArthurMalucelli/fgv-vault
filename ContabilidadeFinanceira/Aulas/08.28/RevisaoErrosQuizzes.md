@@ -105,7 +105,18 @@ Receita − Custo = Lucro Bruto
 
 Check final obrigatório: sobrou conta de resultado sem usar em algum degrau? Então o número está errado.
 
-## 8. Processo (2 pontos perdidos por processo, não por conceito)
+## 8. Quiz Voe Alto (28/08): os 6 campos errados de uma vez
+
+Padrão: classifiquei linhas da DRE pelo pagamento (lógica de caixa). Correções que valem regra:
+
+- **Campo = linha da DRE.** "Receita de Serviços" é a linha bruta (300), sem descontar custo. Se descontar combustível/salário dentro da receita, o corretor subtrai duas vezes ao montar o lucro. Cada campo é um degrau da cascata.
+- **Teste do verbo pro caixa:** "recebido", "pago" = caixa do mês. "A ser pago", "vencimento no próximo mês" = caixa de outro mês. O particípio vs futuro decide, não o mês do trabalho ou do voo. Apliquei o filtro na entrada (excluí o cartão) e esqueci na saída (incluí salário e aluguel "a ser pago").
+- **Simetria de conferência:** item que saiu da DRE do mês (pago adiantado ou atrasado) tende a estar no caixa, e vice-versa. Depreciação não está em lugar nenhum do caixa. Se um item aparece nos dois, é porque foi feito E pago no mês.
+- **Consumo com estoque final:** comprou 100, sobrou 20, CSP leva 80.
+- **Pago por 1 ano, vigência no mês:** caixa leva o total (216), DRE leva 1/12 (18).
+- Drill pra esse formato de questão: pra cada linha da tabela, duas colunas no rascunho, "DRE março?" e "caixa março?", item por item, antes de preencher qualquer campo.
+
+## 9. Processo (2 pontos perdidos por processo, não por conceito)
 
 - Typo: digitei 244 com 240 certo no rascunho. Releitura campo a campo antes do submit.
 - Número condicional de terceiro (IA incluída) não entra em campo de prova sem validar a condição no enunciado.
