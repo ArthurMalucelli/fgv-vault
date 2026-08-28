@@ -1072,15 +1072,18 @@ class RealManifestContractTests(unittest.TestCase):
         self.assertEqual(
             baseline["wikilinks"],
             {
-                "method": "obsidian-wikilink-audit-v1",
+                "method": "manifest-source-git-wikilink-audit-v2",
                 "total": 5402,
+                "resolved": 4991,
                 "unresolved": 408,
                 "ambiguous": 3,
-                "accent_normalization_matches": {
-                    "value": 161,
-                    "status": "audited_estimate",
-                },
             },
+        )
+        self.assertEqual(
+            baseline["wikilinks"]["total"],
+            baseline["wikilinks"]["resolved"]
+            + baseline["wikilinks"]["unresolved"]
+            + baseline["wikilinks"]["ambiguous"],
         )
 
         serialized = json.dumps(
