@@ -798,6 +798,69 @@ class ProductionContractTests(unittest.TestCase):
         self.assertLessEqual(links.unresolved, 408)
         self.assertLessEqual(links.ambiguous, 3)
 
+    def test_lesson_rename_overlay_is_closed_exact_and_filesystem_authenticated(self) -> None:
+        module = self.require_rewriter()
+        _, root_fd = module._open_vault(ROOT)
+        try:
+            overlay = module._load_lesson_rename_overlay(root_fd)
+        finally:
+            os.close(root_fd)
+
+        self.assertEqual(len(overlay), 42)
+        self.assertTrue(
+            all(path.endswith(("/Resumo.md", "/Transcrito.md")) for path in overlay)
+        )
+        destinations = [entry.destination for entry in overlay.values()]
+        self.assertEqual(len(destinations), len(set(destinations)))
+        joined = "\n".join(destinations)
+        for literal in (
+            "pré-prova",
+            "Qui-quadrado",
+            "mente-cérebro",
+            "dado-informação-conhecimento",
+        ):
+            self.assertIn(literal, joined)
+
+    def test_lesson_rename_overlay_rejects_schema_authority_and_file_tamper(self) -> None:
+        module = self.require_rewriter()
+        manifest_path = ROOT / module.LESSON_RENAME_MANIFEST_RELATIVE
+        payload = manifest_path.read_bytes()
+        value = json.loads(payload)
+        mutations = {
+            "partial": lambda record: record["records"].pop(),
+            "aggregate": lambda record: record.update(aggregate_sha256="0" * 64),
+            "authority": lambda record: record.update(authority_tree="0" * 40),
+            "extra": lambda record: record.update(unexpected=True),
+        }
+        for label, mutate in mutations.items():
+            with self.subTest(label=label):
+                changed = json.loads(json.dumps(value, ensure_ascii=False))
+                mutate(changed)
+                tampered = (
+                    json.dumps(changed, ensure_ascii=False, indent=2) + "\n"
+                ).encode("utf-8")
+                with self.assertRaises(module.RewriteError):
+                    module._validate_lesson_rename_manifest(tampered)
+
+        _, root_fd = module._open_vault(ROOT)
+        first_destination = value["records"][0]["destination"]
+        real_read = module._secure_read_with_mode
+
+        def tamper_final(descriptor, relative):
+            payload_and_mode = real_read(descriptor, relative)
+            if relative == first_destination:
+                return payload_and_mode[0] + b"tamper\n", payload_and_mode[1]
+            return payload_and_mode
+
+        try:
+            with patch.object(
+                module, "_secure_read_with_mode", side_effect=tamper_final
+            ):
+                with self.assertRaises(module.RewriteError):
+                    module._load_lesson_rename_overlay(root_fd)
+        finally:
+            os.close(root_fd)
+
     def test_hidden_superpowers_tooling_is_not_active_catalog_scope(self) -> None:
         module = self.require_rewriter()
         hidden_root = Path(

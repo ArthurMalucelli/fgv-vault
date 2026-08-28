@@ -22,6 +22,7 @@ from typing import Mapping, Sequence
 from fgv_migration.inventory import InventoryError, normalize_relative_path
 from fgv_migration.links import LinkAudit, audit_note_contents
 from fgv_migration.rules import RuleError, validate_manifest
+import rename_lesson_notes as lesson_renames
 
 
 EXPECTED_MARKDOWN_OCCURRENCES = 59
@@ -135,6 +136,28 @@ DEFAULT_MANIFEST_AUTH = ManifestAuth(
     sha256="3910988998703f6a9cc01dcd4b40173241c602204ce4a4c6bc83a1a67fd29c96",
     record_count=1059,
 )
+
+LESSON_RENAME_MANIFEST_RELATIVE = (
+    "30 Sistema/Estado/lesson-rename-manifest.json"
+)
+LESSON_RENAME_MANIFEST_SHA256 = (
+    "8344e64f445e835a97cfbd51a07b943d9255d12d861c2b8e5d787d452a5dab45"
+)
+LESSON_RENAME_AUTHORITY_COMMIT = (
+    "dc7a1cde627e2211fa7457367c160759e6ac7993"
+)
+LESSON_RENAME_AUTHORITY_TREE = (
+    "1a8b7dd3abf7febbcb9d0b39d44d721e40ebe043"
+)
+LESSON_STRUCTURAL_SOURCE = re.compile(
+    r"^10 Matérias/[^/]+/Aulas/\d{2}\.\d{2}/(?:Resumo|Transcrito)\.md$"
+)
+
+
+@dataclass(frozen=True)
+class LessonRenameOverlayEntry:
+    destination: str
+    payload: bytes
 
 
 @dataclass(frozen=True)
@@ -555,9 +578,27 @@ def _read_file_at(parent_fd: int, name: str, label: str) -> tuple[bytes, int]:
 
 
 def _secure_read(root_fd: int, relative: str) -> bytes:
+    return _secure_read_with_mode(root_fd, relative)[0]
+
+
+def _secure_read_with_mode(root_fd: int, relative: str) -> tuple[bytes, int]:
     parent_fd, name = _open_parent(root_fd, relative)
     try:
-        return _read_file_at(parent_fd, name, relative)[0]
+        return _read_file_at(parent_fd, name, relative)
+    finally:
+        os.close(parent_fd)
+
+
+def _secure_optional_read_with_mode(
+    root_fd: int, relative: str
+) -> tuple[bytes, int] | None:
+    parent_fd, name = _open_parent(root_fd, relative)
+    try:
+        try:
+            os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            return None
+        return _read_file_at(parent_fd, name, relative)
     finally:
         os.close(parent_fd)
 
@@ -1377,22 +1418,142 @@ def _apply_batch(
     _delete_journal(journal_fd)
 
 
+def _validate_lesson_rename_manifest(
+    payload: bytes,
+) -> Mapping[str, object]:
+    try:
+        manifest = lesson_renames.validate_manifest_bytes(
+            payload, LESSON_RENAME_AUTHORITY_COMMIT
+        )
+    except (TypeError, ValueError) as error:
+        raise RewriteError(f"invalid lesson rename manifest: {error}") from error
+    if manifest["authority_tree"] != LESSON_RENAME_AUTHORITY_TREE:
+        raise RewriteError("lesson rename authority tree mismatch")
+    records = manifest["records"]
+    if manifest["record_count"] != 42 or len(records) != 42:
+        raise RewriteError("lesson rename overlay must contain exactly 42 records")
+
+    sources: set[str] = set()
+    destinations: set[str] = set()
+    folded_destinations: set[str] = set()
+    nfd_folded_destinations: set[str] = set()
+    for record in records:
+        source = record["source"]
+        destination = record["destination"]
+        if (
+            type(source) is not str
+            or type(destination) is not str
+            or LESSON_STRUCTURAL_SOURCE.fullmatch(source) is None
+        ):
+            raise RewriteError("lesson rename source is not a structural generic note")
+        try:
+            normalized_source = normalize_relative_path(source)
+            normalized_destination = normalize_relative_path(destination)
+        except (InventoryError, TypeError) as error:
+            raise RewriteError("lesson rename overlay path is invalid") from error
+        if normalized_source != source or normalized_destination != destination:
+            raise RewriteError("lesson rename overlay paths must be canonical NFC")
+        source_path = PurePosixPath(source)
+        destination_path = PurePosixPath(destination)
+        if source_path.parent != destination_path.parent:
+            raise RewriteError("lesson rename destination left its class folder")
+        expected_prefix = (
+            "Resumo - " if source_path.name == "Resumo.md" else "Transcrito - "
+        )
+        if (
+            not destination_path.name.startswith(expected_prefix)
+            or not destination_path.name.endswith(".md")
+        ):
+            raise RewriteError("lesson rename destination kind is inconsistent")
+        if source in sources or destination in destinations:
+            raise RewriteError("lesson rename overlay contains duplicate paths")
+        folded = destination.casefold()
+        nfd_folded = unicodedata.normalize("NFD", destination).casefold()
+        if folded in folded_destinations or nfd_folded in nfd_folded_destinations:
+            raise RewriteError("lesson rename overlay contains portable collisions")
+        sources.add(source)
+        destinations.add(destination)
+        folded_destinations.add(folded)
+        nfd_folded_destinations.add(nfd_folded)
+    return manifest
+
+
+def _load_lesson_rename_overlay(
+    root_fd: int,
+) -> dict[str, LessonRenameOverlayEntry]:
+    snapshot = _secure_optional_read_with_mode(
+        root_fd, LESSON_RENAME_MANIFEST_RELATIVE
+    )
+    if snapshot is None:
+        return {}
+    payload, mode = snapshot
+    if mode != 0o644:
+        raise RewriteError("lesson rename manifest mode mismatch")
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != LESSON_RENAME_MANIFEST_SHA256:
+        raise RewriteError(
+            f"lesson rename manifest sha256 mismatch: {digest} != "
+            f"{LESSON_RENAME_MANIFEST_SHA256}"
+        )
+    manifest = _validate_lesson_rename_manifest(payload)
+    overlay: dict[str, LessonRenameOverlayEntry] = {}
+    for record in manifest["records"]:
+        source = str(record["source"])
+        destination = str(record["destination"])
+        if _secure_optional_read_with_mode(root_fd, source) is not None:
+            raise RewriteError(f"lesson rename source still exists: {source!r}")
+        final_payload, final_mode = _secure_read_with_mode(root_fd, destination)
+        if len(final_payload) != record["final_size_bytes"]:
+            raise RewriteError(f"lesson rename final size mismatch: {destination!r}")
+        if hashlib.sha256(final_payload).hexdigest() != record["final_sha256"]:
+            raise RewriteError(f"lesson rename final hash mismatch: {destination!r}")
+        expected_mode = int(str(record["final_mode"])[-3:], 8)
+        if final_mode != expected_mode:
+            raise RewriteError(f"lesson rename final mode mismatch: {destination!r}")
+        overlay[source] = LessonRenameOverlayEntry(destination, final_payload)
+    if len(overlay) != 42:
+        raise RewriteError("lesson rename overlay scope mismatch")
+    return overlay
+
+
+def _overlay_payload(
+    root_fd: int,
+    relative: str,
+    overlay: Mapping[str, LessonRenameOverlayEntry],
+) -> tuple[str, bytes]:
+    entry = overlay.get(relative)
+    if entry is not None:
+        return entry.destination, entry.payload
+    try:
+        return relative, _secure_read(root_fd, relative)
+    except RewriteError as error:
+        if LESSON_STRUCTURAL_SOURCE.fullmatch(relative) is not None and not overlay:
+            raise RewriteError(
+                "lesson rename manifest is required because structural lesson paths "
+                "are missing"
+            ) from error
+        raise
+
+
 def audit_projected_links(
     root_fd: int,
     manifest: Sequence[Mapping[str, object]],
     projected: Mapping[str, bytes],
 ) -> LinkAudit:
     notes: dict[str, bytes] = {}
+    lesson_overlay = _load_lesson_rename_overlay(root_fd)
     for record in manifest:
         destination = str(record["destination"])
         if not destination.casefold().endswith(".md"):
             continue
         try:
-            notes[destination] = (
-                projected[destination]
-                if destination in projected
-                else _secure_read(root_fd, destination)
-            )
+            if destination in projected:
+                catalog_path, payload = destination, projected[destination]
+            else:
+                catalog_path, payload = _overlay_payload(
+                    root_fd, destination, lesson_overlay
+                )
+            notes[catalog_path] = payload
         except RewriteError as error:
             raise RewriteError(
                 f"projected link audit target is unavailable: {destination!r}: {error}"
@@ -1434,18 +1595,19 @@ def _active_old_literal_count(
     projected: Mapping[str, bytes],
 ) -> int:
     count = 0
+    lesson_overlay = _load_lesson_rename_overlay(root_fd)
     for record in manifest:
         destination = str(record["destination"])
-        if (
-            not destination.casefold().endswith(".md")
-            or not is_active_catalog_path(destination)
-        ):
+        if not destination.casefold().endswith(".md"):
             continue
-        payload = (
-            projected[destination]
-            if destination in projected
-            else _secure_read(root_fd, destination)
-        )
+        if destination in projected:
+            catalog_path, payload = destination, projected[destination]
+        else:
+            catalog_path, payload = _overlay_payload(
+                root_fd, destination, lesson_overlay
+            )
+        if not is_active_catalog_path(catalog_path):
+            continue
         text = payload.decode("utf-8", errors="replace")
         count += len(OLD_ACTIVE_PATTERN.findall(text))
     return count
