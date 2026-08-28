@@ -31,6 +31,13 @@ Transformar o vault FGV em um sistema acadêmico único para Arthur, Obsidian, C
 
 ```text
 FGV/
+├── .fgv/
+│   ├── VERSION
+│   ├── CORE.md
+│   ├── config/
+│   ├── schemas/
+│   ├── scripts/
+│   └── tests/
 ├── 00 Home/
 │   ├── Home.md
 │   ├── Tasks.md
@@ -55,7 +62,6 @@ FGV/
 │   │   └── sync-status.json
 │   ├── Hermes/
 │   ├── Plans/
-│   ├── Skills/
 │   ├── Specs/
 │   ├── Templates/
 │   └── Tutor/
@@ -64,6 +70,8 @@ FGV/
 ```
 
 As matérias em `10 Matérias/` representam somente o semestre ativo. No fechamento do semestre, elas migram para `90 Arquivo/<ano.semestre>/`. Isso preserva uma superfície diária curta sem perder histórico.
+
+`.fgv/` é o núcleo operacional oculto. Ele concentra contrato, configuração, schemas, scripts e testes sem poluir a navegação diária do Obsidian. `30 Sistema/` permanece legível por humanos e guarda planos, especificações, prompts, relatórios e templates.
 
 ## Estrutura de matéria
 
@@ -116,10 +124,12 @@ status: completo
 origens: [plaud, eclass]
 atualizado_por: fgv
 atualizado_em: 2026-08-28T22:00:00-03:00
+contract_version: 1
+source_sha256: sha256:...
 ---
 ```
 
-`materias` é sempre uma lista, inclusive em notas associadas a uma única matéria. Valores usam slugs canônicos definidos em `30 Sistema/Estado/materias.json`.
+`materias` é sempre uma lista, inclusive em notas associadas a uma única matéria. Valores usam slugs canônicos definidos em `.fgv/config/subjects.json`.
 
 ### Campos de aprendizagem
 
@@ -168,6 +178,10 @@ O dashboard mostra:
 
 O gerador é o único escritor dos arquivos de estado. Codex, Claude e Hermes alteram artefatos canônicos e executam o mesmo gerador.
 
+O estado materializado é uma read model determinística. A geração exige `--vault` e `--as-of YYYY-MM-DD`, normaliza caminhos em NFC, ordena todas as linhas e não grava `mtime`, hostname ou corpo integral das notas. O processo escreve em arquivo temporário, valida e publica por rename atômico. Uma falha preserva a versão anterior. Se os bytes não mudarem, os arquivos não são regravados.
+
+`catalog.jsonl` começa com um manifesto e depois contém registros versionados de arquivos, tarefas e estado de aprendizagem. O gerador aceita temporariamente `materia` e `materias` durante a migração, mas sempre emite a forma canônica `materias`.
+
 ## Fluxo Plaud com `/fgv`
 
 O fluxo diário do Arthur permanece:
@@ -180,10 +194,10 @@ O adaptador executa:
 
 1. Detectar matéria, data, professor e tema.
 2. Confirmar somente quando matéria ou data forem ambíguas.
-3. Sincronizar o Git de forma segura antes de escrever.
+3. Verificar o estado de sincronização sem assumir ownership do Git.
 4. Criar ou localizar a pasta da aula.
-5. Mover o arquivo original para `Fontes/`.
-6. Preservar o original, sem apagar.
+5. Copiar o arquivo original para uma área temporária controlada.
+6. Calcular SHA-256, publicar em `Fontes/` por operação atômica e verificar os bytes.
 7. Gerar transcrito limpo com mapa da aula no início.
 8. Gerar resumo com recuperação ativa, aplicações e lacunas.
 9. Criar somente conceitos centrais ou reutilizáveis.
@@ -191,7 +205,11 @@ O adaptador executa:
 11. Atualizar Google Calendar quando o adaptador tiver conector disponível.
 12. Gerar catálogo e dashboard snapshot.
 13. Validar caminhos, metadata e links.
-14. Sincronizar o commit conforme a política Git aprovada.
+14. Registrar `sync_pending` para o único owner de Git do host.
+
+O original baixado só pode ser removido da pasta de Downloads depois que a cópia canônica estiver publicada, tiver o mesmo hash e estiver visível ao owner de Git. O fluxo padrão preserva as duas cópias até essa verificação.
+
+Cada ingestão usa `transaction_id = sha256(raw) + contract_version + subject_id + class_date`. Reexecutar a mesma transação é um no-op verificável, nunca uma sobrescrita silenciosa. A data é resolvida por evidência do arquivo, agenda e contexto da aula. O relógio atual é somente fallback e exige confirmação quando houver ambiguidade.
 
 ## Recuperação ativa
 
@@ -234,7 +252,7 @@ Hermes não reescreve silenciosamente um resumo final. Quando encontra lacuna, r
 
 ## Skills compartilhadas
 
-O contrato comum fica versionado em `30 Sistema/Skills/fgv-core/`. Ele contém workflow, schema, naming, templates e validações.
+O contrato comum fica versionado em `.fgv/`. Ele contém workflow, schema, naming, configuração, scripts e validações.
 
 Os adaptadores permanecem pequenos:
 
@@ -242,7 +260,9 @@ Os adaptadores permanecem pequenos:
 - Claude: `~/.claude/skills/fgv/SKILL.md`.
 - Hermes: skills e memória no VPS.
 
-Codex e Claude carregam o mesmo core. Diferenças são limitadas a ferramentas de arquivos, Calendar, Git e confirmação. Um instalador local cria backups das skills atuais antes de ativar os adaptadores novos.
+Codex e Claude carregam o mesmo core. Diferenças são limitadas a ferramentas de arquivos, Calendar e confirmação. Um instalador local cria backups das skills atuais antes de ativar os adaptadores novos. O instalador é entregue em modo dry-run e não altera as instalações vivas antes do cutover.
+
+Ações de Calendar são registradas como intents idempotentes. Cancelamento, mudança de data ou mudança de horário sempre exigem confirmação explícita. Ausência de conector não invalida o processamento acadêmico.
 
 ## Integração Hermes
 
@@ -263,12 +283,14 @@ A branch não entra em `main` até o Hermes executar o pacote de testes contra `
 ## Política Git
 
 - `origin/main` continua como fonte compartilhada após o cutover.
-- Toda escrita começa com verificação de working tree e sincronização.
+- Existe exatamente um owner de Git por host.
+- No Mac, Obsidian Git controla pull, commit e push. Codex e Claude escrevem de forma atômica e registram `sync_pending`.
+- No VPS, um wrapper `fgv-sync` com lock local controla pull, commit e push. Eclass, WhatsApp e cronjobs usam esse wrapper.
+- Toda escrita começa com verificação de working tree e do commit local.
 - Escritas executam o gerador antes do commit.
 - Commits incluem somente arquivos pertencentes ao workflow corrente e arquivos gerados.
-- Em caso de concorrência, o escritor tenta uma atualização segura uma vez.
 - Conflito interrompe a automação e gera relatório, nunca force push.
-- Obsidian Git continua como backup de edições manuais.
+- Quando Hermes não consegue sincronizar, responde com `as_of_commit` e marca o estado como stale.
 - O histórico pesado permanece inalterado nesta fase.
 - Limpeza do histórico exige projeto separado e aprovação explícita após o cutover.
 
@@ -279,14 +301,14 @@ A migração ocorre por script determinístico e idempotente:
 1. Gerar inventário e mapa antigo para novo.
 2. Executar dry-run sem escrever.
 3. Verificar colisões e links ambíguos.
-4. Mover meta-organização para `00 Home`, `20 Conhecimento`, `30 Sistema` e `90 Arquivo`.
-5. Mover matérias ativas para `10 Matérias`.
-6. Renomear resumos e transcritos usando tema extraído de YAML ou conteúdo.
-7. Padronizar metadata.
-8. Reescrever wikilinks e caminhos explícitos.
-9. Gerar dashboards de matéria e global.
-10. Gerar catálogo e snapshot.
-11. Validar contagens, hashes, links e Git diff.
+4. Criar um commit exclusivamente estrutural, com moves byte-identical para `00 Home`, `10 Matérias`, `20 Conhecimento`, `30 Sistema` e `90 Arquivo`.
+5. Criar um segundo commit para reescrever wikilinks, caminhos explícitos e configurações do Obsidian.
+6. Criar um terceiro commit para renomear somente resumos e transcritos ativos, usando `tema` preenchido no YAML, e padronizar metadata.
+7. Gerar dashboards de matéria e global.
+8. Gerar catálogo e snapshot.
+9. Validar contagens, hashes, links e Git diff.
+
+O mapa auditado cobre 1.059 arquivos legados, produz 1.059 destinos únicos e não tem colisões nem itens sem regra. Os 42 nomes genéricos ativos possuem `tema` preenchido e podem ser renomeados de forma determinística. Nomes genéricos do arquivo histórico não mudam nesta fase.
 
 Arquivos sem classificação segura vão para `00 Home/Inbox/Legado/`. Nenhum arquivo é excluído.
 
