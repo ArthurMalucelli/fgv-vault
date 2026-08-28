@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import patch
 
 import plan_migration
+import fgv_migration.baseline as migration_baseline
 import fgv_migration.rules as migration_rules
 from fgv_migration.inventory import (
     InventoryEntry,
@@ -860,7 +861,19 @@ class RealManifestContractTests(unittest.TestCase):
         payload = REAL_BASELINE.read_bytes()
         self.assertNotIn(b"\r", payload)
         self.assertTrue(payload.endswith(b"\n"))
-        return json.loads(payload)
+        baseline = json.loads(payload)
+        migration_baseline.validate_baseline(baseline)
+        return baseline
+
+    def test_load_baseline_uses_the_closed_schema_validator(self) -> None:
+        with patch.object(
+            migration_baseline,
+            "validate_baseline",
+            wraps=migration_baseline.validate_baseline,
+        ) as validator:
+            baseline = self.load_baseline()
+
+        validator.assert_called_once_with(baseline)
 
     def test_real_manifest_contract_uses_only_the_pinned_base_commit(self) -> None:
         real_run = subprocess.run
