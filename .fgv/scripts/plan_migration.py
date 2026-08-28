@@ -32,7 +32,9 @@ def parse_args(arguments: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(arguments)
 
 
-def _resolve_output_path(vault: Path, lexical_vault: Path, value: str) -> Path:
+def _resolve_output_path(
+    vault: Path, lexical_vault: Path, value: str, *, require_parent: bool
+) -> Path:
     raw_output = Path(value)
     if "\x00" in value or "\\" in value or ".." in raw_output.parts:
         raise InventoryError(f"unsafe output path: {value!r}")
@@ -50,36 +52,43 @@ def _resolve_output_path(vault: Path, lexical_vault: Path, value: str) -> Path:
     output = vault / relative_output
 
     current = vault
+    existing_ancestor = vault
+    parent_missing = False
     for part in relative_output.parts[:-1]:
         current = current / part
         try:
             metadata = os.lstat(current)
         except FileNotFoundError as error:
-            raise InventoryError(
-                f"output parent is not a directory: {output.parent}"
-            ) from error
+            if require_parent:
+                raise InventoryError(
+                    f"output parent is not a directory: {output.parent}"
+                ) from error
+            parent_missing = True
+            break
         if stat.S_ISLNK(metadata.st_mode):
             raise InventoryError(f"output ancestor is a symlink: {current}")
         if not stat.S_ISDIR(metadata.st_mode):
             raise InventoryError(
                 f"output parent is not a directory: {output.parent}"
             )
+        existing_ancestor = current
 
-    resolved_parent = output.parent.resolve(strict=True)
+    resolved_ancestor = existing_ancestor.resolve(strict=True)
     try:
-        resolved_parent.relative_to(vault)
+        resolved_ancestor.relative_to(vault)
     except ValueError as error:
         raise InventoryError(f"resolved output must be inside vault: {value!r}") from error
 
-    try:
-        leaf_metadata = os.lstat(output)
-    except FileNotFoundError:
-        pass
-    else:
-        if stat.S_ISLNK(leaf_metadata.st_mode):
-            raise InventoryError(f"output leaf is a symlink: {output}")
-        if not stat.S_ISREG(leaf_metadata.st_mode):
-            raise InventoryError(f"output is not a regular file: {output}")
+    if not parent_missing:
+        try:
+            leaf_metadata = os.lstat(output)
+        except FileNotFoundError:
+            pass
+        else:
+            if stat.S_ISLNK(leaf_metadata.st_mode):
+                raise InventoryError(f"output leaf is a symlink: {output}")
+            if not stat.S_ISREG(leaf_metadata.st_mode):
+                raise InventoryError(f"output is not a regular file: {output}")
     return output
 
 
@@ -116,7 +125,12 @@ def main(arguments: list[str] | None = None) -> int:
         vault = lexical_vault.resolve(strict=True)
         if not vault.is_dir():
             raise InventoryError(f"vault is not a directory: {vault}")
-        output = _resolve_output_path(vault, lexical_vault, args.output)
+        output = _resolve_output_path(
+            vault,
+            lexical_vault,
+            args.output,
+            require_parent=not args.check_only,
+        )
         output_paths = (output.relative_to(vault).as_posix(),)
         inventory = inventory_from_git(
             vault, args.base_ref, output_paths=output_paths

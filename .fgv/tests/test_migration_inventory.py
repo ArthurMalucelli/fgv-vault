@@ -413,6 +413,50 @@ class PlannerCliTests(unittest.TestCase):
             self.assertIn("legacy_files=1", result.stdout)
             self.assertIn("files_written=0", result.stdout)
 
+    def test_check_only_allows_missing_canonical_output_parents(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            repository = Path(temporary_directory)
+            self.make_git_fixture(repository)
+            output = repository / "30 Sistema/Estado/migration-manifest.json"
+
+            result = self.run_cli(
+                "--vault",
+                str(repository),
+                "--base-ref",
+                "HEAD",
+                "--output",
+                "30 Sistema/Estado/migration-manifest.json",
+                "--check-only",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("legacy_files=1", result.stdout)
+            self.assertIn("files_written=0", result.stdout)
+            self.assertFalse(output.exists())
+            self.assertFalse(output.parent.exists())
+            self.assertFalse(output.parent.parent.exists())
+
+    def test_normal_mode_rejects_missing_canonical_output_parent(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            repository = Path(temporary_directory)
+            self.make_git_fixture(repository)
+            output = repository / "30 Sistema/Estado/migration-manifest.json"
+
+            result = self.run_cli(
+                "--vault",
+                str(repository),
+                "--base-ref",
+                "HEAD",
+                "--output",
+                "30 Sistema/Estado/migration-manifest.json",
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("output parent", result.stderr)
+            self.assertFalse(output.exists())
+            self.assertFalse(output.parent.exists())
+            self.assertFalse(output.parent.parent.exists())
+
     def test_requested_output_is_excluded_from_base_tree_and_untouched_in_check(self) -> None:
         with TemporaryDirectory() as temporary_directory:
             repository = Path(temporary_directory)
