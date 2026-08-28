@@ -102,6 +102,12 @@ class FilesystemInventoryTests(unittest.TestCase):
                 with self.assertRaisesRegex(InventoryError, "unsafe relative path"):
                     normalize_relative_path(unsafe)
 
+    def test_rejects_dot_and_paths_without_components(self) -> None:
+        for unsafe in (".", "./"):
+            with self.subTest(path=unsafe):
+                with self.assertRaisesRegex(InventoryError, "unsafe relative path"):
+                    normalize_relative_path(unsafe)
+
     def test_rejects_symlinks_before_returning_inventory(self) -> None:
         with TemporaryDirectory() as temporary_directory:
             vault = Path(temporary_directory)

@@ -23,6 +23,7 @@ MANIFEST_FIELDS = (
     "phase",
     "reason",
 )
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts/apply_migration.py"
 
 
 class MigrationApplyTests(unittest.TestCase):
@@ -547,6 +548,35 @@ class MigrationApplyTests(unittest.TestCase):
         result, _, stderr = self._run()
         self.assertEqual(result, 1)
         self.assertIn("symlink", stderr)
+
+    def test_dot_manifest_path_is_a_controlled_cli_error(self) -> None:
+        environment = dict(os.environ)
+        environment["PYTHONPATH"] = str(SCRIPT.parent)
+        environment["PYTHONDONTWRITEBYTECODE"] = "1"
+
+        result = subprocess.run(
+            (
+                sys.executable,
+                str(SCRIPT),
+                "--vault",
+                str(self.vault),
+                "--manifest",
+                ".",
+                "--phase",
+                "structural",
+                "--expected-head",
+                self.head,
+            ),
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=environment,
+        )
+
+        stderr = result.stderr.decode("utf-8", errors="replace")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("unsafe manifest path", stderr)
+        self.assertNotIn("Traceback", stderr)
 
     def test_manifest_ancestor_symlink_is_rejected(self) -> None:
         real_state = self.vault / "real-state"

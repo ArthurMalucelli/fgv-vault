@@ -43,7 +43,12 @@ def normalize_relative_path(value: str) -> str:
         raise InventoryError(f"unsafe relative path: {value!r}")
     normalized = unicodedata.normalize("NFC", value)
     path = PurePosixPath(normalized)
-    if not normalized or path.is_absolute() or ".." in path.parts:
+    if (
+        not normalized
+        or not path.parts
+        or path.is_absolute()
+        or ".." in path.parts
+    ):
         raise InventoryError(f"unsafe relative path: {value!r}")
     return path.as_posix()
 
