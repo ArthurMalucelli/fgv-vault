@@ -216,8 +216,61 @@ def _manifest_bytes(root_fd: int, relative_manifest: str) -> bytes:
         os.close(parent_fd)
 
 
-def _load_manifest(root_fd: int, relative_manifest: str, phase: str) -> tuple[Move, ...]:
+def _expected_manifest_bytes(
+    vault: Path, expected_head: str, relative_manifest: str
+) -> bytes:
+    listing = _run_git(
+        vault,
+        (
+            "ls-tree",
+            "-z",
+            "--full-tree",
+            expected_head,
+            "--",
+            relative_manifest,
+        ),
+    )
+    if listing.returncode != 0:
+        detail = listing.stderr.decode("utf-8", errors="replace").strip()
+        raise MigrationApplyError(f"cannot read manifest from expected-head: {detail}")
+    records = [record for record in listing.stdout.split(b"\x00") if record]
+    if len(records) != 1:
+        raise MigrationApplyError(
+            "manifest must be exactly one regular blob in expected-head"
+        )
+    try:
+        metadata, raw_path = records[0].split(b"\t", 1)
+        mode, object_type, raw_oid = metadata.split(b" ", 2)
+        listed_path = raw_path.decode("utf-8", errors="strict")
+        object_id = raw_oid.decode("ascii", errors="strict")
+    except (UnicodeDecodeError, ValueError) as error:
+        raise MigrationApplyError(
+            "manifest has an invalid expected-head tree record"
+        ) from error
+    if (
+        listed_path != relative_manifest
+        or mode not in {b"100644", b"100755"}
+        or object_type != b"blob"
+        or OID_PATTERN.fullmatch(object_id) is None
+    ):
+        raise MigrationApplyError("manifest is not a regular blob in expected-head")
+    blob = _run_git(vault, ("cat-file", "blob", object_id))
+    if blob.returncode != 0:
+        detail = blob.stderr.decode("utf-8", errors="replace").strip()
+        raise MigrationApplyError(f"cannot read expected manifest blob: {detail}")
+    return blob.stdout
+
+
+def _load_manifest(
+    vault: Path,
+    root_fd: int,
+    relative_manifest: str,
+    phase: str,
+    expected_head: str,
+) -> tuple[Move, ...]:
     payload = _manifest_bytes(root_fd, relative_manifest)
+    if payload != _expected_manifest_bytes(vault, expected_head, relative_manifest):
+        raise MigrationApplyError("manifest does not match expected-head blob")
     try:
         records = json.loads(payload.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -650,7 +703,13 @@ def main(arguments: list[str] | None = None) -> int:
         relative_manifest = _relative_manifest_path(vault, args.manifest)
         _validate_head(vault, args.expected_head)
         root_fd = os.open(vault, DIRECTORY_OPEN_FLAGS)
-        moves = _load_manifest(root_fd, relative_manifest, args.phase)
+        moves = _load_manifest(
+            vault,
+            root_fd,
+            relative_manifest,
+            args.phase,
+            args.expected_head,
+        )
         preflight = _preflight(root_fd, moves)
         if args.dry_run:
             print(f"planned_moves={len(preflight.moves)}")

@@ -66,6 +66,11 @@ class MigrationApplyTests(unittest.TestCase):
             stderr=subprocess.PIPE,
         )
 
+    def _commit_fixture(self, message: str = "fixture update") -> None:
+        self._git("add", ".")
+        self._git("commit", "-qm", message)
+        self.head = self._git("rev-parse", "HEAD").stdout.decode().strip()
+
     def _records(self) -> list[dict[str, object]]:
         records = []
         for source in sorted(self.payloads):
@@ -150,6 +155,18 @@ class MigrationApplyTests(unittest.TestCase):
             stdout,
             "planned_moves=3\npreflight=ok\nfiles_written=0\n",
         )
+        self.assertEqual(self._snapshot(), before)
+
+    def test_valid_uncommitted_manifest_is_rejected_before_any_change(self) -> None:
+        altered = [dict(record) for record in self.records]
+        altered[0]["destination"] = "redirected/uncommitted.txt"
+        self._write_manifest(altered)
+        before = self._snapshot()
+
+        result, _, stderr = self._run()
+
+        self.assertEqual(result, 1)
+        self.assertIn("manifest does not match expected-head blob", stderr)
         self.assertEqual(self._snapshot(), before)
 
     def test_divergent_head_and_invalid_expected_oid_block(self) -> None:
@@ -419,11 +436,13 @@ class MigrationApplyTests(unittest.TestCase):
         invalid = [dict(record) for record in self.records]
         invalid[0]["extra"] = True
         self._write_manifest(invalid)
+        self._commit_fixture("invalid manifest schema")
         result, _, stderr = self._run()
         self.assertEqual(result, 1)
         self.assertIn("invalid schema", stderr)
 
         self._write_manifest(self.records)
+        self._commit_fixture("restore manifest schema")
         arguments = self._args()
         arguments[arguments.index("structural")] = "rewrite"
         with patch("sys.stderr", io.StringIO()) as error:
