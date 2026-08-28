@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import PurePosixPath
+import re
 import unicodedata
 from typing import Mapping, Sequence
 
@@ -18,6 +19,22 @@ ACTIVE_SUBJECTS = (
     "TecnologiaDadosNegocios",
 )
 
+MANIFEST_FIELDS = (
+    "schema_version",
+    "source",
+    "destination",
+    "sha256",
+    "size_bytes",
+    "category",
+    "phase",
+    "reason",
+)
+MANIFEST_CATEGORIES = frozenset(
+    {"home", "subject", "knowledge", "system", "archive"}
+)
+MAX_SIZE_BYTES = 2**64 - 1
+SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
+
 
 class RuleError(ValueError):
     """A migration rule cannot produce a safe manifest."""
@@ -29,6 +46,93 @@ class UnclassifiedError(RuleError):
 
 class CollisionError(RuleError):
     """Two source paths resolve to the same destination."""
+
+
+def _validated_manifest_path(field: str, value: object) -> str:
+    if type(value) is not str:
+        raise RuleError(f"manifest {field} must be a string")
+    normalized = normalize_relative_path(value)
+    if normalized != value:
+        raise RuleError(f"manifest {field} must be NFC canonical: {value!r}")
+    return value
+
+
+def _unique_path(
+    seen: dict[str, str], key: str, source: str, collision: str
+) -> None:
+    previous = seen.get(key)
+    if previous is not None:
+        raise CollisionError(
+            f"{collision}: {previous!r} and {source!r} -> {key!r}"
+        )
+    seen[key] = source
+
+
+def validate_manifest(records: object) -> None:
+    """Validate the closed manifest schema and cross-record uniqueness gates."""
+    if type(records) not in {list, tuple}:
+        raise RuleError("manifest must be a JSON array")
+
+    sources: dict[str, str] = {}
+    exact_destinations: dict[str, str] = {}
+    casefold_destinations: dict[str, str] = {}
+    nfd_casefold_destinations: dict[str, str] = {}
+    for index, record in enumerate(records):
+        if type(record) is not dict:
+            raise RuleError(f"manifest record {index} must be an object")
+        if tuple(record) != MANIFEST_FIELDS:
+            raise RuleError(f"manifest record {index} has invalid schema")
+
+        schema_version = record["schema_version"]
+        if type(schema_version) is not int or schema_version != 1:
+            raise RuleError(f"manifest record {index} has invalid schema_version")
+        source = _validated_manifest_path("source", record["source"])
+        destination = _validated_manifest_path(
+            "destination", record["destination"]
+        )
+
+        sha256 = record["sha256"]
+        if type(sha256) is not str or SHA256_PATTERN.fullmatch(sha256) is None:
+            raise RuleError(f"manifest record {index} has invalid sha256")
+        size_bytes = record["size_bytes"]
+        if (
+            type(size_bytes) is not int
+            or size_bytes < 0
+            or size_bytes > MAX_SIZE_BYTES
+        ):
+            raise RuleError(f"manifest record {index} has invalid size_bytes")
+        category = record["category"]
+        if type(category) is not str or category not in MANIFEST_CATEGORIES:
+            raise RuleError(f"manifest record {index} has invalid category")
+        phase = record["phase"]
+        if type(phase) is not str or phase != "structural":
+            raise RuleError(f"manifest record {index} has invalid phase")
+        reason = record["reason"]
+        if type(reason) is not str or not reason or any(
+            unicodedata.category(character) in {"Cc", "Cf"}
+            for character in reason
+        ):
+            raise RuleError(f"manifest record {index} has invalid reason")
+
+        _unique_path(sources, source, source, "duplicate source")
+        _unique_path(
+            exact_destinations,
+            destination,
+            source,
+            "exact destination collision",
+        )
+        _unique_path(
+            casefold_destinations,
+            destination.casefold(),
+            source,
+            "destination collision after casefold",
+        )
+        _unique_path(
+            nfd_casefold_destinations,
+            unicodedata.normalize("NFD", destination).casefold(),
+            source,
+            "destination collision after NFD-casefold",
+        )
 
 
 @dataclass(frozen=True)
@@ -214,4 +318,5 @@ def build_manifest(
     if unclassified:
         joined = ", ".join(repr(path) for path in unclassified)
         raise UnclassifiedError(f"unclassified source paths: {joined}")
+    validate_manifest(records)
     return tuple(records)

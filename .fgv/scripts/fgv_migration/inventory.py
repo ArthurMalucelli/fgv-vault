@@ -37,7 +37,9 @@ class InventoryEntry:
 
 
 def normalize_relative_path(value: str) -> str:
-    if "\x00" in value or "\\" in value:
+    if "\\" in value or any(
+        unicodedata.category(character) in {"Cc", "Cf"} for character in value
+    ):
         raise InventoryError(f"unsafe relative path: {value!r}")
     normalized = unicodedata.normalize("NFC", value)
     path = PurePosixPath(normalized)

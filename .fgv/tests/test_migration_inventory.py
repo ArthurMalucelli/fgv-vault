@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import patch
 
 import plan_migration
+import fgv_migration.rules as migration_rules
 from fgv_migration.inventory import (
     InventoryEntry,
     InventoryError,
@@ -90,7 +91,12 @@ class FilesystemInventoryTests(unittest.TestCase):
             self.assertNotIn("\\", result.path)
 
     def test_rejects_nul_and_backslash_in_relative_paths(self) -> None:
-        for unsafe in ("folder\\note.md", "folder/nu\x00l.md"):
+        for unsafe in (
+            "folder\\note.md",
+            "folder/nu\x00l.md",
+            "folder/control\x1f.md",
+            "folder/override\u202e.md",
+        ):
             with self.subTest(path=unsafe):
                 with self.assertRaisesRegex(InventoryError, "unsafe relative path"):
                     normalize_relative_path(unsafe)
@@ -290,6 +296,56 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(manifest[0]["schema_version"], 1)
         self.assertEqual(manifest[0]["sha256"], hashlib.sha256(b"a").hexdigest())
         self.assertEqual(manifest[0]["size_bytes"], 1)
+
+    def test_manifest_validator_rejects_invalid_schema_types_and_ranges(self) -> None:
+        validator = getattr(migration_rules, "validate_manifest", None)
+        self.assertIsNotNone(validator, "manifest validator is missing")
+        valid = dict(build_manifest((entry("Tasks.md"),))[0])
+        invalid_records = {
+            "top-level type": "not-a-record-array",
+            "record type": ("not-a-record",),
+            "missing field": ({key: value for key, value in valid.items() if key != "reason"},),
+            "extra field": ({**valid, "extra": True},),
+            "schema version type": ({**valid, "schema_version": True},),
+            "schema version range": ({**valid, "schema_version": 2},),
+            "source type": ({**valid, "source": 1},),
+            "destination type": ({**valid, "destination": None},),
+            "sha type": ({**valid, "sha256": b"0" * 64},),
+            "sha format": ({**valid, "sha256": "A" * 64},),
+            "size type": ({**valid, "size_bytes": True},),
+            "size negative": ({**valid, "size_bytes": -1},),
+            "size overflow": ({**valid, "size_bytes": 2**64},),
+            "category type": ({**valid, "category": ["home"]},),
+            "category": ({**valid, "category": "other"},),
+            "phase type": ({**valid, "phase": None},),
+            "phase": ({**valid, "phase": "rewrite"},),
+            "reason type": ({**valid, "reason": 1},),
+            "reason empty": ({**valid, "reason": ""},),
+            "reason control": ({**valid, "reason": "bad\x1f"},),
+            "source not NFC": ({**valid, "source": "Cafe\u0301.md"},),
+            "destination traversal": ({**valid, "destination": "00 Home/../x.md"},),
+            "source control": ({**valid, "source": "control\x1f.md"},),
+            "destination format control": (
+                {**valid, "destination": "00 Home/override\u202e.md"},
+            ),
+        }
+
+        for label, records in invalid_records.items():
+            with self.subTest(case=label):
+                with self.assertRaises((InventoryError, RuleError), msg=label):
+                    validator(records)
+
+    def test_destination_collisions_after_casefold_are_rejected(self) -> None:
+        allowlist = {
+            "Loose A.md": "00 Home/Inbox/Legado/Folder/Note.md",
+            "Loose B.md": "00 Home/Inbox/Legado/folder/note.md",
+        }
+
+        with self.assertRaisesRegex(CollisionError, "casefold"):
+            build_manifest(
+                (entry("Loose A.md"), entry("Loose B.md")),
+                inbox_allowlist=allowlist,
+            )
 
 
 class GitInventoryTests(unittest.TestCase):
@@ -795,7 +851,9 @@ class RealManifestContractTests(unittest.TestCase):
         self.assertFalse(payload.startswith(b"\xef\xbb\xbf"))
         self.assertNotIn(b"\r", payload)
         self.assertTrue(payload.endswith(b"\n"))
-        return payload, json.loads(payload)
+        manifest = json.loads(payload)
+        migration_rules.validate_manifest(manifest)
+        return payload, manifest
 
     def load_baseline(self) -> dict[str, object]:
         self.assertTrue(REAL_BASELINE.is_file(), f"missing baseline: {REAL_BASELINE}")
