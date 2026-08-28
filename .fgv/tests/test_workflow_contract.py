@@ -1,6 +1,7 @@
 import importlib
 import json
 from pathlib import Path, PurePosixPath
+from tempfile import TemporaryDirectory
 import unicodedata
 import unittest
 
@@ -18,10 +19,58 @@ EXPECTED_SUBJECT_PATHS = {
     "tecnologia-dados-negocios": "10 Matérias/TecnologiaDadosNegocios",
 }
 
+CACHE_COMPONENTS = {
+    ".cache",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "__pycache__",
+}
+CORE_FILE_NAMES = {"core.md", "fgv-core.md"}
+CANONICAL_CORE_MARKERS = (
+    "# Contrato canônico" + " do workflow FGV v1",
+    "único contrato de máquina " + "editável do workflow FGV",
+)
+
 
 def accent_insensitive(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", value.strip().casefold())
     return "".join(character for character in decomposed if not unicodedata.combining(character))
+
+
+def find_editable_core_copies(root: Path) -> tuple[Path, ...]:
+    canonical = Path(".fgv/CORE.md")
+    copies: list[Path] = []
+
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+
+        relative = path.relative_to(root)
+        folded_parts = tuple(part.casefold() for part in relative.parts)
+        if relative == canonical or any(
+            part in CACHE_COMPONENTS for part in folded_parts
+        ):
+            continue
+
+        under_fgv_core = "fgv-core" in folded_parts[:-1]
+        named_as_core = folded_parts[-1] in CORE_FILE_NAMES
+        contains_marker = False
+        if path.suffix.casefold() == ".md" and not path.is_symlink():
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                text = ""
+            folded_text = text.casefold()
+            contains_marker = any(
+                marker.casefold() in folded_text for marker in CANONICAL_CORE_MARKERS
+            )
+
+        if under_fgv_core or named_as_core or contains_marker:
+            copies.append(relative)
+
+    return tuple(sorted(copies, key=lambda candidate: candidate.as_posix()))
 
 
 class WorkflowContractTests(unittest.TestCase):
@@ -135,6 +184,7 @@ class WorkflowContractTests(unittest.TestCase):
 
         mac = payload["roles"]["mac-agent"]
         self.assertEqual(mac["git_owner"], "obsidian-git")
+        self.assertIs(mac.get("network_access"), False)
         self.assertEqual(set(mac["allowed"]), {"read", "status", "sync_pending"})
         self.assertTrue(
             {"fetch", "pull", "merge", "rebase", "commit", "push"}.issubset(
@@ -159,8 +209,39 @@ class WorkflowContractTests(unittest.TestCase):
             },
         )
 
+    def test_editable_core_detector_finds_only_text_or_structural_copies(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            files = {
+                Path(".fgv/CORE.md"): CANONICAL_CORE_MARKERS[0],
+                Path("copy/CORE.md"): "duplicate by canonical name",
+                Path("copy/fgv-core.md"): "duplicate by alternate name",
+                Path("skills/fgv-core/SKILL.md"): "duplicate by path component",
+                Path("notes/mirror.md"): CANONICAL_CORE_MARKERS[1],
+                Path("notes/title-mirror.md"): CANONICAL_CORE_MARKERS[0],
+                Path(".git/CORE.md"): CANONICAL_CORE_MARKERS[0],
+                Path(".cache/CORE.md"): CANONICAL_CORE_MARKERS[0],
+                Path("__pycache__/fgv-core.md"): CANONICAL_CORE_MARKERS[0],
+            }
+            for relative, content in files.items():
+                destination = root / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(content, encoding="utf-8")
+            (root / "binary.bin").write_bytes(CANONICAL_CORE_MARKERS[0].encode())
+
+            self.assertEqual(
+                find_editable_core_copies(root),
+                (
+                    Path("copy/CORE.md"),
+                    Path("copy/fgv-core.md"),
+                    Path("notes/mirror.md"),
+                    Path("notes/title-mirror.md"),
+                    Path("skills/fgv-core/SKILL.md"),
+                ),
+            )
+
     def test_no_second_editable_core_exists(self) -> None:
-        self.assertFalse((ROOT / "30 Sistema" / "Skills" / "fgv-core").exists())
+        self.assertEqual(find_editable_core_copies(ROOT), ())
 
 
 if __name__ == "__main__":

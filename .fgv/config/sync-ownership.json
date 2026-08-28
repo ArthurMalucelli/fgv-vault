@@ -3,6 +3,7 @@
   "roles": {
     "mac-agent": {
       "git_owner": "obsidian-git",
+      "network_access": false,
       "allowed": [
         "read",
         "status",
