@@ -4,24 +4,45 @@
 from __future__ import annotations
 
 import argparse
+import base64
 from dataclasses import dataclass
+import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import secrets
 import stat
 import sys
-import tempfile
 import unicodedata
 from typing import Mapping, Sequence
 
-from fgv_migration.inventory import normalize_relative_path
+from fgv_migration.inventory import InventoryError, normalize_relative_path
 from fgv_migration.links import LinkAudit, audit_note_contents
 from fgv_migration.rules import RuleError, validate_manifest
 
 
 EXPECTED_MARKDOWN_OCCURRENCES = 59
 EXPECTED_CONFIG_OCCURRENCES = 5
+DIRECTORY_OPEN_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+FILE_OPEN_FLAGS = os.O_RDONLY | os.O_NOFOLLOW
+TEMPORARY_OPEN_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+JOURNAL_NAME = "path-rewrite-journal.json"
+JOURNAL_RELATIVE = f".fgv/{JOURNAL_NAME}"
+JOURNAL_FIELDS = (
+    "schema_version",
+    "manifest_sha256",
+    "completed_writes",
+    "operations",
+)
+JOURNAL_OPERATION_FIELDS = (
+    "path",
+    "original_sha256",
+    "output_sha256",
+    "mode",
+    "original_base64",
+)
 
 MARKDOWN_ALLOWLIST = (
     "00 Home/Home.md",
@@ -88,6 +109,55 @@ class RewriteError(ValueError):
 
 
 @dataclass(frozen=True)
+class ManifestAuth:
+    relative_path: str
+    sha256: str
+    record_count: int
+
+    def __post_init__(self) -> None:
+        try:
+            normalized = normalize_relative_path(self.relative_path)
+        except InventoryError as error:
+            raise RewriteError("manifest auth path is invalid") from error
+        if normalized != self.relative_path:
+            raise RewriteError("manifest auth path must be canonical")
+        if re.fullmatch(r"[0-9a-f]{64}", self.sha256) is None:
+            raise RewriteError("manifest auth sha256 is invalid")
+        if type(self.record_count) is not int or self.record_count <= 0:
+            raise RewriteError("manifest auth record_count must be positive")
+
+
+DEFAULT_MANIFEST_AUTH = ManifestAuth(
+    relative_path="30 Sistema/Estado/migration-manifest.json",
+    sha256="3910988998703f6a9cc01dcd4b40173241c602204ce4a4c6bc83a1a67fd29c96",
+    record_count=1059,
+)
+
+
+@dataclass(frozen=True)
+class LinkContract:
+    expected_total: int | None
+    max_unresolved: int
+    max_ambiguous: int
+
+    def __post_init__(self) -> None:
+        values = (self.max_unresolved, self.max_ambiguous)
+        if any(type(value) is not int or value < 0 for value in values):
+            raise RewriteError("link limits must be non-negative integers")
+        if self.expected_total is not None and (
+            type(self.expected_total) is not int or self.expected_total < 0
+        ):
+            raise RewriteError("expected link total must be non-negative")
+
+
+DEFAULT_LINK_CONTRACT = LinkContract(
+    expected_total=5402,
+    max_unresolved=408,
+    max_ambiguous=3,
+)
+
+
+@dataclass(frozen=True)
 class LiteralRewrite:
     source: str
     destination: str
@@ -110,6 +180,23 @@ class RewriteReport:
     occurrences: int
     files_changed: int
     links: LinkAudit | None = None
+
+
+@dataclass
+class OpenOperation:
+    relative: str
+    parent_fd: int
+    parent_device: int
+    parent_inode: int
+    name: str
+    original: bytes
+    output: bytes
+    mode: int
+
+    def close(self) -> None:
+        if self.parent_fd >= 0:
+            os.close(self.parent_fd)
+            self.parent_fd = -1
 
 
 MARKDOWN_SPECS: Mapping[str, tuple[LiteralRewrite, ...]] = {
@@ -196,7 +283,19 @@ MARKDOWN_SPECS: Mapping[str, tuple[LiteralRewrite, ...]] = {
     ),
 }
 
-URL_PATTERN = re.compile(r"(?:https?|mailto):[^\s<>\])}]+", re.IGNORECASE)
+URL_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9+.-])[A-Za-z][A-Za-z0-9+.-]*:[^\s<>\])}]+",
+    re.IGNORECASE,
+)
+OLD_ACTIVE_PATTERN = re.compile(
+    r"~/FGV/Vault/"
+    r"|Vault/(?:Conceitos|Templates|Specs|Tutor|automation)"
+    r"|~/FGV/Estatistica2/Aulas"
+    r"|(?<!10 Matérias/)ContabilidadeFinanceira/Aulas"
+    r"|(?<!10 Matérias/)TecnologiaDadosNegocios/Aulas"
+    r"|^└── Vault/$",
+    re.MULTILINE,
+)
 
 
 def _ordered_rules(rules: Sequence[LiteralRewrite], *, inverse: bool = False):
@@ -323,7 +422,11 @@ def _classify_markdown_state(
 
 
 def _safe_relative_path(vault: Path, relative: str) -> Path:
-    if type(relative) is not str or normalize_relative_path(relative) != relative:
+    try:
+        normalized = normalize_relative_path(relative)
+    except (InventoryError, TypeError) as error:
+        raise RewriteError(f"allowlisted path must be relative NFC: {relative!r}") from error
+    if type(relative) is not str or normalized != relative:
         raise RewriteError(f"allowlisted path must be relative NFC: {relative!r}")
     pure = PurePosixPath(relative)
     if pure.is_absolute() or ".." in pure.parts:
@@ -339,19 +442,137 @@ def _safe_relative_path(vault: Path, relative: str) -> Path:
     return path
 
 
-def _load_manifest(vault: Path, manifest_path: Path) -> list[dict[str, object]]:
-    path = manifest_path if manifest_path.is_absolute() else vault / manifest_path
+def _validated_relative(relative: str, label: str) -> str:
     try:
-        path.resolve(strict=True).relative_to(vault.resolve(strict=True))
-    except (FileNotFoundError, ValueError) as error:
-        raise RewriteError("manifest must be an existing file inside the vault") from error
-    if path.is_symlink() or not path.is_file():
-        raise RewriteError("manifest must be a regular non-symlink file")
+        normalized = normalize_relative_path(relative)
+    except (InventoryError, TypeError) as error:
+        raise RewriteError(f"{label} must be a canonical relative path") from error
+    if normalized != relative:
+        raise RewriteError(f"{label} must be a canonical relative path")
+    return relative
+
+
+def _open_existing_directory(parent_fd: int, name: str, label: str) -> int:
     try:
-        manifest = json.loads(path.read_bytes())
+        metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError as error:
+        raise RewriteError(f"{label} is missing") from error
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise RewriteError(f"{label} is not a regular directory")
+    try:
+        return os.open(name, DIRECTORY_OPEN_FLAGS, dir_fd=parent_fd)
+    except OSError as error:
+        raise RewriteError(f"cannot securely open {label}: {error}") from error
+
+
+def _open_parent(root_fd: int, relative: str) -> tuple[int, str]:
+    relative = _validated_relative(relative, "path")
+    parts = PurePosixPath(relative).parts
+    parent_fd = os.dup(root_fd)
+    traversed: list[str] = []
+    try:
+        for name in parts[:-1]:
+            traversed.append(name)
+            next_fd = _open_existing_directory(
+                parent_fd, name, f"ancestor {'/'.join(traversed)}"
+            )
+            os.close(parent_fd)
+            parent_fd = next_fd
+        return parent_fd, parts[-1]
+    except BaseException:
+        os.close(parent_fd)
+        raise
+
+
+def _read_file_at(parent_fd: int, name: str, label: str) -> tuple[bytes, int]:
+    file_fd: int | None = None
+    try:
+        metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+            raise RewriteError(f"{label} is not a regular non-symlink file")
+        file_fd = os.open(name, FILE_OPEN_FLAGS, dir_fd=parent_fd)
+        opened = os.fstat(file_fd)
+        if not stat.S_ISREG(opened.st_mode):
+            raise RewriteError(f"{label} is not a regular file")
+        chunks: list[bytes] = []
+        total = 0
+        while True:
+            chunk = os.read(file_fd, 1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > 64 * 1024 * 1024:
+                raise RewriteError(f"{label} exceeds 64 MiB")
+            chunks.append(chunk)
+        after = os.fstat(file_fd)
+        if (opened.st_dev, opened.st_ino, opened.st_size) != (
+            after.st_dev,
+            after.st_ino,
+            after.st_size,
+        ):
+            raise RewriteError(f"{label} changed while being read")
+        return b"".join(chunks), stat.S_IMODE(opened.st_mode)
+    except OSError as error:
+        raise RewriteError(f"cannot securely read {label}: {error}") from error
+    finally:
+        if file_fd is not None:
+            os.close(file_fd)
+
+
+def _secure_read(root_fd: int, relative: str) -> bytes:
+    parent_fd, name = _open_parent(root_fd, relative)
+    try:
+        return _read_file_at(parent_fd, name, relative)[0]
+    finally:
+        os.close(parent_fd)
+
+
+def _secure_is_file(root_fd: int, relative: str) -> bool:
+    try:
+        parent_fd, name = _open_parent(root_fd, relative)
+    except RewriteError:
+        return False
+    try:
+        metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        return stat.S_ISREG(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode)
+    except FileNotFoundError:
+        return False
+    finally:
+        os.close(parent_fd)
+
+
+def _load_manifest(
+    root_fd: int,
+    manifest_path: Path,
+    auth: ManifestAuth,
+) -> list[dict[str, object]]:
+    raw_path = manifest_path.as_posix()
+    if manifest_path.is_absolute() or raw_path != auth.relative_path:
+        raise RewriteError(
+            f"manifest path must be exactly {auth.relative_path!r}"
+        )
+    payload = _secure_read(root_fd, auth.relative_path)
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != auth.sha256:
+        raise RewriteError(
+            f"manifest sha256 mismatch: {digest} != {auth.sha256}"
+        )
+    try:
+        manifest = json.loads(payload)
         validate_manifest(manifest)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError, RuleError) as error:
+    except (
+        OSError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        InventoryError,
+        RuleError,
+        ValueError,
+    ) as error:
         raise RewriteError(f"invalid migration manifest: {error}") from error
+    if len(manifest) != auth.record_count:
+        raise RewriteError(
+            f"manifest record count mismatch: {len(manifest)} != {auth.record_count}"
+        )
     return manifest
 
 
@@ -434,7 +655,7 @@ def _replace_config_value(
 
 
 def _plan_config(
-    vault: Path, relative: str, value: dict[str, object]
+    daily_template_exists: bool, relative: str, value: dict[str, object]
 ) -> tuple[str, bytes, int]:
     output = json.loads(json.dumps(value, ensure_ascii=False))
     if relative == ".obsidian/app.json":
@@ -485,7 +706,7 @@ def _plan_config(
             raise RewriteError("daily-notes.json autorun must remain false")
         final_template = (
             "30 Sistema/Templates/Daily.md"
-            if (vault / "30 Sistema/Templates/Daily.md").is_file()
+            if daily_template_exists
             else ""
         )
         current = (output.get("folder"), output.get("template"))
@@ -499,67 +720,560 @@ def _plan_config(
     raise RewriteError(f"config file is not allowlisted: {relative!r}")
 
 
-def _atomic_write(path: Path, payload: bytes) -> None:
-    mode = stat.S_IMODE(path.stat(follow_symlinks=False).st_mode)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.rewrite.", dir=path.parent
-    )
-    temporary_path = Path(temporary_name)
+def _open_operation(root_fd: int, relative: str) -> OpenOperation:
+    parent_fd, name = _open_parent(root_fd, relative)
     try:
-        os.fchmod(descriptor, mode)
-        with os.fdopen(descriptor, "wb", closefd=True) as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_path, path)
+        payload, mode = _read_file_at(parent_fd, name, relative)
+        parent = os.fstat(parent_fd)
+        return OpenOperation(
+            relative=relative,
+            parent_fd=parent_fd,
+            parent_device=parent.st_dev,
+            parent_inode=parent.st_ino,
+            name=name,
+            original=payload,
+            output=payload,
+            mode=mode,
+        )
     except BaseException:
-        try:
-            os.close(descriptor)
-        except OSError:
-            pass
-        try:
-            temporary_path.unlink()
-        except FileNotFoundError:
-            pass
+        os.close(parent_fd)
         raise
 
 
-def _apply_batch(outputs: Mapping[Path, bytes], originals: Mapping[Path, bytes]) -> None:
-    changed = [path for path in sorted(outputs, key=lambda item: str(item).encode()) if outputs[path] != originals[path]]
-    applied: list[Path] = []
+def _validate_parent_anchor(root_fd: int, operation: OpenOperation) -> None:
+    current_fd, _ = _open_parent(root_fd, operation.relative)
     try:
-        for path in changed:
-            if path.read_bytes() != originals[path]:
-                raise RewriteError(f"file changed after preflight: {path}")
-            _atomic_write(path, outputs[path])
-            applied.append(path)
-    except BaseException as error:
-        rollback_errors: list[str] = []
-        for path in reversed(applied):
-            try:
-                _atomic_write(path, originals[path])
-            except BaseException as rollback_error:
-                rollback_errors.append(f"{path}: {rollback_error}")
-        if rollback_errors:
+        current = os.fstat(current_fd)
+        if (current.st_dev, current.st_ino) != (
+            operation.parent_device,
+            operation.parent_inode,
+        ):
             raise RewriteError(
-                f"batch write failed ({error}); rollback also failed: "
-                + "; ".join(rollback_errors)
+                f"parent changed after preflight: {operation.relative!r}"
+            )
+    finally:
+        os.close(current_fd)
+
+
+def _temporary_write(parent_fd: int, name: str, payload: bytes, mode: int) -> str:
+    temporary_name = ""
+    descriptor: int | None = None
+    try:
+        for _ in range(100):
+            candidate = f".{name}.rewrite.{secrets.token_hex(8)}.tmp"
+            try:
+                descriptor = os.open(
+                    candidate,
+                    TEMPORARY_OPEN_FLAGS,
+                    mode,
+                    dir_fd=parent_fd,
+                )
+            except FileExistsError:
+                continue
+            temporary_name = candidate
+            break
+        if descriptor is None:
+            raise RewriteError("cannot allocate atomic rewrite temporary file")
+        stream = os.fdopen(descriptor, "wb")
+        descriptor = None
+        with stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        result = temporary_name
+        temporary_name = ""
+        return result
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        if temporary_name:
+            try:
+                os.unlink(temporary_name, dir_fd=parent_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _atomic_write_at(operation: OpenOperation, payload: bytes) -> None:
+    temporary = _temporary_write(
+        operation.parent_fd,
+        operation.name,
+        payload,
+        operation.mode,
+    )
+    try:
+        os.replace(
+            temporary,
+            operation.name,
+            src_dir_fd=operation.parent_fd,
+            dst_dir_fd=operation.parent_fd,
+        )
+        temporary = ""
+        os.fsync(operation.parent_fd)
+    finally:
+        if temporary:
+            try:
+                os.unlink(temporary, dir_fd=operation.parent_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _open_journal_directory(root_fd: int) -> int:
+    directory_fd = _open_existing_directory(root_fd, ".fgv", ".fgv")
+    try:
+        fcntl.flock(directory_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as error:
+        os.close(directory_fd)
+        raise RewriteError(f"another path rewriter holds the .fgv lock: {error}") from error
+    return directory_fd
+
+
+def _operation_record(operation: OpenOperation) -> dict[str, object]:
+    return dict(
+        zip(
+            JOURNAL_OPERATION_FIELDS,
+            (
+                operation.relative,
+                hashlib.sha256(operation.original).hexdigest(),
+                hashlib.sha256(operation.output).hexdigest(),
+                operation.mode,
+                base64.b64encode(operation.original).decode("ascii"),
+            ),
+        )
+    )
+
+
+def _journal_payload(
+    manifest_sha256: str,
+    operations: Sequence[OpenOperation],
+    completed_writes: int,
+) -> bytes:
+    record = dict(
+        zip(
+            JOURNAL_FIELDS,
+            (
+                1,
+                manifest_sha256,
+                completed_writes,
+                [_operation_record(operation) for operation in operations],
+            ),
+        )
+    )
+    return (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
+def _install_journal(
+    journal_fd: int,
+    manifest_sha256: str,
+    operations: Sequence[OpenOperation],
+) -> None:
+    try:
+        os.stat(JOURNAL_NAME, dir_fd=journal_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        pass
+    else:
+        raise RewriteError("CRITICAL path rewrite journal already exists")
+    temporary = _temporary_write(
+        journal_fd,
+        JOURNAL_NAME,
+        _journal_payload(manifest_sha256, operations, 0),
+        0o600,
+    )
+    try:
+        os.link(
+            temporary,
+            JOURNAL_NAME,
+            src_dir_fd=journal_fd,
+            dst_dir_fd=journal_fd,
+            follow_symlinks=False,
+        )
+        os.unlink(temporary, dir_fd=journal_fd)
+        temporary = ""
+        os.fsync(journal_fd)
+    except FileExistsError as error:
+        raise RewriteError("CRITICAL path rewrite journal appeared concurrently") from error
+    finally:
+        if temporary:
+            try:
+                os.unlink(temporary, dir_fd=journal_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _checkpoint_journal(
+    journal_fd: int,
+    manifest_sha256: str,
+    operations: Sequence[OpenOperation],
+    completed_writes: int,
+) -> None:
+    _replace_journal_payload(
+        journal_fd,
+        _journal_payload(manifest_sha256, operations, completed_writes),
+    )
+
+
+def _replace_journal_payload(journal_fd: int, payload: bytes) -> None:
+    metadata = os.stat(JOURNAL_NAME, dir_fd=journal_fd, follow_symlinks=False)
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise RewriteError("CRITICAL path rewrite journal changed")
+    temporary = _temporary_write(
+        journal_fd,
+        JOURNAL_NAME,
+        payload,
+        0o600,
+    )
+    try:
+        os.replace(
+            temporary,
+            JOURNAL_NAME,
+            src_dir_fd=journal_fd,
+            dst_dir_fd=journal_fd,
+        )
+        temporary = ""
+        os.fsync(journal_fd)
+    finally:
+        if temporary:
+            try:
+                os.unlink(temporary, dir_fd=journal_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _checkpoint_recovery_journal(
+    journal_fd: int,
+    record: Mapping[str, object],
+    completed_writes: int,
+) -> None:
+    updated = dict(record)
+    updated["completed_writes"] = completed_writes
+    payload = (json.dumps(updated, ensure_ascii=False, indent=2) + "\n").encode(
+        "utf-8"
+    )
+    _replace_journal_payload(journal_fd, payload)
+
+
+def _delete_journal(journal_fd: int) -> None:
+    metadata = os.stat(JOURNAL_NAME, dir_fd=journal_fd, follow_symlinks=False)
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise RewriteError("CRITICAL path rewrite journal changed before deletion")
+    os.unlink(JOURNAL_NAME, dir_fd=journal_fd)
+    os.fsync(journal_fd)
+
+
+def _read_journal(journal_fd: int) -> dict[str, object] | None:
+    try:
+        payload, _ = _read_file_at(journal_fd, JOURNAL_NAME, "path rewrite journal")
+    except RewriteError as error:
+        if "cannot securely read" in str(error) and "No such file" in str(error):
+            return None
+        try:
+            os.stat(JOURNAL_NAME, dir_fd=journal_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            os.fsync(journal_fd)
+            return None
+        raise
+    try:
+        record = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RewriteError(f"CRITICAL invalid path rewrite journal: {error}") from error
+    if type(record) is not dict or tuple(record) != JOURNAL_FIELDS:
+        raise RewriteError("CRITICAL invalid path rewrite journal schema")
+    if type(record["schema_version"]) is not int or record["schema_version"] != 1:
+        raise RewriteError("CRITICAL invalid path rewrite journal version")
+    if type(record["manifest_sha256"]) is not str:
+        raise RewriteError("CRITICAL invalid path rewrite journal manifest hash")
+    completed = record["completed_writes"]
+    raw_operations = record["operations"]
+    if (
+        type(completed) is not int
+        or completed < 0
+        or type(raw_operations) is not list
+        or completed > len(raw_operations)
+    ):
+        raise RewriteError("CRITICAL invalid path rewrite journal counts")
+    for raw in raw_operations:
+        if type(raw) is not dict or tuple(raw) != JOURNAL_OPERATION_FIELDS:
+            raise RewriteError("CRITICAL invalid path rewrite journal operation")
+        if (
+            type(raw["path"]) is not str
+            or type(raw["original_sha256"]) is not str
+            or type(raw["output_sha256"]) is not str
+            or type(raw["mode"]) is not int
+            or type(raw["original_base64"]) is not str
+        ):
+            raise RewriteError("CRITICAL invalid path rewrite journal operation types")
+        if (
+            re.fullmatch(r"[0-9a-f]{64}", raw["original_sha256"]) is None
+            or re.fullmatch(r"[0-9a-f]{64}", raw["output_sha256"]) is None
+            or raw["mode"] < 0
+            or raw["mode"] > 0o7777
+        ):
+            raise RewriteError("CRITICAL invalid path rewrite journal operation values")
+        _validated_relative(raw["path"], "journal path")
+        try:
+            original = base64.b64decode(raw["original_base64"], validate=True)
+        except (ValueError, TypeError) as error:
+            raise RewriteError("CRITICAL invalid journal original bytes") from error
+        if hashlib.sha256(original).hexdigest() != raw["original_sha256"]:
+            raise RewriteError("CRITICAL journal original hash mismatch")
+    return record
+
+
+def _journal_operation_open(root_fd: int, raw: Mapping[str, object]) -> OpenOperation:
+    operation = _open_operation(root_fd, str(raw["path"]))
+    operation.original = base64.b64decode(str(raw["original_base64"]), validate=True)
+    operation.output = b""
+    operation.mode = int(raw["mode"])
+    return operation
+
+
+def _recover_journal(
+    root_fd: int,
+    journal_fd: int,
+    record: Mapping[str, object],
+    auth: ManifestAuth,
+    expected_paths: set[str],
+) -> None:
+    if record["manifest_sha256"] != auth.sha256:
+        raise RewriteError("CRITICAL recovery journal manifest mismatch")
+    raw_operations = list(record["operations"])
+    paths = [str(raw["path"]) for raw in raw_operations]
+    if len(paths) != len(set(paths)) or set(paths) != expected_paths:
+        raise RewriteError("CRITICAL recovery journal scope mismatch")
+    operations: list[OpenOperation] = []
+    states: list[str] = []
+    try:
+        for raw in raw_operations:
+            operation = _journal_operation_open(root_fd, raw)
+            operations.append(operation)
+            current_hash = hashlib.sha256(
+                _read_file_at(operation.parent_fd, operation.name, operation.relative)[0]
+            ).hexdigest()
+            if current_hash == raw["output_sha256"]:
+                states.append("output")
+            elif current_hash == raw["original_sha256"]:
+                states.append("original")
+            else:
+                raise RewriteError(
+                    f"CRITICAL recovery file has unknown bytes: {operation.relative!r}"
+                )
+        first_original = next(
+            (index for index, state in enumerate(states) if state == "original"),
+            len(states),
+        )
+        if any(state == "output" for state in states[first_original:]):
+            raise RewriteError("CRITICAL recovery state is not a completed prefix")
+        observed_completed = first_original
+        recorded_completed = int(record["completed_writes"])
+        if abs(observed_completed - recorded_completed) > 1:
+            raise RewriteError(
+                "CRITICAL recovery checkpoint diverges from file state"
+            )
+        if observed_completed != recorded_completed:
+            _checkpoint_recovery_journal(
+                journal_fd,
+                record,
+                observed_completed,
+            )
+        for index in range(observed_completed - 1, -1, -1):
+            operation = operations[index]
+            state = states[index]
+            if state == "output":
+                _validate_parent_anchor(root_fd, operation)
+                _atomic_write_at(operation, operation.original)
+                _validate_parent_anchor(root_fd, operation)
+                _checkpoint_recovery_journal(journal_fd, record, index)
+        _delete_journal(journal_fd)
+    finally:
+        for operation in operations:
+            operation.close()
+
+
+def _rollback_open_operations(
+    journal_fd: int,
+    operations: Sequence[OpenOperation],
+    manifest_sha256: str,
+) -> list[str]:
+    failures: list[str] = []
+    for index in range(len(operations) - 1, -1, -1):
+        operation = operations[index]
+        try:
+            current = _read_file_at(
+                operation.parent_fd, operation.name, operation.relative
+            )[0]
+            if current == operation.output:
+                _atomic_write_at(operation, operation.original)
+                _checkpoint_journal(
+                    journal_fd,
+                    manifest_sha256,
+                    operations,
+                    index,
+                )
+            elif current != operation.original:
+                raise RewriteError("unknown bytes during rollback")
+        except Exception as error:
+            failures.append(f"{operation.relative}: {error}")
+            break
+    if not failures:
+        try:
+            _delete_journal(journal_fd)
+        except Exception as error:
+            failures.append(f"journal: {error}")
+    return failures
+
+
+def _apply_batch(
+    root_fd: int,
+    journal_fd: int,
+    operations: Sequence[OpenOperation],
+    manifest_sha256: str,
+) -> None:
+    _install_journal(journal_fd, manifest_sha256, operations)
+    try:
+        for index, operation in enumerate(operations):
+            _validate_parent_anchor(root_fd, operation)
+            current = _read_file_at(
+                operation.parent_fd, operation.name, operation.relative
+            )[0]
+            if current != operation.original:
+                raise RewriteError(
+                    f"file changed after preflight: {operation.relative!r}"
+                )
+            _atomic_write_at(operation, operation.output)
+            _validate_parent_anchor(root_fd, operation)
+            _checkpoint_journal(
+                journal_fd,
+                manifest_sha256,
+                operations,
+                index + 1,
+            )
+    except Exception as error:
+        failures = _rollback_open_operations(
+            journal_fd,
+            operations,
+            manifest_sha256,
+        )
+        if failures:
+            raise RewriteError(
+                f"CRITICAL batch failed ({error}); rollback failed: "
+                + "; ".join(failures)
             ) from error
         raise RewriteError(f"batch write failed and was rolled back: {error}") from error
+    _delete_journal(journal_fd)
 
 
-def audit_filesystem_links(
-    vault: Path, manifest: Sequence[Mapping[str, object]]
+def audit_projected_links(
+    root_fd: int,
+    manifest: Sequence[Mapping[str, object]],
+    projected: Mapping[str, bytes],
 ) -> LinkAudit:
-    """Audit manifest-scoped Markdown destinations from the current filesystem."""
     notes: dict[str, bytes] = {}
     for record in manifest:
         destination = str(record["destination"])
         if not destination.casefold().endswith(".md"):
             continue
-        path = _safe_relative_path(vault, destination)
-        notes[destination] = path.read_bytes()
-    return audit_note_contents(notes)
+        try:
+            notes[destination] = (
+                projected[destination]
+                if destination in projected
+                else _secure_read(root_fd, destination)
+            )
+        except RewriteError as error:
+            raise RewriteError(
+                f"projected link audit target is unavailable: {destination!r}: {error}"
+            ) from error
+    try:
+        return audit_note_contents(notes)
+    except ValueError as error:
+        raise RewriteError(f"projected link audit failed: {error}") from error
+
+
+def _enforce_link_contract(audit: LinkAudit, contract: LinkContract) -> None:
+    if contract.expected_total is not None and audit.total != contract.expected_total:
+        raise RewriteError(
+            f"link total regressed: {audit.total} != {contract.expected_total}"
+        )
+    if audit.unresolved > contract.max_unresolved:
+        raise RewriteError(
+            f"unresolved links regressed: {audit.unresolved} > {contract.max_unresolved}"
+        )
+    if audit.ambiguous > contract.max_ambiguous:
+        raise RewriteError(
+            f"ambiguous links regressed: {audit.ambiguous} > {contract.max_ambiguous}"
+        )
+
+
+def is_active_catalog_path(relative: str) -> bool:
+    try:
+        normalized = normalize_relative_path(relative)
+    except (InventoryError, TypeError):
+        return False
+    return normalized == relative and all(
+        not component.startswith(".") for component in PurePosixPath(relative).parts
+    )
+
+
+def _active_old_literal_count(
+    root_fd: int,
+    manifest: Sequence[Mapping[str, object]],
+    projected: Mapping[str, bytes],
+) -> int:
+    count = 0
+    for record in manifest:
+        destination = str(record["destination"])
+        if (
+            not destination.casefold().endswith(".md")
+            or not is_active_catalog_path(destination)
+        ):
+            continue
+        payload = (
+            projected[destination]
+            if destination in projected
+            else _secure_read(root_fd, destination)
+        )
+        text = payload.decode("utf-8", errors="replace")
+        count += len(OLD_ACTIVE_PATTERN.findall(text))
+    return count
+
+
+def _open_vault(vault: Path) -> tuple[Path, int]:
+    lexical = Path(os.path.abspath(vault))
+    try:
+        metadata = os.lstat(lexical)
+    except OSError as error:
+        raise RewriteError(f"cannot inspect vault: {error}") from error
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise RewriteError("vault must be a regular non-symlink directory")
+    try:
+        return lexical, os.open(lexical, DIRECTORY_OPEN_FLAGS)
+    except OSError as error:
+        raise RewriteError(f"cannot securely open vault: {error}") from error
+
+
+def audit_filesystem_links(
+    vault: Path, manifest: Sequence[Mapping[str, object]]
+) -> LinkAudit:
+    _, root_fd = _open_vault(Path(vault))
+    try:
+        return audit_projected_links(root_fd, manifest, {})
+    finally:
+        os.close(root_fd)
+
+
+def audit_active_old_literals(
+    vault: Path,
+    manifest_path: Path,
+    *,
+    manifest_auth: ManifestAuth,
+) -> int:
+    _, root_fd = _open_vault(Path(vault))
+    try:
+        manifest = _load_manifest(root_fd, Path(manifest_path), manifest_auth)
+        return _active_old_literal_count(root_fd, manifest, {})
+    finally:
+        os.close(root_fd)
+
+
+_DEFAULT_LINK_SENTINEL = object()
 
 
 def rewrite_vault(
@@ -569,87 +1283,150 @@ def rewrite_vault(
     check: bool = False,
     markdown_specs: Mapping[str, Sequence[LiteralRewrite]] | None = None,
     expected_markdown_occurrences: int | None = None,
-    audit_links: bool = True,
+    manifest_auth: ManifestAuth | None = None,
+    link_contract: LinkContract | None | object = _DEFAULT_LINK_SENTINEL,
 ) -> RewriteReport:
-    vault = Path(vault).resolve(strict=True)
-    if not vault.is_dir():
-        raise RewriteError("vault must be a directory")
-    specs = MARKDOWN_SPECS if markdown_specs is None else markdown_specs
-    expected_markdown = (
-        EXPECTED_MARKDOWN_OCCURRENCES
-        if expected_markdown_occurrences is None
-        else expected_markdown_occurrences
-    )
-    if tuple(sorted(specs)) != tuple(sorted(set(specs))):
-        raise RewriteError("Markdown allowlist contains duplicates")
-    actual_expected = sum(
-        rule.expected_count for rules in specs.values() for rule in rules
-    )
-    if actual_expected != expected_markdown:
-        raise RewriteError(
-            f"Markdown occurrence contract diverged: expected {expected_markdown}, "
-            f"specifies {actual_expected}"
+    production = markdown_specs is None
+    if manifest_auth is None:
+        if not production:
+            raise RewriteError("custom rewrite fixtures require explicit manifest auth")
+        manifest_auth = DEFAULT_MANIFEST_AUTH
+    if link_contract is _DEFAULT_LINK_SENTINEL:
+        link_contract = DEFAULT_LINK_CONTRACT if production else None
+    if production and link_contract is None:
+        raise RewriteError("production link audit cannot be disabled")
+
+    lexical_vault, root_fd = _open_vault(Path(vault))
+    journal_fd: int | None = None
+    operations: list[OpenOperation] = []
+    try:
+        specs = MARKDOWN_SPECS if markdown_specs is None else markdown_specs
+        expected_markdown = (
+            EXPECTED_MARKDOWN_OCCURRENCES
+            if expected_markdown_occurrences is None
+            else expected_markdown_occurrences
         )
-
-    manifest = _load_manifest(vault, Path(manifest_path))
-    _verify_manifest_backing(manifest, specs)
-
-    originals: dict[Path, bytes] = {}
-    outputs: dict[Path, bytes] = {}
-    states: list[str] = []
-    for relative in sorted(specs, key=lambda value: value.encode("utf-8")):
-        path = _safe_relative_path(vault, relative)
-        payload, text = _read_utf8(path, relative)
-        state, output = _classify_markdown_state(text, specs[relative], relative)
-        originals[path] = payload
-        outputs[path] = output.encode("utf-8")
-        states.append(state)
-
-    config_occurrences = 0
-    for relative in CONFIG_ALLOWLIST:
-        path = _safe_relative_path(vault, relative)
-        payload, value = _load_json(path, relative)
-        state, output, occurrences = _plan_config(vault, relative, value)
-        originals[path] = payload
-        outputs[path] = output
-        states.append(state)
-        config_occurrences += occurrences
-    if config_occurrences != EXPECTED_CONFIG_OCCURRENCES:
-        raise RewriteError(
-            f"config occurrence contract diverged: expected "
-            f"{EXPECTED_CONFIG_OCCURRENCES}, found {config_occurrences}"
+        actual_expected = sum(
+            rule.expected_count for rules in specs.values() for rule in rules
         )
+        if actual_expected != expected_markdown:
+            raise RewriteError(
+                f"Markdown occurrence contract diverged: expected {expected_markdown}, "
+                f"specifies {actual_expected}"
+            )
 
-    if all(state == "stale" for state in states):
-        planned_status = "stale"
-    elif all(state == "fresh" for state in states):
-        planned_status = "fresh"
-    else:
-        raise RewriteError("rewrite scope is partially stale and partially fresh")
+        manifest = _load_manifest(root_fd, Path(manifest_path), manifest_auth)
+        _verify_manifest_backing(manifest, specs)
+        journal_fd = _open_journal_directory(root_fd)
+        existing_journal = _read_journal(journal_fd)
+        expected_paths = set(specs) | set(CONFIG_ALLOWLIST)
+        if existing_journal is not None:
+            if check:
+                raise RewriteError(
+                    "CRITICAL recovery journal requires a non-check invocation"
+                )
+            _recover_journal(
+                root_fd,
+                journal_fd,
+                existing_journal,
+                manifest_auth,
+                expected_paths,
+            )
 
-    changed = sum(outputs[path] != originals[path] for path in outputs)
-    if planned_status == "stale" and changed != len(specs) + len(CONFIG_ALLOWLIST):
-        raise RewriteError("stale rewrite did not plan one change per allowlisted file")
-    if planned_status == "fresh" and changed:
-        raise RewriteError("fresh rewrite would change bytes")
+        by_relative: dict[str, OpenOperation] = {}
+        states: list[str] = []
+        for relative in sorted(specs, key=lambda value: value.encode("utf-8")):
+            operation = _open_operation(root_fd, relative)
+            operations.append(operation)
+            by_relative[relative] = operation
+            try:
+                text = operation.original.decode("utf-8")
+            except UnicodeDecodeError as error:
+                raise RewriteError(f"cannot read UTF-8 file {relative!r}") from error
+            state, output = _classify_markdown_state(text, specs[relative], relative)
+            operation.output = output.encode("utf-8")
+            states.append(state)
 
-    links: LinkAudit | None = None
-    if planned_status == "stale" and not check:
-        _apply_batch(outputs, originals)
-        status = "updated"
-        if audit_links:
-            links = audit_filesystem_links(vault, manifest)
-    else:
-        status = planned_status
-        if audit_links:
-            links = audit_filesystem_links(vault, manifest)
+        daily_template_exists = _secure_is_file(
+            root_fd, "30 Sistema/Templates/Daily.md"
+        )
+        config_occurrences = 0
+        for relative in CONFIG_ALLOWLIST:
+            operation = _open_operation(root_fd, relative)
+            operations.append(operation)
+            by_relative[relative] = operation
+            try:
+                value = json.loads(operation.original.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                raise RewriteError(f"invalid JSON in {relative!r}: {error}") from error
+            if type(value) is not dict:
+                raise RewriteError(f"JSON root must be an object: {relative!r}")
+            state, output, occurrences = _plan_config(
+                daily_template_exists, relative, value
+            )
+            operation.output = output
+            states.append(state)
+            config_occurrences += occurrences
+        if config_occurrences != EXPECTED_CONFIG_OCCURRENCES:
+            raise RewriteError("config occurrence contract diverged")
 
-    return RewriteReport(
-        status=status,
-        occurrences=expected_markdown + EXPECTED_CONFIG_OCCURRENCES,
-        files_changed=changed,
-        links=links,
-    )
+        if all(state == "stale" for state in states):
+            planned_status = "stale"
+        elif all(state == "fresh" for state in states):
+            planned_status = "fresh"
+        else:
+            raise RewriteError("rewrite scope is partially stale and partially fresh")
+        changed_operations = [
+            operation for operation in operations if operation.output != operation.original
+        ]
+        expected_changed = len(specs) + len(CONFIG_ALLOWLIST)
+        if planned_status == "stale" and len(changed_operations) != expected_changed:
+            raise RewriteError("stale rewrite did not change every allowlisted file")
+        if planned_status == "fresh" and changed_operations:
+            raise RewriteError("fresh rewrite would change bytes")
+
+        projected = {
+            relative: operation.output for relative, operation in by_relative.items()
+        }
+        links: LinkAudit | None = None
+        if isinstance(link_contract, LinkContract):
+            links = audit_projected_links(root_fd, manifest, projected)
+            _enforce_link_contract(links, link_contract)
+        if production:
+            old_literals = _active_old_literal_count(root_fd, manifest, projected)
+            if old_literals:
+                raise RewriteError(
+                    f"active catalog still has {old_literals} old path literals"
+                )
+
+        if planned_status == "stale" and not check:
+            ordered_changed = sorted(
+                changed_operations,
+                key=lambda operation: operation.relative.encode("utf-8"),
+            )
+            _apply_batch(
+                root_fd,
+                journal_fd,
+                ordered_changed,
+                manifest_auth.sha256,
+            )
+            status = "updated"
+        else:
+            status = planned_status
+        return RewriteReport(
+            status=status,
+            occurrences=expected_markdown + EXPECTED_CONFIG_OCCURRENCES,
+            files_changed=len(changed_operations),
+            links=links,
+        )
+    except (InventoryError, RuleError) as error:
+        raise RewriteError(str(error)) from error
+    finally:
+        for operation in operations:
+            operation.close()
+        if journal_fd is not None:
+            os.close(journal_fd)
+        os.close(root_fd)
 
 
 def _parser() -> argparse.ArgumentParser:

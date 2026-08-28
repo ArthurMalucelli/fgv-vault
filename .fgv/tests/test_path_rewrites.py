@@ -1,5 +1,6 @@
 import hashlib
 import importlib
+import io
 import json
 import os
 from pathlib import Path
@@ -49,6 +50,11 @@ class RewriteTextTests(unittest.TestCase):
                 "`Vault/Conceitos/Café com Leite.md`",
                 "https://example.invalid/Vault/Conceitos/Café",
                 "[externo](https://example.invalid/Vault/Conceitos/Café)",
+                "obsidian://open?vault=FGV&file=Vault/Conceitos/Café",
+                "file:///tmp/Vault/Conceitos/Café.md",
+                "ftp://example.invalid/Vault/Conceitos/Café.md",
+                "data:text/plain,Vault/Conceitos/Café",
+                "urn:fgv:Vault/Conceitos/Café",
                 "NotVault/Conceitos/Café.md",
                 "```python",
                 'path = "unrelated/legacy/file.md"',
@@ -64,6 +70,11 @@ class RewriteTextTests(unittest.TestCase):
         self.assertIn("`20 Conhecimento/Conceitos/Café com Leite.md`", output)
         self.assertIn("https://example.invalid/Vault/Conceitos/Café", output)
         self.assertIn("[externo](https://example.invalid/Vault/Conceitos/Café)", output)
+        self.assertIn("obsidian://open?vault=FGV&file=Vault/Conceitos/Café", output)
+        self.assertIn("file:///tmp/Vault/Conceitos/Café.md", output)
+        self.assertIn("ftp://example.invalid/Vault/Conceitos/Café.md", output)
+        self.assertIn("data:text/plain,Vault/Conceitos/Café", output)
+        self.assertIn("urn:fgv:Vault/Conceitos/Café", output)
         self.assertIn("NotVault/Conceitos/Café.md", output)
         self.assertIn('path = "unrelated/legacy/file.md"', output)
 
@@ -160,6 +171,7 @@ class VaultRewriteFixtureTests(unittest.TestCase):
         self.manifest_path.write_text(
             json.dumps(records, ensure_ascii=False) + "\n", encoding="utf-8"
         )
+        (self.vault / ".fgv").mkdir()
         self.note_path = self.vault / "notes/a.md"
         self.note_path.parent.mkdir(parents=True)
         self.note_path.write_text(
@@ -173,6 +185,12 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             )
         }
         self._write_stale_configs()
+        module = self.require_rewriter()
+        self.auth = module.ManifestAuth(
+            relative_path="state/manifest.json",
+            sha256=hashlib.sha256(self.manifest_path.read_bytes()).hexdigest(),
+            record_count=1,
+        )
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -216,15 +234,16 @@ class VaultRewriteFixtureTests(unittest.TestCase):
             },
         )
 
-    def _rewrite(self, *, check: bool = False):
+    def _rewrite(self, *, check: bool = False, link_contract=None):
         module = self.require_rewriter()
         return module.rewrite_vault(
             self.vault,
-            self.manifest_path,
+            Path("state/manifest.json"),
             check=check,
             markdown_specs=self._literal_rules(),
             expected_markdown_occurrences=2,
-            audit_links=False,
+            manifest_auth=self.auth,
+            link_contract=link_contract,
         )
 
     def _snapshot(self):
@@ -319,7 +338,7 @@ class VaultRewriteFixtureTests(unittest.TestCase):
                         text += "Vault/Conceitos/Extra.md\n"
                     fixture.note_path.write_text(text, encoding="utf-8")
                     before = fixture._snapshot()
-                    with patch.object(module, "_atomic_write") as atomic_write:
+                    with patch.object(module, "_atomic_write_at", create=True) as atomic_write:
                         with self.assertRaises(module.RewriteError):
                             fixture._rewrite()
                     atomic_write.assert_not_called()
@@ -331,27 +350,201 @@ class VaultRewriteFixtureTests(unittest.TestCase):
         daily.write_text("{invalid\n", encoding="utf-8")
         before = self._snapshot()
 
-        with patch.object(module, "_atomic_write") as atomic_write:
+        with patch.object(module, "_atomic_write_at", create=True) as atomic_write:
             with self.assertRaises(module.RewriteError):
                 self._rewrite()
 
         atomic_write.assert_not_called()
         self.assertEqual(self._snapshot(), before)
 
+    def test_projected_link_regression_blocks_before_journal_or_write(self) -> None:
+        module = self.require_rewriter()
+        before = self._snapshot()
+        regressed = module.LinkAudit(
+            total=1,
+            resolved=0,
+            unresolved=1,
+            ambiguous=0,
+        )
+        contract = module.LinkContract(
+            expected_total=1,
+            max_unresolved=0,
+            max_ambiguous=0,
+        )
+
+        with patch.object(
+            module, "audit_projected_links", return_value=regressed
+        ), patch.object(module, "_install_journal", create=True) as install:
+            with self.assertRaises(module.RewriteError):
+                self._rewrite(link_contract=contract)
+
+        install.assert_not_called()
+        self.assertEqual(self._snapshot(), before)
+
+    def test_missing_projected_audit_target_blocks_all_files(self) -> None:
+        module = self.require_rewriter()
+        before = self._snapshot()
+        contract = module.LinkContract(
+            expected_total=0,
+            max_unresolved=0,
+            max_ambiguous=0,
+        )
+
+        with patch.object(module, "_atomic_write_at", create=True) as atomic_write:
+            with self.assertRaises(module.RewriteError):
+                self._rewrite(link_contract=contract)
+
+        atomic_write.assert_not_called()
+        self.assertEqual(self._snapshot(), before)
+
+    def test_manifest_auth_is_explicit_and_fail_closed_for_custom_fixtures(self) -> None:
+        module = self.require_rewriter()
+        arguments = dict(
+            vault=self.vault,
+            manifest_path=Path("state/manifest.json"),
+            markdown_specs=self._literal_rules(),
+            expected_markdown_occurrences=2,
+            link_contract=None,
+        )
+        with self.assertRaises(module.RewriteError):
+            module.rewrite_vault(**arguments)
+
+        bad_contracts = (
+            module.ManifestAuth(
+                "other/manifest.json", self.auth.sha256, self.auth.record_count
+            ),
+            module.ManifestAuth(
+                self.auth.relative_path, "0" * 64, self.auth.record_count
+            ),
+            module.ManifestAuth(
+                self.auth.relative_path, self.auth.sha256, self.auth.record_count + 1
+            ),
+        )
+        before = self._snapshot()
+        for auth in bad_contracts:
+            with self.subTest(auth=auth):
+                with self.assertRaises(module.RewriteError):
+                    module.rewrite_vault(**arguments, manifest_auth=auth)
+                self.assertEqual(self._snapshot(), before)
+
+    def test_crash_leaves_durable_journal_and_next_run_recovers(self) -> None:
+        module = self.require_rewriter()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        calls = 0
+        real_checkpoint = module._checkpoint_journal
+
+        def crash_before_first_checkpoint(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise SimulatedCrash("power loss")
+            return real_checkpoint(*args, **kwargs)
+
+        with patch.object(
+            module,
+            "_checkpoint_journal",
+            side_effect=crash_before_first_checkpoint,
+        ):
+            with self.assertRaises(SimulatedCrash):
+                self._rewrite()
+
+        journal = self.vault / ".fgv/path-rewrite-journal.json"
+        self.assertTrue(journal.is_file())
+        partially_written_app = json.loads(
+            (self.vault / ".obsidian/app.json").read_bytes()
+        )
+        self.assertEqual(
+            partially_written_app["attachmentFolderPath"], "30 Sistema/Anexos"
+        )
+
+        recovered = self._rewrite()
+
+        self.assertEqual(recovered.status, "updated")
+        self.assertFalse(journal.exists())
+        self.assertEqual(self.note_path.read_text(encoding="utf-8").count("Vault/Conceitos"), 0)
+
+    def test_recovery_rejects_a_divergent_journal_checkpoint(self) -> None:
+        module = self.require_rewriter()
+
+        class SimulatedCrash(BaseException):
+            pass
+
+        with patch.object(
+            module,
+            "_checkpoint_journal",
+            side_effect=SimulatedCrash("power loss"),
+        ):
+            with self.assertRaises(SimulatedCrash):
+                self._rewrite()
+
+        journal = self.vault / ".fgv/path-rewrite-journal.json"
+        record = json.loads(journal.read_bytes())
+        record["completed_writes"] = len(record["operations"])
+        journal.write_text(
+            json.dumps(record, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        before = self._snapshot()
+
+        with self.assertRaises(module.RewriteError):
+            self._rewrite()
+
+        self.assertEqual(self._snapshot(), before)
+
+    def test_parent_symlink_swap_cannot_redirect_a_write(self) -> None:
+        module = self.require_rewriter()
+        real_atomic_write = module._atomic_write_at
+        with TemporaryDirectory() as external_directory:
+            external = Path(external_directory)
+            sentinel = external / "app.json"
+            sentinel.write_text("external\n", encoding="utf-8")
+            detached = self.vault / ".obsidian-detached"
+            swapped = False
+
+            def swap_parent_then_write(operation, payload):
+                nonlocal swapped
+                if not swapped and operation.relative.startswith(".obsidian/"):
+                    swapped = True
+                    (self.vault / ".obsidian").rename(detached)
+                    os.symlink(external, self.vault / ".obsidian")
+                return real_atomic_write(operation, payload)
+
+            try:
+                with patch.object(
+                    module, "_atomic_write_at", side_effect=swap_parent_then_write
+                ):
+                    with self.assertRaises(module.RewriteError):
+                        self._rewrite()
+                self.assertEqual(sentinel.read_text(encoding="utf-8"), "external\n")
+                app = json.loads((detached / "app.json").read_bytes())
+                self.assertEqual(app["attachmentFolderPath"], "Vault/Attachments")
+                self.assertFalse(
+                    (self.vault / ".fgv/path-rewrite-journal.json").exists()
+                )
+            finally:
+                current = self.vault / ".obsidian"
+                if current.is_symlink():
+                    current.unlink()
+                if detached.exists():
+                    detached.rename(current)
+
     def test_mid_batch_failure_rolls_back_every_applied_file(self) -> None:
         module = self.require_rewriter()
         before = self._snapshot()
-        real_atomic_write = module._atomic_write
+        real_atomic_write = module._atomic_write_at
         calls = 0
 
-        def fail_second(path, payload):
+        def fail_second(operation, payload):
             nonlocal calls
             calls += 1
             if calls == 2:
                 raise OSError("injected write failure")
-            return real_atomic_write(path, payload)
+            return real_atomic_write(operation, payload)
 
-        with patch.object(module, "_atomic_write", side_effect=fail_second):
+        with patch.object(module, "_atomic_write_at", side_effect=fail_second):
             with self.assertRaises(module.RewriteError):
                 self._rewrite()
 
@@ -401,10 +594,18 @@ class ProductionContractTests(unittest.TestCase):
         )
         self.assertEqual(module.EXPECTED_MARKDOWN_OCCURRENCES, 59)
         self.assertEqual(module.EXPECTED_CONFIG_OCCURRENCES, 5)
+        self.assertEqual(
+            module.DEFAULT_MANIFEST_AUTH,
+            module.ManifestAuth(
+                relative_path="30 Sistema/Estado/migration-manifest.json",
+                sha256="3910988998703f6a9cc01dcd4b40173241c602204ce4a4c6bc83a1a67fd29c96",
+                record_count=1059,
+            ),
+        )
 
     def test_real_tree_is_exactly_stale_or_fresh_and_link_counts_do_not_regress(self) -> None:
         module = self.require_rewriter()
-        manifest_path = ROOT / "30 Sistema/Estado/migration-manifest.json"
+        manifest_path = Path("30 Sistema/Estado/migration-manifest.json")
 
         report = module.rewrite_vault(ROOT, manifest_path, check=True)
         manifest = json.loads(manifest_path.read_bytes())
@@ -416,6 +617,98 @@ class ProductionContractTests(unittest.TestCase):
         self.assertEqual(links.total, 5402)
         self.assertLessEqual(links.unresolved, 408)
         self.assertLessEqual(links.ambiguous, 3)
+
+    def test_hidden_superpowers_tooling_is_not_active_catalog_scope(self) -> None:
+        module = self.require_rewriter()
+        hidden_root = Path(
+            "10 Matérias/Estatistica2/Aulas/08.17/.superpowers"
+        )
+        self.assertFalse(
+            module.is_active_catalog_path(
+                "10 Matérias/Estatistica2/Aulas/08.17/.superpowers/build/lint_md.py"
+            )
+        )
+        hidden_occurrences = 0
+        for path in (ROOT / hidden_root).rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            hidden_occurrences += len(module.OLD_ACTIVE_PATTERN.findall(text))
+        self.assertEqual(hidden_occurrences, 35)
+        self.assertEqual(
+            module.audit_active_old_literals(
+                ROOT,
+                Path(module.DEFAULT_MANIFEST_AUTH.relative_path),
+                manifest_auth=module.DEFAULT_MANIFEST_AUTH,
+            ),
+            0,
+        )
+
+    def test_inventory_validation_error_is_controlled(self) -> None:
+        module = self.require_rewriter()
+        from fgv_migration.inventory import InventoryError
+
+        with patch.object(
+            module,
+            "normalize_relative_path",
+            side_effect=InventoryError("invalid path"),
+        ):
+            with self.assertRaises(module.RewriteError):
+                module._safe_relative_path(ROOT, "00 Home/Home.md")
+
+    def test_cli_fails_closed_without_traceback_on_link_regression(self) -> None:
+        module = self.require_rewriter()
+        regressed = module.LinkAudit(
+            total=5402,
+            resolved=4990,
+            unresolved=409,
+            ambiguous=3,
+        )
+        stderr = io.StringIO()
+
+        with patch.object(
+            module, "audit_projected_links", return_value=regressed
+        ), patch("sys.stderr", stderr):
+            result = module.main(
+                [
+                    "--vault",
+                    str(ROOT),
+                    "--manifest",
+                    module.DEFAULT_MANIFEST_AUTH.relative_path,
+                    "--check",
+                ]
+            )
+
+        self.assertEqual(result, 1)
+        self.assertIn("unresolved links regressed", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
+    def test_manifest_inventory_error_is_a_controlled_cli_failure(self) -> None:
+        module = self.require_rewriter()
+        from fgv_migration.inventory import InventoryError
+
+        stderr = io.StringIO()
+        with patch.object(
+            module,
+            "validate_manifest",
+            side_effect=InventoryError("invalid manifest destination"),
+        ), patch("sys.stderr", stderr):
+            result = module.main(
+                [
+                    "--vault",
+                    str(ROOT),
+                    "--manifest",
+                    module.DEFAULT_MANIFEST_AUTH.relative_path,
+                    "--check",
+                ]
+            )
+
+        self.assertEqual(result, 1)
+        self.assertIn("invalid migration manifest", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
 
 
 if __name__ == "__main__":
