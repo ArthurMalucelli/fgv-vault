@@ -116,7 +116,16 @@ def _existing_artifacts(lesson: Path, transaction_id: str) -> tuple[Path, ...]:
     for path in lesson.glob("*.md") if lesson.exists() else ():
         if needle in path.read_text(encoding="utf-8"):
             found.append(path)
-    return tuple(sorted(found, key=lambda item: item.name))
+    order = {"Transcrito": 0, "Resumo": 1}
+    return tuple(
+        sorted(
+            found,
+            key=lambda item: (
+                order.get(item.name.split(" - ", 1)[0], 99),
+                item.name,
+            ),
+        )
+    )
 
 
 def process_plaud(

@@ -105,6 +105,10 @@ class WorkflowIngestTests(unittest.TestCase):
             self.assertEqual(first.raw_path.read_bytes(), raw)
             self.assertEqual(first.transaction_id, second.transaction_id)
             self.assertEqual(
+                tuple(path.name for path in second.artifacts),
+                tuple(path.name for path in first.artifacts),
+            )
+            self.assertEqual(
                 {path.name for path in first.artifacts},
                 {
                     "Transcrito - DRE e provisões.md",
