@@ -22,3 +22,7 @@
 # *.mp4
 # *.wav
 .gstack/
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
