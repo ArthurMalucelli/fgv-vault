@@ -34,6 +34,8 @@ class DashboardTests(unittest.TestCase):
         self.assertNotIn("08.28", historical_missing)
         self.assertNotIn("08.29", output)
         self.assertIn("Contabilidade Financeira 08.25", historical_material)
+        self.assertIn("Contabilidade Financeira 08.24", historical_material)
+        self.assertNotIn("Material/Leitura", historical_material)
         self.assertIn("Aprendizagem ativa", output)
         self.assertIn("Aprendizagem arquivada", output)
         self.assertNotIn("- [ ]", output)

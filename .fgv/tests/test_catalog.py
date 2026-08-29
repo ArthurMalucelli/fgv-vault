@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,6 +21,8 @@ class CatalogTests(unittest.TestCase):
             }, ensure_ascii=False),
             "00 Home/Home.md": "# Home\n",
             "00 Home/Tasks.md": "```\n- [ ] exemplo #cont\n```\n- [ ] Prova #cont 📅 2026-08-28\n",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.23/Material/Referência.bin": "unknown material",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.24/Material/Leitura.md": "# Leitura de apoio\n",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.25/Slides/Aula.pdf": "root lesson material",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.27/Resumo - DRE.md": "---\nmateria: ContabilidadeFinanceira\nstatus: completo\n---\n# DRE\n",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.26/Material/Slides.pdf": "older material",
@@ -65,7 +68,7 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(records[0]["record_type"], "manifest")
         self.assertEqual(sum(r["record_type"] == "task" for r in records), 1)
 
-    def test_every_lesson_file_derives_date_from_active_or_archive_path(self):
+    def test_every_fixture_lesson_file_without_explicit_date_derives_path_date(self):
         with tempfile.TemporaryDirectory() as tmp:
             vault = self.make_vault(Path(tmp))
             settings = load_settings(vault / ".fgv/config/subjects.json")
@@ -76,14 +79,19 @@ class CatalogTests(unittest.TestCase):
             for record in build.records
             if record["record_type"] == "file"
         }
-        active = by_path[
-            "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Material/Exercícios.docx"
-        ]
-        archived = by_path[
-            "90 Arquivo/2026.1/ProdutosFinanceiros/Aulas/05.21/Material/Slides.pdf"
-        ]
-        self.assertEqual((active["date"], active["date_source"]), ("2026-08-28", "path"))
-        self.assertEqual((archived["date"], archived["date_source"]), ("2026-05-21", "path"))
+        checked = 0
+        for path, record in by_path.items():
+            match = re.search(r"/Aulas/(\d{2})\.(\d{2})(?:/|$)", path)
+            if not match:
+                continue
+            expected = f"{str(record['semester'])[:4]}-{match.group(1)}-{match.group(2)}"
+            self.assertEqual((record["date"], record["date_source"]), (expected, "path"), path)
+            checked += 1
+        self.assertGreaterEqual(checked, 10)
+        self.assertEqual(
+            by_path["10 Matérias/ContabilidadeFinanceira/Aulas/08.23/Material/Referência.bin"]["kind"],
+            "other",
+        )
 
     def test_nfc_collision_is_fatal(self):
         with self.assertRaises(ValueError):
