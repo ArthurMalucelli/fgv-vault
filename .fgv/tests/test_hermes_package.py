@@ -290,8 +290,14 @@ class HermesPackageContractTests(unittest.TestCase):
                 "subject_ids": ["estatistica-2"],
             },
             {
-                "date": "2026-08-18",
+                "date": "2026-08-20",
                 "path": prefix + "Slides_Aula05.extracted.md",
+                "record_type": "file",
+                "subject_ids": ["estatistica-2"],
+            },
+            {
+                "date": "2026-08-18",
+                "path": prefix + "Slides_Aula05.pdf.extracted.md",
                 "record_type": "file",
                 "subject_ids": ["estatistica-2"],
             },
@@ -308,6 +314,7 @@ class HermesPackageContractTests(unittest.TestCase):
 
         self.assertEqual(selected_paths[0], prefix + "Slides_Aula05.extracted.md")
         self.assertNotIn(prefix + "Slides_Aula05.pdf", selected_paths)
+        self.assertNotIn(prefix + "Slides_Aula05.pdf.extracted.md", selected_paths)
         self.assertEqual(selected_paths[1], prefix + "Script_Aula05.R")
 
 
