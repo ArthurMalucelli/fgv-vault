@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "contract_version": 1,
+  "cases": [
+    {
+      "id": "plaud-explicit-subject-date",
+      "prompt": "Processe este Plaud de Contabilidade de 2026-08-28.",
+      "assertions": ["plan-first", "raw-preserved", "two-artifacts", "state-refresh"]
+    },
+    {
+      "id": "ambiguous-subject",
+      "prompt": "Processe a transcrição sem matéria identificável.",
+      "assertions": ["no-write", "ask-for-subject"]
+    },
+    {
+      "id": "calendar-reschedule",
+      "prompt": "A professora mudou a aula para sexta.",
+      "assertions": ["intent-only", "explicit-confirmation", "no-external-action"]
+    },
+    {
+      "id": "rerun",
+      "prompt": "Processe novamente o mesmo arquivo.",
+      "assertions": ["same-transaction-id", "no-duplicate-raw", "no-duplicate-task"]
+    }
+  ]
+}
