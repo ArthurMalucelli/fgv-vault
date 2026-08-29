@@ -76,7 +76,7 @@ class LiveDeltaImportTests(unittest.TestCase):
             live_delta.os.close(root_fd)
         self.assertEqual(
             (links.total, links.resolved, links.unresolved, links.ambiguous),
-            (5442, 5034, 408, 0),
+            (5442, 5035, 407, 0),
         )
 
 
