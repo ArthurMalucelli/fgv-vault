@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from contextlib import redirect_stdout
 import hashlib
 import io
@@ -15,10 +16,8 @@ import unittest
 from unittest import mock
 from zoneinfo import ZoneInfo
 
-from hermes_channel_smoke import (
-    _run_pinned_channel_payload,
-    audit_channel_entrypoint,
-)
+import hermes_channel_smoke
+from hermes_channel_smoke import audit_channel_entrypoint
 from hermes_common import HermesError
 
 
@@ -486,32 +485,18 @@ class HermesAuditTests(unittest.TestCase):
             self.assertIn("missing_bounded_query_call", rules)
 
     def test_channel_audit_rejects_noncanonical_source_encoding(self) -> None:
-        canonical = (MIGRATED_HOME / "scripts/eclass-scan.py").read_bytes()
+        canonical = (MIGRATED_HOME / "scripts/whatsapp-fgv.py").read_bytes()
         payload = (
             b"# coding: utf-7\n"
             b"# +AAo-import pathlib+AAo-INJECTED = pathlib.Path\n"
             + canonical
         )
+        alternate_tree = ast.parse(payload.decode("utf-7"))
+        self.assertIsInstance(alternate_tree.body[0], ast.Import)
+        self.assertIsInstance(alternate_tree.body[1], ast.Assign)
 
         with self.assertRaisesRegex(HermesError, "canonical UTF-8"):
             audit_channel_entrypoint(payload)
-
-    def test_channel_executor_runs_pinned_bytes_without_reopening_a_path(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            swapped_path = root / "entrypoint.py"
-            swapped_path.write_bytes(b"print('swapped')\n")
-            audited_payload = b"print('pinned')\n"
-
-            result = _run_pinned_channel_payload(
-                audited_payload,
-                vault=root,
-                environment=os.environ.copy(),
-            )
-
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertEqual(result.stdout, b"pinned\n")
-            self.assertNotIn(b"swapped", result.stdout)
 
 
 class HermesCutoverValidationTests(unittest.TestCase):
@@ -2049,6 +2034,56 @@ class HermesReadinessTests(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_channel_flow_executes_audited_bytes_after_path_swap(self) -> None:
+        entrypoint = self.hermes_home / "scripts/eclass-scan.py"
+        audited_payload = entrypoint.read_bytes()
+        replacement = b"raise RuntimeError('swapped pathname executed')\n"
+        captured: dict[str, bytes] = {}
+        swap_state = {"done": False}
+        real_catalog_pin = hermes_channel_smoke._catalog_pin
+        real_runner = hermes_channel_smoke._run_pinned_channel_payload
+
+        def catalog_pin_with_swap(vault: Path, operational_as_of: str) -> tuple[str, bytes]:
+            result = real_catalog_pin(vault, operational_as_of)
+            if not swap_state["done"]:
+                entrypoint.write_bytes(replacement)
+                swap_state["done"] = True
+            return result
+
+        def capture_runner(
+            payload: bytes, *, vault: Path, environment: dict[str, str]
+        ) -> subprocess.CompletedProcess[bytes]:
+            captured["payload"] = payload
+            return real_runner(payload, vault=vault, environment=environment)
+
+        with (
+            mock.patch.dict(os.environ, self.validation_env, clear=True),
+            mock.patch.object(
+                hermes_channel_smoke,
+                "_catalog_pin",
+                side_effect=catalog_pin_with_swap,
+            ),
+            mock.patch.object(
+                hermes_channel_smoke,
+                "_run_pinned_channel_payload",
+                side_effect=capture_runner,
+            ),
+        ):
+            receipt, _ = hermes_channel_smoke.execute_channel_flow(
+                channel_id="eclass",
+                entrypoint_relative="scripts/eclass-scan.py",
+                hermes_home=self.hermes_home,
+                vault=self.package_root,
+                tested_commit=self.tested_commit,
+                operational_as_of=self.operational_as_of,
+                expected_path=LIVE_QUERY_EXPECTED["material-eclass"],
+            )
+
+        self.assertEqual(entrypoint.read_bytes(), replacement)
+        self.assertEqual(captured["payload"], audited_payload)
+        self.assertEqual(receipt["entrypoint_sha256"], hashlib.sha256(audited_payload).hexdigest())
+        self.assertEqual(receipt["status"], "pass")
 
     def test_stale_report_untracked_production_or_tampered_evidence_is_blocked(self) -> None:
         report = dict(self.report)
