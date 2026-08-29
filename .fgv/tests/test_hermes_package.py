@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from contextlib import redirect_stdout
 import hashlib
+import io
 import json
 import os
 from datetime import date, datetime, timedelta, timezone
@@ -10,6 +12,7 @@ import shlex
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 from zoneinfo import ZoneInfo
 
 
@@ -22,6 +25,8 @@ MIGRATED_HOME = FIXTURES / "hermes-home-migrated"
 RETRIEVAL_VAULT = FIXTURES / "hermes-retrieval-vault"
 TEST_COMMIT = "1" * 40
 EXPECTED_UPSTREAM = "origin/codex/vault-plan-b"
+EXPECTED_BRANCH = "codex/vault-plan-b"
+EXPECTED_FETCH_REFSPEC = "+refs/heads/codex/vault-plan-b:refs/remotes/origin/codex/vault-plan-b"
 EXPECTED_REMOTE_URL = "https://github.com/ArthurMalucelli/fgv-vault.git"
 OPERATIONAL_TIMEZONE = "America/Sao_Paulo"
 LIVE_QUERY_EXPECTED = {
@@ -33,7 +38,7 @@ LIVE_QUERY_EXPECTED = {
     "compat-resumo": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
 }
 LIVE_QUERY_STEPS = [
-    "catalog_query", "dashboard_snapshot", "checkout_status", "select_exact_path",
+    "dashboard_snapshot", "catalog_query", "dashboard_snapshot_recheck", "checkout_status", "select_exact_path",
     "verify_sha256", "open_exact_file",
 ]
 MAX_CATALOG_QUERY_BYTES = 16_384
@@ -41,12 +46,15 @@ MAX_CATALOG_QUERY_LINES = 1
 MAX_CATALOG_CANDIDATES = 5
 
 
-def run_python(script: str, *args: str) -> subprocess.CompletedProcess[str]:
+def run_python(
+    script: str, *args: str, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["python3", str(SCRIPTS / script), *args],
         cwd=ROOT,
         text=True,
         capture_output=True,
+        env=env,
         check=False,
     )
 
@@ -78,8 +86,11 @@ def install_git_transport_wrapper(directory: Path) -> Path:
     wrapper.write_text(
         "#!/usr/bin/env bash\n"
         "set -eu\n"
-        "if [ \"$#\" -eq 3 ] && [ \"$1\" = fetch ] && [ \"$2\" = --prune ] && [ \"$3\" = origin ]; then\n"
-        f"  exec {shlex.quote(real_git)} fetch --prune \"$FGV_TEST_REMOTE_PATH\" '+refs/heads/*:refs/remotes/origin/*'\n"
+        "if [ \"$#\" -eq 4 ] && [ \"$1\" = fetch ] && [ \"$2\" = --prune ] && [ \"$3\" = origin ]; then\n"
+        f"  exec {shlex.quote(real_git)} fetch --prune \"$FGV_TEST_REMOTE_PATH\" \"$4\"\n"
+        "fi\n"
+        "if [ \"$#\" -eq 6 ] && [ \"$1\" = -C ] && [ \"$3\" = ls-remote ] && [ \"$4\" = --exit-code ] && [ \"$5\" = origin ]; then\n"
+        f"  exec {shlex.quote(real_git)} -C \"$2\" ls-remote --exit-code \"$FGV_TEST_REMOTE_PATH\" \"$6\"\n"
         "fi\n"
         "if [ \"$#\" -ge 2 ] && [ \"$1\" = push ] && [ \"$2\" = origin ]; then\n"
         "  shift 2\n"
@@ -90,6 +101,29 @@ def install_git_transport_wrapper(directory: Path) -> Path:
     )
     wrapper.chmod(0o755)
     return directory
+
+
+def configure_canonical_fetch_binding(repository: Path) -> None:
+    subprocess.run(
+        ["git", "config", f"branch.{EXPECTED_BRANCH}.remote", "origin"],
+        cwd=repository,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", f"branch.{EXPECTED_BRANCH}.merge", f"refs/heads/{EXPECTED_BRANCH}"],
+        cwd=repository,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "--unset-all", "remote.origin.fetch"],
+        cwd=repository,
+        check=False,
+    )
+    subprocess.run(
+        ["git", "config", "--add", "remote.origin.fetch", EXPECTED_FETCH_REFSPEC],
+        cwd=repository,
+        check=True,
+    )
 
 
 def set_fixture_as_of(vault: Path, as_of: str) -> None:
@@ -121,8 +155,9 @@ class HermesPackageContractTests(unittest.TestCase):
         self.assertEqual(
             self.manifest["retrieval_order"],
             [
-                ".fgv/scripts/hermes_catalog_query.py",
                 "30 Sistema/Estado/dashboard-snapshot.md",
+                ".fgv/scripts/hermes_catalog_query.py",
+                "dashboard_snapshot_recheck",
                 "exact_catalog_path",
             ],
         )
@@ -139,6 +174,10 @@ class HermesPackageContractTests(unittest.TestCase):
             self.manifest["canonical_paths"]["catalog_query"],
             ".fgv/scripts/hermes_catalog_query.py",
         )
+        self.assertEqual(
+            self.manifest["canonical_paths"]["channel_smoke"],
+            ".fgv/scripts/hermes_channel_smoke.py",
+        )
         self.assertEqual(self.manifest["canonical_paths"]["materials_segment"], "Material/")
         self.assertEqual(
             self.manifest["required_response_fields"], ["as_of_commit", "sync_state"]
@@ -150,10 +189,14 @@ class HermesPackageContractTests(unittest.TestCase):
 
     def test_operational_timezone_and_upstream_are_canonical(self) -> None:
         self.assertEqual(self.manifest["operational_timezone"], OPERATIONAL_TIMEZONE)
+        self.assertEqual(self.manifest["expected_branch"], EXPECTED_BRANCH)
         self.assertEqual(self.manifest["expected_upstream"], EXPECTED_UPSTREAM)
+        self.assertEqual(self.manifest["expected_fetch_refspec"], EXPECTED_FETCH_REFSPEC)
         self.assertEqual(self.manifest["expected_remote_url"], EXPECTED_REMOTE_URL)
         self.assertIn(OPERATIONAL_TIMEZONE, self.contract)
+        self.assertIn(EXPECTED_BRANCH, self.contract)
         self.assertIn(EXPECTED_UPSTREAM, self.contract)
+        self.assertIn(EXPECTED_FETCH_REFSPEC, self.contract)
         self.assertIn(EXPECTED_REMOTE_URL, self.contract)
 
     def test_audited_components_are_closed_and_complete(self) -> None:
@@ -162,6 +205,7 @@ class HermesPackageContractTests(unittest.TestCase):
             ids,
             {
                 "eclass-scan.py",
+                "whatsapp-fgv.py",
                 "eclass",
                 "fgv-eclass-api",
                 "fgv-briefing",
@@ -185,7 +229,7 @@ class HermesPackageContractTests(unittest.TestCase):
             self.assertIn("hermes_catalog_query.py", payload, component["id"])
             self.assertNotIn("carregue o catálogo completo", payload.lower())
             query_marked += 1
-        self.assertEqual(query_marked, 6)
+        self.assertEqual(query_marked, 7)
 
 
 class HermesAuditTests(unittest.TestCase):
@@ -385,6 +429,34 @@ class HermesAuditTests(unittest.TestCase):
             self.assertIn("missing_bounded_query_call", rules)
             self.assertIn("direct_catalog_access", rules)
 
+    def test_dead_probe_and_constructed_catalog_path_do_not_satisfy_channel_audit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / ".hermes"
+            shutil.copytree(MIGRATED_HOME, home)
+            (home / "scripts/eclass-scan.py").write_text(
+                "import subprocess\n"
+                "from pathlib import Path\n"
+                "def dead_probe():\n"
+                "    return subprocess.run(['python3', '.fgv/scripts/hermes_catalog_query.py', '--vault', '/root/vault', '--query-type', 'eclass_material', '--expected-catalog-sha256', '0' * 64])\n"
+                "def main():\n"
+                "    target = Path('/root/vault') / '30 Sistema' / 'Estado' / ('catalog' + '.jsonl')\n"
+                "    target.read_text()\n"
+                "if __name__ == '__main__':\n"
+                "    raise SystemExit(main())\n",
+                encoding="utf-8",
+            )
+            output = Path(tmp) / "audit.json"
+
+            result = self.audit(home, output)
+
+            self.assertEqual(result.returncode, 2)
+            rules = {
+                finding["rule"]
+                for finding in json.loads(output.read_text(encoding="utf-8"))["findings"]
+            }
+            self.assertIn("missing_bounded_query_call", rules)
+            self.assertIn("direct_catalog_access", rules)
+
 
 class HermesCutoverValidationTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -426,6 +498,13 @@ class HermesCutoverValidationTests(unittest.TestCase):
             cwd=self.vault,
             check=True,
         )
+        configure_canonical_fetch_binding(self.vault)
+        self.git_wrapper = install_git_transport_wrapper(Path(self.temporary.name) / "git-wrapper")
+        self.validation_env = os.environ.copy()
+        self.validation_env.update(
+            FGV_TEST_REMOTE_PATH=str(self.remote),
+            PATH=str(self.git_wrapper) + os.pathsep + self.validation_env.get("PATH", ""),
+        )
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -453,6 +532,7 @@ class HermesCutoverValidationTests(unittest.TestCase):
             expected_commit or self.head(),
             "--as-of",
             as_of or self.operational_as_of,
+            env=self.validation_env,
         )
 
     def test_old_fixture_is_blocked_and_migrated_fixture_is_ready(self) -> None:
@@ -562,7 +642,7 @@ class HermesCutoverValidationTests(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "ahead only"], cwd=self.vault, check=True, capture_output=True)
         ahead = self.validate(MIGRATED_HOME)
         self.assertNotEqual(ahead.returncode, 0)
-        self.assertIn("upstream commit", ahead.stdout)
+        self.assertIn("authenticated remote branch", ahead.stdout)
 
         set_fixture_as_of(self.vault, stale_as_of)
         subprocess.run(["git", "add", "30 Sistema/Estado"], cwd=self.vault, check=True)
@@ -599,6 +679,12 @@ class HermesCutoverValidationTests(unittest.TestCase):
         )
         subprocess.run(["git", "add", ".fgv/scripts/generate_state.py"], cwd=self.vault, check=True)
         subprocess.run(["git", "commit", "-m", "mutating gate"], cwd=self.vault, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "push", str(self.remote), "HEAD:refs/heads/codex/vault-plan-b"],
+            cwd=self.vault,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "update-ref", "refs/remotes/origin/codex/vault-plan-b", "HEAD"],
             cwd=self.vault,
@@ -639,6 +725,34 @@ class HermesCutoverValidationTests(unittest.TestCase):
         subprocess.run(["git", "config", "--add", "remote.origin.pushurl", EXPECTED_REMOTE_URL], cwd=self.vault, check=True)
         subprocess.run(["git", "config", "--add", "remote.origin.pushurl", EXPECTED_REMOTE_URL], cwd=self.vault, check=True)
         self.assertNotEqual(self.validate(MIGRATED_HOME).returncode, 0)
+
+    def test_cutover_rejects_evil_source_mapped_to_canonical_tracking_ref(self) -> None:
+        subprocess.run(
+            ["git", "config", "branch.codex/vault-plan-b.merge", "refs/heads/evil"],
+            cwd=self.vault,
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git", "config", "remote.origin.fetch",
+                "+refs/heads/evil:refs/remotes/origin/codex/vault-plan-b",
+            ],
+            cwd=self.vault,
+            check=True,
+        )
+        upstream = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+            cwd=self.vault,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+        self.assertEqual(upstream, EXPECTED_UPSTREAM)
+
+        result = self.validate(MIGRATED_HOME)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("branch source", result.stdout)
 
 
 class HermesSyncTests(unittest.TestCase):
@@ -689,6 +803,7 @@ class HermesSyncTests(unittest.TestCase):
             cwd=self.vault,
             check=True,
         )
+        configure_canonical_fetch_binding(self.vault)
         self.lock = self.base / "sync.lock"
         self.transport_remote = self.remote
         self.git_wrapper = install_git_transport_wrapper(self.base / "git-wrapper")
@@ -1008,6 +1123,43 @@ class HermesSyncTests(unittest.TestCase):
                 finally:
                     restore()
 
+    def test_all_operations_reject_evil_source_mapped_to_canonical_tracking_ref(self) -> None:
+        subprocess.run(
+            ["git", "config", "branch.codex/vault-plan-b.merge", "refs/heads/evil"],
+            cwd=self.vault,
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git", "config", "remote.origin.fetch",
+                "+refs/heads/evil:refs/remotes/origin/codex/vault-plan-b",
+            ],
+            cwd=self.vault,
+            check=True,
+        )
+        upstream = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+            cwd=self.vault,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+        self.assertEqual(upstream, EXPECTED_UPSTREAM)
+
+        operations = (
+            ("status",),
+            ("refresh",),
+            ("publish", "--message", "blocked", "--path", "note.md"),
+        )
+        for arguments in operations:
+            with self.subTest(operation=arguments[0]):
+                result = self.sync(*arguments)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(
+                    json.loads(result.stdout)["reason"],
+                    {"upstream_mismatch", "repository_binding_changed"},
+                )
+
     def test_dirty_refresh_fails_without_modifying_files(self) -> None:
         target = self.vault / "note.md"
         target.write_text("dirty\n", encoding="utf-8")
@@ -1159,6 +1311,7 @@ class HermesSyncTests(unittest.TestCase):
         self.assertIn("OPERATIONAL_TIMEZONE=America/Sao_Paulo", script)
         self.assertIn("AS_OF_DATE=${FGV_AS_OF_DATE:-$(TZ=$OPERATIONAL_TIMEZONE date +%F)}", script)
         self.assertNotIn("date -u +%F", script)
+        self.assertIn('git fetch --prune origin "$EXPECTED_FETCH_REFSPEC"', script)
         self.assertIn("Environment=TZ=America/Sao_Paulo", service)
 
     def test_explicit_stale_operational_date_is_blocked(self) -> None:
@@ -1237,21 +1390,42 @@ class HermesReadinessTests(unittest.TestCase):
         shutil.copyfile(HERMES_DIR / "retrieval-queries.json", self.package_queries)
         package_state = self.package_root / "30 Sistema/Estado"
         package_state.mkdir(parents=True)
+        package_scripts = self.package_root / ".fgv/scripts"
+        package_scripts.mkdir(parents=True)
+        shutil.copyfile(SCRIPTS / "hermes_catalog_query.py", package_scripts / "hermes_catalog_query.py")
+        shutil.copyfile(SCRIPTS / "hermes_common.py", package_scripts / "hermes_common.py")
+        academic_payloads = {
+            path: f"fixture:{query_id}\n".encode("utf-8")
+            for query_id, path in LIVE_QUERY_EXPECTED.items()
+        }
+        for relative, payload in academic_payloads.items():
+            target = self.package_root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(payload)
+
+        def package_file_sha(relative: str) -> str:
+            return "sha256:" + hashlib.sha256((self.package_root / relative).read_bytes()).hexdigest()
+
         package_catalog_records = [
             {"as_of": self.operational_as_of, "record_type": "manifest", "schema_version": 1},
-            {"date": "2026-08-20", "path": LIVE_QUERY_EXPECTED["ultima-aula-matematica"], "record_type": "file", "schema_version": 1, "sha256": "sha256:" + "1" * 64, "subject_ids": ["matematica-aplicada"]},
-            {"date": "2026-08-20", "path": LIVE_QUERY_EXPECTED["transcrito-matematica"], "record_type": "file", "schema_version": 1, "sha256": "sha256:" + "2" * 64, "subject_ids": ["matematica-aplicada"]},
-            {"path": LIVE_QUERY_EXPECTED["proxima-avaliacao"], "record_type": "file", "schema_version": 1, "sha256": "sha256:" + "3" * 64, "subject_ids": []},
-            {"date": "2026-08-18", "path": LIVE_QUERY_EXPECTED["material-eclass"], "record_type": "file", "schema_version": 1, "sha256": "sha256:" + "4" * 64, "subject_ids": ["estatistica-2"]},
-            {"path": LIVE_QUERY_EXPECTED["conceito-gap"], "record_type": "file", "schema_version": 1, "sha256": "sha256:" + "5" * 64, "subject_ids": []},
+            {"date": "2026-08-20", "path": LIVE_QUERY_EXPECTED["ultima-aula-matematica"], "record_type": "file", "schema_version": 1, "sha256": package_file_sha(LIVE_QUERY_EXPECTED["ultima-aula-matematica"]), "subject_ids": ["matematica-aplicada"]},
+            {"date": "2026-08-20", "path": LIVE_QUERY_EXPECTED["transcrito-matematica"], "record_type": "file", "schema_version": 1, "sha256": package_file_sha(LIVE_QUERY_EXPECTED["transcrito-matematica"]), "subject_ids": ["matematica-aplicada"]},
+            {"path": LIVE_QUERY_EXPECTED["proxima-avaliacao"], "record_type": "file", "schema_version": 1, "sha256": package_file_sha(LIVE_QUERY_EXPECTED["proxima-avaliacao"]), "subject_ids": []},
+            {"date": "2026-08-18", "path": LIVE_QUERY_EXPECTED["material-eclass"], "record_type": "file", "schema_version": 1, "sha256": package_file_sha(LIVE_QUERY_EXPECTED["material-eclass"]), "subject_ids": ["estatistica-2"]},
+            {"path": LIVE_QUERY_EXPECTED["conceito-gap"], "record_type": "file", "schema_version": 1, "sha256": package_file_sha(LIVE_QUERY_EXPECTED["conceito-gap"]), "subject_ids": []},
             {"description": "Prova", "due": "2026-09-05", "record_type": "task", "schema_version": 1, "source_path": LIVE_QUERY_EXPECTED["proxima-avaliacao"], "status": "todo", "subject_ids": []},
             {"concept": "Dividend Yield", "concept_path": LIVE_QUERY_EXPECTED["conceito-gap"], "last_status": "gap", "record_type": "learning_state", "schema_version": 1, "subject": "financas"},
         ]
-        (package_state / "catalog.jsonl").write_text(
-            "".join(
+        catalog_payload = "".join(
                 json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
                 for record in package_catalog_records
-            ),
+            )
+        (package_state / "catalog.jsonl").write_text(catalog_payload, encoding="utf-8")
+        (package_state / "dashboard-snapshot.md").write_text(
+            "---\n"
+            f"as_of: {self.operational_as_of}\n"
+            f'catalog_sha256: "sha256:{hashlib.sha256(catalog_payload.encode("utf-8")).hexdigest()}"\n'
+            "---\n",
             encoding="utf-8",
         )
         manifest_hash = hashlib.sha256(self.manifest.read_bytes()).hexdigest()
@@ -1268,34 +1442,85 @@ class HermesReadinessTests(unittest.TestCase):
         }, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         bundle_hash = hashlib.sha256(self.bundle.read_bytes()).hexdigest()
 
+        self.package_remote = self.base / "package-origin.git"
+        subprocess.run(
+            ["git", "init", "--bare", str(self.package_remote)], check=True, capture_output=True
+        )
+        subprocess.run(["git", "init"], cwd=self.package_root, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "fixture@example.invalid"],
+            cwd=self.package_root,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Fixture"], cwd=self.package_root, check=True
+        )
+        subprocess.run(["git", "add", "."], cwd=self.package_root, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "package"],
+            cwd=self.package_root,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "branch", "-M", EXPECTED_BRANCH], cwd=self.package_root, check=True
+        )
+        subprocess.run(
+            ["git", "remote", "add", "origin", str(self.package_remote)],
+            cwd=self.package_root,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "push", "-u", "origin", EXPECTED_BRANCH],
+            cwd=self.package_root,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "remote", "set-url", "origin", EXPECTED_REMOTE_URL],
+            cwd=self.package_root,
+            check=True,
+        )
+        configure_canonical_fetch_binding(self.package_root)
+        self.tested_commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=self.package_root,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+        self.git_wrapper = install_git_transport_wrapper(self.base / "readiness-git-wrapper")
+        self.validation_env = os.environ.copy()
+        self.validation_env.update(
+            FGV_TEST_REMOTE_PATH=str(self.package_remote),
+            PATH=str(self.git_wrapper) + os.pathsep + self.validation_env.get("PATH", ""),
+        )
+
         self.evidence_dir = self.base / "evidence"
         self.evidence_dir.mkdir()
         self.channel_query_artifacts: dict[str, Path] = {}
         channel_specs = {
-            "eclass_smoke": ("eclass_material", "estatistica-2"),
-            "whatsapp_smoke": ("latest_class", "matematica-aplicada"),
+            "eclass_smoke": ("eclass", "scripts/eclass-scan.py", LIVE_QUERY_EXPECTED["material-eclass"]),
+            "whatsapp_smoke": ("whatsapp", "scripts/whatsapp-fgv.py", LIVE_QUERY_EXPECTED["ultima-aula-matematica"]),
         }
-        channel_query_metadata: dict[str, tuple[Path, str, int, int, int]] = {}
-        for evidence_id, (query_type, subject_id) in channel_specs.items():
-            query_result = run_python(
-                "hermes_catalog_query.py",
-                "--vault", str(self.package_root),
-                "--query-type", query_type,
-                "--subject-id", subject_id,
-            )
-            self.assertEqual(query_result.returncode, 0, query_result.stdout + query_result.stderr)
+        channel_receipts: dict[str, dict[str, object]] = {}
+        for evidence_id, (channel_id, entrypoint, expected_path) in channel_specs.items():
             artifact = self.evidence_dir / f"{evidence_id}-catalog-query.json"
-            artifact.write_bytes(query_result.stdout.encode("utf-8"))
-            self.channel_query_artifacts[evidence_id] = artifact
-            artifact_payload = artifact.read_bytes()
-            candidates = json.loads(artifact_payload)["candidates"]
-            channel_query_metadata[evidence_id] = (
-                artifact,
-                hashlib.sha256(artifact_payload).hexdigest(),
-                len(artifact_payload),
-                len(artifact_payload.splitlines()),
-                len(candidates),
+            smoke_result = run_python(
+                "hermes_channel_smoke.py",
+                "--channel-id", channel_id,
+                "--entrypoint", entrypoint,
+                "--hermes-home", str(self.hermes_home),
+                "--vault", str(self.package_root),
+                "--tested-commit", self.tested_commit,
+                "--as-of", self.operational_as_of,
+                "--expected-path", expected_path,
+                "--artifact-out", str(artifact),
+                env=self.validation_env,
             )
+            self.assertEqual(smoke_result.returncode, 0, smoke_result.stdout + smoke_result.stderr)
+            self.channel_query_artifacts[evidence_id] = artifact
+            channel_receipts[evidence_id] = json.loads(smoke_result.stdout)
         retrieval_queries = [
             {
                 "bytes_opened": 100 + index,
@@ -1317,53 +1542,23 @@ class HermesReadinessTests(unittest.TestCase):
                 "schema_version": 1,
                 "status": "ready",
                 "failures": [],
-                "vault_commit": TEST_COMMIT,
+                "vault_commit": self.tested_commit,
                 "manifest_sha256": manifest_hash,
                 "operational_as_of": self.operational_as_of,
                 "upstream": EXPECTED_UPSTREAM,
                 "origin_url": EXPECTED_REMOTE_URL,
             },
             "retrieval_smoke": {
-                "status": "pass", "as_of_commit": TEST_COMMIT, "sync_state": "clean",
+                "status": "pass", "as_of_commit": self.tested_commit, "sync_state": "clean",
                 "stale": False, "fixture_mode": False, "state_check": "pass",
                 "operational_as_of": self.operational_as_of,
                 "upstream": EXPECTED_UPSTREAM,
                 "origin_url": EXPECTED_REMOTE_URL,
                 "queries": retrieval_queries,
             },
-            "test_suite": {"status": "pass", "tested_commit": TEST_COMMIT, "failures": 0},
-            "eclass_smoke": {
-                "status": "pass", "tested_commit": TEST_COMMIT,
-                "operational_as_of": self.operational_as_of,
-                "upstream": EXPECTED_UPSTREAM, "origin_url": EXPECTED_REMOTE_URL,
-                "query_id": "material-eclass",
-                "selected_path": LIVE_QUERY_EXPECTED["material-eclass"],
-                "opened_files": [LIVE_QUERY_EXPECTED["material-eclass"]],
-                "matched": True, "steps": LIVE_QUERY_STEPS,
-                "catalog_query_artifact": str(channel_query_metadata["eclass_smoke"][0]),
-                "catalog_query_sha256": channel_query_metadata["eclass_smoke"][1],
-                "catalog_query_bytes": channel_query_metadata["eclass_smoke"][2],
-                "catalog_query_lines": channel_query_metadata["eclass_smoke"][3],
-                "candidate_count": channel_query_metadata["eclass_smoke"][4],
-                "full_catalog_in_context": False,
-                "filesystem_scan": False,
-            },
-            "whatsapp_smoke": {
-                "status": "pass", "tested_commit": TEST_COMMIT,
-                "operational_as_of": self.operational_as_of,
-                "upstream": EXPECTED_UPSTREAM, "origin_url": EXPECTED_REMOTE_URL,
-                "query_id": "ultima-aula-matematica",
-                "selected_path": LIVE_QUERY_EXPECTED["ultima-aula-matematica"],
-                "opened_files": [LIVE_QUERY_EXPECTED["ultima-aula-matematica"]],
-                "matched": True, "steps": LIVE_QUERY_STEPS,
-                "catalog_query_artifact": str(channel_query_metadata["whatsapp_smoke"][0]),
-                "catalog_query_sha256": channel_query_metadata["whatsapp_smoke"][1],
-                "catalog_query_bytes": channel_query_metadata["whatsapp_smoke"][2],
-                "catalog_query_lines": channel_query_metadata["whatsapp_smoke"][3],
-                "candidate_count": channel_query_metadata["whatsapp_smoke"][4],
-                "full_catalog_in_context": False,
-                "filesystem_scan": False,
-            },
+            "test_suite": {"status": "pass", "tested_commit": self.tested_commit, "failures": 0},
+            "eclass_smoke": channel_receipts["eclass_smoke"],
+            "whatsapp_smoke": channel_receipts["whatsapp_smoke"],
         }
         evidence: dict[str, dict[str, str]] = {}
         self.evidence_paths: dict[str, Path] = {}
@@ -1379,7 +1574,7 @@ class HermesReadinessTests(unittest.TestCase):
             "host_role": "hermes-vps",
             "recommendation": "READY",
             "production_commit": self.production_commit,
-            "tested_commit": TEST_COMMIT,
+            "tested_commit": self.tested_commit,
             "operational_as_of": self.operational_as_of,
             "expected_upstream": EXPECTED_UPSTREAM,
             "expected_remote_url": EXPECTED_REMOTE_URL,
@@ -1393,7 +1588,7 @@ class HermesReadinessTests(unittest.TestCase):
             "untracked": {"inventory_sha256": empty_inventory, "files": [], "preserved": True, "classified": True},
             "findings": {"required_remaining": 0, "warnings": 0},
             "component_results": {name: "pass" for name in (
-                "eclass-scan.py", "eclass", "fgv-eclass-api", "fgv-briefing",
+                "eclass-scan.py", "whatsapp-fgv.py", "eclass", "fgv-eclass-api", "fgv-briefing",
                 "academic-reading-notes", "memory", "cronjobs"
             )},
             "smoke_tests": {"academic_retrieval": "pass", "eclass": "pass", "whatsapp": "pass"},
@@ -1418,13 +1613,15 @@ class HermesReadinessTests(unittest.TestCase):
         return run_python(
             "validate_hermes_readiness.py",
             "--report", str(path),
-            "--tested-commit", TEST_COMMIT,
+            "--tested-commit", self.tested_commit,
             "--as-of", self.operational_as_of,
             "--manifest", str(self.manifest),
             "--production-vault", str(self.production),
             "--hermes-home", str(self.hermes_home),
+            "--staging-hermes", str(self.hermes_home),
             "--bundle", str(self.bundle),
             "--expected-report-sha256", checksum,
+            env=self.validation_env,
         )
 
     def replace_retrieval_evidence(self, value: dict[str, object]) -> dict[str, object]:
@@ -1536,7 +1733,7 @@ class HermesReadinessTests(unittest.TestCase):
                 original = {
                     "cutover_validation": {
                         "schema_version": 1, "status": "ready", "failures": [],
-                        "vault_commit": TEST_COMMIT, "manifest_sha256": self.report["package_manifest_sha256"],
+                        "vault_commit": self.tested_commit, "manifest_sha256": self.report["package_manifest_sha256"],
                         "operational_as_of": self.operational_as_of,
                         "upstream": EXPECTED_UPSTREAM, "origin_url": EXPECTED_REMOTE_URL,
                     },
@@ -1547,6 +1744,34 @@ class HermesReadinessTests(unittest.TestCase):
                 if evidence_id == "retrieval_smoke":
                     original[field] = self.operational_as_of
                 path.write_text(json.dumps(original, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+
+    def test_readiness_rejects_evil_source_mapped_to_canonical_tracking_ref(self) -> None:
+        subprocess.run(
+            ["git", "config", "branch.codex/vault-plan-b.merge", "refs/heads/evil"],
+            cwd=self.package_root,
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git", "config", "remote.origin.fetch",
+                "+refs/heads/evil:refs/remotes/origin/codex/vault-plan-b",
+            ],
+            cwd=self.package_root,
+            check=True,
+        )
+        upstream = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+            cwd=self.package_root,
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
+        self.assertEqual(upstream, EXPECTED_UPSTREAM)
+
+        result = self.validate(self.report)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("staging", result.stdout)
 
     def test_catalog_query_budget_is_closed_and_enforced(self) -> None:
         base = json.loads(self.evidence_paths["retrieval_smoke"].read_text(encoding="utf-8"))
@@ -1567,8 +1792,11 @@ class HermesReadinessTests(unittest.TestCase):
             ("catalog_query_bytes", MAX_CATALOG_QUERY_BYTES + 1),
             ("catalog_query_lines", 2),
             ("candidate_count", MAX_CATALOG_CANDIDATES + 1),
-            ("full_catalog_in_context", True),
-            ("filesystem_scan", True),
+            ("challenge_sha256", "0" * 64),
+            ("consumed_stdout_sha256", "0" * 64),
+            ("entrypoint_sha256", "0" * 64),
+            ("entrypoint_path", "scripts/missing.py"),
+            ("channel_id", "wrong-channel"),
             ("upstream", "origin/wrong"),
             ("query_id", "wrong-query"),
             ("selected_path", "10 Matérias/decoy.md"),
@@ -1616,6 +1844,24 @@ class HermesReadinessTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("evidence:eclass_smoke", result.stdout)
 
+    def test_readiness_executes_channel_entrypoint_and_rejects_dead_probe(self) -> None:
+        entrypoint = self.hermes_home / "scripts/eclass-scan.py"
+        entrypoint.write_text(
+            "import subprocess\n"
+            "def dead_probe():\n"
+            "    return subprocess.run(['python3', '.fgv/scripts/hermes_catalog_query.py', '--vault', '/root/vault', '--query-type', 'eclass_material', '--expected-catalog-sha256', '0' * 64])\n"
+            "def main():\n"
+            "    return 0\n"
+            "if __name__ == '__main__':\n"
+            "    raise SystemExit(main())\n",
+            encoding="utf-8",
+        )
+
+        result = self.validate(self.report)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("evidence:eclass_smoke", result.stdout)
+
     def test_stale_report_untracked_production_or_tampered_evidence_is_blocked(self) -> None:
         report = dict(self.report)
         report["timestamp_utc"] = "2026-08-28T12:00:00Z"
@@ -1652,7 +1898,8 @@ class HermesPromptTests(unittest.TestCase):
             "não altere produção", "SHA-256", "untracked", "clone separado", "cópia",
             "audit_hermes.py", "Eclass", "WhatsApp", "busca acadêmica", "READY", "BLOCKED",
             "OPERATIONAL_AS_OF", EXPECTED_UPSTREAM, EXPECTED_REMOTE_URL,
-            "hermes_catalog_query.py", "catálogo completo",
+            EXPECTED_FETCH_REFSPEC, "hermes_catalog_query.py", "hermes_channel_smoke.py",
+            "--staging-hermes", "catálogo completo",
         ):
             self.assertIn(marker, self.prepare)
 
@@ -1661,6 +1908,7 @@ class HermesPromptTests(unittest.TestCase):
             "validate_hermes_readiness.py", "tested_commit", "READY", "working tree",
             "fgv-sync", "smoke", "rollback", "cron", "nunca use force push",
             "OPERATIONAL_AS_OF", EXPECTED_UPSTREAM, EXPECTED_REMOTE_URL,
+            EXPECTED_FETCH_REFSPEC, "hermes_channel_smoke.py", "--staging-hermes",
         ):
             self.assertIn(marker, self.cutover)
         self.assertLess(self.cutover.index("validate_hermes_readiness.py"), self.cutover.index("Primeira mutação"))
@@ -1672,6 +1920,7 @@ class HermesPromptTests(unittest.TestCase):
             "operational_as_of", "expected_upstream", "expected_remote_url",
             "catalog_query_bytes", "catalog_query_lines", "candidate_count",
             "catalog_query_artifact", "catalog_query_sha256", "byte a byte",
+            "entrypoint_sha256", "challenge_sha256", "consumed_stdout_sha256",
         ):
             self.assertIn(marker, self.template)
 
@@ -1713,7 +1962,7 @@ class HermesBundleTests(unittest.TestCase):
 
 
 class HermesRetrievalSmokeTests(unittest.TestCase):
-    def make_vault(self, parent: Path, live_queries: bool) -> tuple[Path, str]:
+    def make_vault(self, parent: Path, live_queries: bool) -> tuple[Path, str, Path]:
         vault = parent / "vault"
         shutil.copytree(RETRIEVAL_VAULT, vault)
         operational_as_of = current_operational_as_of()
@@ -1771,14 +2020,25 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
             capture_output=True,
         )
         subprocess.run(["git", "remote", "set-url", "origin", EXPECTED_REMOTE_URL], cwd=vault, check=True)
+        configure_canonical_fetch_binding(vault)
         actual_commit = subprocess.run(
             ["git", "rev-parse", "HEAD"], cwd=vault, text=True, capture_output=True, check=True
         ).stdout.strip()
-        return vault, actual_commit
+        return vault, actual_commit, remote
+
+    def smoke_env(self, parent: Path, remote: Path) -> dict[str, str]:
+        wrapper = install_git_transport_wrapper(parent / "smoke-git-wrapper")
+        environment = os.environ.copy()
+        environment.update(
+            FGV_TEST_REMOTE_PATH=str(remote),
+            PATH=str(wrapper) + os.pathsep + environment.get("PATH", ""),
+        )
+        return environment
 
     def test_queries_are_catalog_first_exact_and_provenanced(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            vault, actual_commit = self.make_vault(Path(tmp), live_queries=False)
+            parent = Path(tmp)
+            vault, actual_commit, remote = self.make_vault(parent, live_queries=False)
             result = run_python(
                 "hermes_retrieval_smoke.py",
                 "--vault", str(vault),
@@ -1786,6 +2046,7 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--expected-commit", TEST_COMMIT,
                 "--as-of", current_operational_as_of(),
                 "--fixture-mode",
+                env=self.smoke_env(parent, remote),
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             report = json.loads(result.stdout)
@@ -1796,7 +2057,10 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
             self.assertTrue(report["fixture_mode"])
             self.assertEqual(report["operational_as_of"], current_operational_as_of())
             for query in report["queries"]:
-                self.assertEqual(query["steps"][:2], ["catalog_query", "dashboard_snapshot"])
+                self.assertEqual(
+                    query["steps"][:3],
+                    ["dashboard_snapshot", "catalog_query", "dashboard_snapshot_recheck"],
+                )
                 self.assertLessEqual(len(query["opened_files"]), 1)
                 self.assertNotIn("filesystem_scan", query["steps"])
                 self.assertTrue(query["matched"])
@@ -1816,7 +2080,9 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
         for query in live_queries:
             self.assertTrue((ROOT / query["expected_path"]).is_file(), query["expected_path"])
         with tempfile.TemporaryDirectory() as tmp:
-            vault, actual_commit = self.make_vault(Path(tmp), live_queries=True)
+            parent = Path(tmp)
+            vault, actual_commit, remote = self.make_vault(parent, live_queries=True)
+            smoke_env = self.smoke_env(parent, remote)
             canonical_queries = vault / "30 Sistema/Hermes/retrieval-queries.json"
             fresh = run_python(
                 "hermes_retrieval_smoke.py",
@@ -1824,6 +2090,7 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--queries", str(canonical_queries),
                 "--expected-commit", actual_commit,
                 "--as-of", current_operational_as_of(),
+                env=smoke_env,
             )
             self.assertEqual(fresh.returncode, 0, fresh.stdout + fresh.stderr)
             self.assertEqual(json.loads(fresh.stdout)["sync_state"], "clean")
@@ -1839,6 +2106,7 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--queries", str(canonical_queries),
                 "--expected-commit", actual_commit,
                 "--as-of", current_operational_as_of(),
+                env=smoke_env,
             )
             self.assertNotEqual(wrong_push_remote.returncode, 0)
             self.assertIn("push URL", wrong_push_remote.stdout)
@@ -1858,11 +2126,49 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--queries", str(canonical_queries),
                 "--expected-commit", actual_commit,
                 "--as-of", current_operational_as_of(),
+                env=smoke_env,
             )
             self.assertNotEqual(rewritten_remote.returncode, 0)
             self.assertIn("rewrite", rewritten_remote.stdout)
             subprocess.run(
                 ["git", "config", "--unset-all", rewrite_key], cwd=vault, check=True
+            )
+
+            subprocess.run(
+                ["git", "config", "branch.codex/vault-plan-b.merge", "refs/heads/evil"],
+                cwd=vault,
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "git", "config", "remote.origin.fetch",
+                    "+refs/heads/evil:refs/remotes/origin/codex/vault-plan-b",
+                ],
+                cwd=vault,
+                check=True,
+            )
+            evil_source = run_python(
+                "hermes_retrieval_smoke.py",
+                "--vault", str(vault),
+                "--queries", str(canonical_queries),
+                "--expected-commit", actual_commit,
+                "--as-of", current_operational_as_of(),
+                env=smoke_env,
+            )
+            self.assertNotEqual(evil_source.returncode, 0)
+            self.assertIn("branch source", evil_source.stdout)
+            subprocess.run(
+                [
+                    "git", "config", "branch.codex/vault-plan-b.merge",
+                    "refs/heads/codex/vault-plan-b",
+                ],
+                cwd=vault,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "remote.origin.fetch", EXPECTED_FETCH_REFSPEC],
+                cwd=vault,
+                check=True,
             )
 
             stale = run_python(
@@ -1871,6 +2177,7 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--queries", str(canonical_queries),
                 "--expected-commit", TEST_COMMIT,
                 "--as-of", current_operational_as_of(),
+                env=smoke_env,
             )
             self.assertNotEqual(stale.returncode, 0)
             stale_report = json.loads(stale.stdout)
@@ -1886,6 +2193,7 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--queries", str(canonical_queries),
                 "--expected-commit", actual_commit,
                 "--as-of", stale_date,
+                env=smoke_env,
             )
             self.assertNotEqual(stale_snapshot.returncode, 0)
             self.assertIn("as_of", stale_snapshot.stdout)
@@ -1913,12 +2221,75 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 "--queries", str(canonical_queries),
                 "--expected-commit", stale_commit,
                 "--as-of", current_operational_as_of(),
+                env=smoke_env,
             )
             self.assertNotEqual(stale_current.returncode, 0)
             self.assertIn("catalog as_of", stale_current.stdout)
 
+    def test_smoke_rejects_catalog_swap_after_snapshot_authentication(self) -> None:
+        import hermes_retrieval_smoke as smoke_module
+
+        with tempfile.TemporaryDirectory() as tmp:
+            parent = Path(tmp)
+            vault, actual_commit, remote = self.make_vault(parent, live_queries=True)
+            canonical_queries = vault / "30 Sistema/Hermes/retrieval-queries.json"
+            query_payload = canonical_queries.read_bytes()
+            target_relative = str(json.loads(query_payload)[0]["expected_path"])
+
+            def swap_catalog(_args: object) -> bytes:
+                target = vault / target_relative
+                target.write_text("# conteúdo trocado após autenticação\n", encoding="utf-8")
+                catalog = vault / "30 Sistema/Estado/catalog.jsonl"
+                records = [json.loads(line) for line in catalog.read_text(encoding="utf-8").splitlines()]
+                for record in records:
+                    if record.get("record_type") == "file" and record.get("path") == target_relative:
+                        record["sha256"] = "sha256:" + hashlib.sha256(target.read_bytes()).hexdigest()
+                catalog.write_text(
+                    "".join(
+                        json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+                        for record in records
+                    ),
+                    encoding="utf-8",
+                )
+                return query_payload
+
+            argv = [
+                "hermes_retrieval_smoke.py",
+                "--vault", str(vault),
+                "--queries", str(canonical_queries),
+                "--expected-commit", actual_commit,
+                "--as-of", current_operational_as_of(),
+            ]
+            output = io.StringIO()
+            environment = self.smoke_env(parent, remote)
+            with (
+                mock.patch.object(smoke_module, "load_queries", side_effect=swap_catalog),
+                mock.patch.object(smoke_module.sys, "argv", argv),
+                mock.patch.dict(os.environ, environment, clear=True),
+                redirect_stdout(output),
+            ):
+                returncode = smoke_module.main()
+
+        report = json.loads(output.getvalue())
+        self.assertNotEqual(returncode, 0)
+        self.assertEqual(report["status"], "blocked")
+        self.assertIn("catalog", report["reason"])
+
 
 class HermesCatalogQueryTests(unittest.TestCase):
+    def test_query_rejects_catalog_hash_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = Path(tmp) / "vault"
+            shutil.copytree(RETRIEVAL_VAULT, vault)
+            result = run_python(
+                "hermes_catalog_query.py",
+                "--vault", str(vault),
+                "--query-type", "latest_class",
+                "--expected-catalog-sha256", "0" * 64,
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("changed after snapshot", result.stdout)
+
     def test_query_returns_only_manifest_and_bounded_direct_lesson_candidates(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             vault = Path(tmp) / "vault"
@@ -1944,6 +2315,7 @@ class HermesCatalogQueryTests(unittest.TestCase):
                 "--query-type", "latest_class",
                 "--subject-id", "contabilidade-financeira",
                 "--limit", str(MAX_CATALOG_CANDIDATES),
+                "--expected-catalog-sha256", hashlib.sha256(catalog.read_bytes()).hexdigest(),
             )
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -1987,12 +2359,14 @@ class HermesCatalogQueryTests(unittest.TestCase):
                 "--vault", str(vault),
                 "--query-type", "eclass_material",
                 "--subject-id", "contabilidade-financeira",
+                "--expected-catalog-sha256", hashlib.sha256(catalog.read_bytes()).hexdigest(),
             )
             mastery = run_python(
                 "hermes_catalog_query.py",
                 "--vault", str(vault),
                 "--query-type", "low_mastery_concept",
                 "--subject-id", "estatistica-2",
+                "--expected-catalog-sha256", hashlib.sha256(catalog.read_bytes()).hexdigest(),
             )
 
         self.assertEqual(material.returncode, 0, material.stdout + material.stderr)

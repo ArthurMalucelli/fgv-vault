@@ -8,11 +8,12 @@ Este contrato vale para toda resposta acadêmica, captura do Eclass, briefing, m
 
 Em cada pergunta acadêmica, o Hermes segue esta ordem fechada:
 
-1. Executa `.fgv/scripts/hermes_catalog_query.py` para ler `30 Sistema/Estado/catalog.jsonl` fora do contexto do modelo e devolver apenas o manifesto e no máximo cinco candidatos.
-2. Lê `30 Sistema/Estado/dashboard-snapshot.md` e valida o hash do catálogo informado no cabeçalho.
-3. Seleciona um caminho exato do catálogo e abre um único arquivo exato, quando o corpo for necessário.
+1. Lê `30 Sistema/Estado/dashboard-snapshot.md` e extrai o hash autenticador do catálogo.
+2. Executa `.fgv/scripts/hermes_catalog_query.py --expected-catalog-sha256 <hash>` para ler `30 Sistema/Estado/catalog.jsonl` fora do contexto do modelo e devolver apenas o manifesto e no máximo cinco candidatos.
+3. Relê o snapshot e bloqueia se o catálogo, seu hash ou o checkout mudaram durante a consulta.
+4. Seleciona um caminho exato do catálogo e abre um único arquivo exato, quando o corpo for necessário.
 
-O JSON do query local tem uma linha, no máximo 16 KiB e no máximo cinco candidatos. O catálogo completo nunca é injetado no prompt, na memória ou no contexto do modelo. Skills acadêmicas, Eclass e WhatsApp usam o mesmo comando determinístico e não acessam `catalog.jsonl` diretamente. O comando pode percorrer o JSONL internamente, mas não varre o vault. Evidências de canal preservam o stdout bruto desse comando e seu SHA-256; o readiness repete a query no staging e exige igualdade byte a byte.
+O JSON do query local tem uma linha, no máximo 16 KiB e no máximo cinco candidatos. O catálogo completo nunca é injetado no prompt, na memória ou no contexto do modelo. Skills acadêmicas, Eclass e WhatsApp usam o mesmo comando determinístico e não acessam `catalog.jsonl` diretamente. O comando pode percorrer o JSONL internamente, mas não varre o vault. Toda execução recebe o SHA-256 extraído do mesmo snapshot e falha se uma releitura do catálogo divergir. Evidências de canal são produzidas por `hermes_channel_smoke.py`, que executa o entrypoint staging real com um challenge, captura o stdout bruto, prova o consumo pelo mesmo SHA-256 e abre o path exato. O readiness reexecuta o entrypoint e exige receipt e bytes idênticos. Probes mortos e JSON preparado fora do fluxo não autorizam cutover.
 
 Uma busca ampla só é permitida como fallback declarado quando o catálogo não contém candidato. O fallback é limitado a `00 Home/`, `10 Matérias/`, `20 Conhecimento/` e `90 Arquivo/`. Nunca varre `.fgv/`, `30 Sistema/Plans/`, `30 Sistema/Specs/`, `.git/` ou `.obsidian/` como conteúdo acadêmico.
 
@@ -31,7 +32,7 @@ sync_state: clean | dirty | stale | unknown
 
 Se houver mudança local, o Hermes usa `sync_state: dirty`, mesmo quando essa mudança também faria o check do estado falhar. Se o commit local estiver atrás ou o check do estado falhar numa árvore limpa, usa `sync_state: stale`. Se o fetch autenticado ou a relação entre commits não puder ser verificada, usa `sync_state: unknown`. Em qualquer caso diferente de `clean`, informa a limitação antes da resposta e não apresenta conteúdo como atual. `sync-status.json`, quando materializado por operação, é apenas um snapshot do status do owner e nunca substitui a verificação do checkout.
 
-O checkout canônico usa a branch local `codex/vault-plan-b` e exatamente o upstream `origin/codex/vault-plan-b`. O remote `origin` tem uma única fetch URL e no máximo uma push URL, ambas normalizadas para `https://github.com/ArthurMalucelli/fgv-vault.git`, sem credenciais, query string ou fragmento embutido. Rewrites `insteadOf` e `pushInsteadOf`, `branch.pushRemote`, `remote.pushDefault` e listas múltiplas são proibidos. Cada gate revalida esse binding antes da próxima mutação. `status`, `refresh`, `publish`, smoke, readiness e cutover bloqueiam qualquer outro binding.
+O checkout canônico usa a branch local `codex/vault-plan-b` e exatamente o upstream `origin/codex/vault-plan-b`. `branch.codex/vault-plan-b.remote` é somente `origin`, `branch.codex/vault-plan-b.merge` é somente `refs/heads/codex/vault-plan-b` e `remote.origin.fetch` contém somente `+refs/heads/codex/vault-plan-b:refs/remotes/origin/codex/vault-plan-b`. Wildcards, fontes alternativas e refspecs adicionais são proibidos. O remote `origin` tem uma única fetch URL e no máximo uma push URL, ambas normalizadas para `https://github.com/ArthurMalucelli/fgv-vault.git`, sem credenciais, query string ou fragmento embutido. Rewrites `insteadOf` e `pushInsteadOf`, `branch.pushRemote`, `remote.pushDefault` e listas múltiplas são proibidos. Cada gate revalida esse binding antes da próxima mutação. Cutover, smoke e readiness consultam a branch remota canônica com `ls-remote`, comparam o SHA ao checkout e revalidam a configuração. `status`, `refresh`, `publish`, smoke, readiness e cutover bloqueiam qualquer outro binding.
 
 Um PDF e seu arquivo `.extracted.md` são a mesma fonte. O Markdown extraído é canônico para busca; o original serve para conferência. Eles nunca contam como duas evidências independentes.
 

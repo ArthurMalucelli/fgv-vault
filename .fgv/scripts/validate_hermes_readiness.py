@@ -12,18 +12,20 @@ import stat
 import subprocess
 import sys
 
-from hermes_catalog_query import query_catalog
+from hermes_channel_smoke import execute_channel_flow
 from hermes_common import (
     COMMIT_RE,
     HermesError,
     SHA256_RE,
     canonical_json,
+    authenticated_remote_branch_commit,
     load_manifest,
     normalize_remote_url,
     read_relative_file,
     safe_relative,
     sha256_bytes,
     require_current_operational_as_of,
+    validate_repository_binding,
 )
 
 
@@ -103,8 +105,9 @@ RETRIEVAL_QUERY_KEYS = {
     "steps",
 }
 RETRIEVAL_STEPS = [
-    "catalog_query",
     "dashboard_snapshot",
+    "catalog_query",
+    "dashboard_snapshot_recheck",
     "checkout_status",
     "select_exact_path",
     "verify_sha256",
@@ -129,13 +132,17 @@ CHANNEL_SMOKE_KEYS = {
     "catalog_query_bytes",
     "catalog_query_lines",
     "catalog_query_sha256",
-    "filesystem_scan",
-    "full_catalog_in_context",
+    "challenge_sha256",
+    "channel_id",
+    "consumed_stdout_sha256",
+    "entrypoint_path",
+    "entrypoint_sha256",
     "matched",
     "opened_files",
     "operational_as_of",
     "origin_url",
     "query_id",
+    "schema_version",
     "selected_path",
     "status",
     "steps",
@@ -143,8 +150,8 @@ CHANNEL_SMOKE_KEYS = {
     "upstream",
 }
 CHANNEL_QUERY_SPECS = {
-    "eclass_smoke": ("material-eclass", "eclass_material", "estatistica-2"),
-    "whatsapp_smoke": ("ultima-aula-matematica", "latest_class", "matematica-aplicada"),
+    "eclass_smoke": ("eclass", "material-eclass"),
+    "whatsapp_smoke": ("whatsapp", "ultima-aula-matematica"),
 }
 
 
@@ -156,6 +163,7 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--manifest", required=True, type=Path)
     value.add_argument("--production-vault", required=True, type=Path)
     value.add_argument("--hermes-home", required=True, type=Path)
+    value.add_argument("--staging-hermes", required=True, type=Path)
     value.add_argument("--bundle", required=True, type=Path)
     value.add_argument("--expected-report-sha256", required=True)
     return value
@@ -477,6 +485,44 @@ def validate_production_and_backup(report: dict[str, object], vault: Path, herme
     return failures
 
 
+def validate_staging_package(
+    report: dict[str, object], package_root: Path, manifest: dict[str, object]
+) -> list[str]:
+    failures: list[str] = []
+    root = git(package_root, "rev-parse", "--show-toplevel")
+    head = git(package_root, "rev-parse", "HEAD")
+    status = git(package_root, "status", "--porcelain=v1", "--untracked-files=all")
+    if root.returncode != 0 or Path(root.stdout.strip()).resolve() != package_root.resolve():
+        return ["staging_git_root"]
+    if head.returncode != 0 or head.stdout.strip() != report.get("tested_commit"):
+        failures.append("staging_head")
+    if status.returncode != 0 or status.stdout:
+        failures.append("staging_worktree")
+    try:
+        validate_repository_binding(
+            package_root,
+            str(manifest["expected_branch"]),
+            str(manifest["expected_upstream"]),
+            str(manifest["expected_fetch_refspec"]),
+            str(manifest["expected_remote_url"]),
+        )
+        remote_commit = authenticated_remote_branch_commit(
+            package_root, str(manifest["expected_branch"])
+        )
+        validate_repository_binding(
+            package_root,
+            str(manifest["expected_branch"]),
+            str(manifest["expected_upstream"]),
+            str(manifest["expected_fetch_refspec"]),
+            str(manifest["expected_remote_url"]),
+        )
+        if remote_commit != report.get("tested_commit"):
+            failures.append("staging_remote_commit")
+    except HermesError:
+        failures.append("staging_repository_binding")
+    return failures
+
+
 def validate_evidence(
     report: dict[str, object],
     tested_commit: str,
@@ -484,6 +530,7 @@ def validate_evidence(
     operational_as_of: str,
     manifest: dict[str, object],
     package_root: Path,
+    hermes_home: Path,
 ) -> list[str]:
     evidence = report["evidence"]
     if not isinstance(evidence, dict) or set(evidence) != EVIDENCE_IDS:
@@ -580,70 +627,29 @@ def validate_evidence(
         failures.append("evidence:test_suite")
     for evidence_id in ("eclass_smoke", "whatsapp_smoke"):
         value = payloads[evidence_id]
-        expected_query_id, query_type, subject_id = CHANNEL_QUERY_SPECS[evidence_id]
+        channel_id, expected_query_id = CHANNEL_QUERY_SPECS[evidence_id]
         expected_path = live_query_paths[expected_query_id]
-        artifact_valid = False
-        actual_query_bytes = 0
-        actual_query_lines = 0
-        actual_candidate_count = 0
+        runtime_valid = False
         try:
             artifact_path = Path(str(value.get("catalog_query_artifact", "")))
             artifact_payload = stable_payload(
                 artifact_path, f"evidence {evidence_id} catalog query artifact"
             )
-            expected_query, expected_payload = query_catalog(
-                package_root, query_type, subject_id, MAX_CATALOG_CANDIDATES
+            runtime_receipt, runtime_raw = execute_channel_flow(
+                channel_id=channel_id,
+                entrypoint_relative=str(value.get("entrypoint_path", "")),
+                hermes_home=hermes_home,
+                vault=package_root,
+                tested_commit=tested_commit,
+                operational_as_of=operational_as_of,
+                expected_path=expected_path,
             )
-            artifact_query = json_object(
-                artifact_payload, f"evidence {evidence_id} catalog query artifact"
-            )
-            candidates = artifact_query.get("candidates")
-            selected_path = (
-                candidates[0].get("path")
-                if isinstance(candidates, list)
-                and candidates
-                and isinstance(candidates[0], dict)
-                else None
-            )
-            manifest_record = artifact_query.get("manifest")
-            actual_query_bytes = len(artifact_payload)
-            actual_query_lines = len(artifact_payload.splitlines())
-            actual_candidate_count = len(candidates) if isinstance(candidates, list) else 0
-            artifact_valid = (
-                artifact_payload == expected_payload
-                and artifact_query == expected_query
-                and SHA256_RE.fullmatch(str(value.get("catalog_query_sha256"))) is not None
-                and sha256_bytes(artifact_payload) == value.get("catalog_query_sha256")
-                and isinstance(manifest_record, dict)
-                and manifest_record.get("as_of") == operational_as_of
-                and selected_path == expected_path
-                and 0 < actual_query_bytes <= MAX_CATALOG_QUERY_BYTES
-                and actual_query_lines == MAX_CATALOG_QUERY_LINES
-                and 0 < actual_candidate_count <= MAX_CATALOG_CANDIDATES
-            )
+            expected_receipt = dict(runtime_receipt)
+            expected_receipt["catalog_query_artifact"] = str(artifact_path)
+            runtime_valid = artifact_payload == runtime_raw and value == expected_receipt
         except (HermesError, OSError, KeyError, TypeError, AttributeError):
-            artifact_valid = False
-        if set(value) != CHANNEL_SMOKE_KEYS or not (
-            value.get("status") == "pass"
-            and value.get("tested_commit") == tested_commit
-            and value.get("operational_as_of") == operational_as_of
-            and value.get("upstream") == manifest["expected_upstream"]
-            and value.get("origin_url") == manifest["expected_remote_url"]
-            and value.get("query_id") == expected_query_id
-            and value.get("selected_path") == expected_path
-            and value.get("opened_files") == [expected_path]
-            and value.get("matched") is True
-            and value.get("steps") == RETRIEVAL_STEPS
-            and artifact_valid
-            and type(value.get("catalog_query_bytes")) is int
-            and int(value["catalog_query_bytes"]) == actual_query_bytes
-            and type(value.get("catalog_query_lines")) is int
-            and int(value["catalog_query_lines"]) == actual_query_lines
-            and type(value.get("candidate_count")) is int
-            and int(value["candidate_count"]) == actual_candidate_count
-            and value.get("full_catalog_in_context") is False
-            and value.get("filesystem_scan") is False
-        ):
+            runtime_valid = False
+        if set(value) != CHANNEL_SMOKE_KEYS or not runtime_valid:
             failures.append(f"evidence:{evidence_id}")
     return failures
 
@@ -682,6 +688,8 @@ def main() -> int:
         if report.get("prepare_bundle_sha256") != bundle_sha256:
             failures.append("prepare_bundle_sha256")
         if not failures:
+            package_root = args.manifest.parent.parent.parent.absolute()
+            failures.extend(validate_staging_package(report, package_root, manifest))
             failures.extend(validate_production_and_backup(report, args.production_vault, args.hermes_home))
             failures.extend(
                 validate_evidence(
@@ -690,7 +698,8 @@ def main() -> int:
                     live_query_paths,
                     operational_as_of,
                     manifest,
-                    args.manifest.parent.parent.parent.absolute(),
+                    package_root,
+                    args.staging_hermes,
                 )
             )
     except (HermesError, KeyError, TypeError, OSError) as error:

@@ -17,6 +17,7 @@ from hermes_common import (
     COMMIT_RE,
     HermesError,
     SHA256_RE,
+    authenticated_remote_branch_commit,
     audit_components,
     load_manifest,
     read_relative_file,
@@ -53,7 +54,9 @@ def git(vault: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
 def checked_checkout(
     vault: Path,
     expected_commit: str,
+    expected_branch: str,
     expected_upstream: str,
+    expected_fetch_refspec: str,
     expected_remote_url: str,
 ) -> tuple[str, str, str, str]:
     if not vault.is_absolute():
@@ -79,8 +82,22 @@ def checked_checkout(
     if status_result.stdout:
         raise HermesError("vault working tree is not clean")
     _, upstream, origin_url = validate_repository_binding(
-        vault, expected_upstream, expected_remote_url
+        vault,
+        expected_branch,
+        expected_upstream,
+        expected_fetch_refspec,
+        expected_remote_url,
     )
+    remote_commit = authenticated_remote_branch_commit(vault, expected_branch)
+    validate_repository_binding(
+        vault,
+        expected_branch,
+        expected_upstream,
+        expected_fetch_refspec,
+        expected_remote_url,
+    )
+    if remote_commit != actual:
+        raise HermesError("vault HEAD does not match the authenticated remote branch")
     upstream_commit = git(vault, "rev-parse", expected_upstream)
     if upstream_commit.returncode != 0 or upstream_commit.stdout.strip() != actual:
         raise HermesError("vault HEAD does not match expected upstream commit")
@@ -175,11 +192,18 @@ def validate_vault(
     vault: Path,
     expected_commit: str,
     operational_as_of: str,
+    expected_branch: str,
     expected_upstream: str,
+    expected_fetch_refspec: str,
     expected_remote_url: str,
 ) -> tuple[str, str, str]:
     actual, status_before, upstream, origin_url = checked_checkout(
-        vault, expected_commit, expected_upstream, expected_remote_url
+        vault,
+        expected_commit,
+        expected_branch,
+        expected_upstream,
+        expected_fetch_refspec,
+        expected_remote_url,
     )
     validate_state_files(vault, operational_as_of)
     run_gate(
@@ -189,7 +213,14 @@ def validate_vault(
         "generate_state.py --check failed",
     )
     try:
-        checked_checkout(vault, expected_commit, expected_upstream, expected_remote_url)
+        checked_checkout(
+            vault,
+            expected_commit,
+            expected_branch,
+            expected_upstream,
+            expected_fetch_refspec,
+            expected_remote_url,
+        )
     except HermesError as error:
         raise HermesError(f"validation gate changed repository binding or checkout: {error}") from error
     run_gate(
@@ -199,7 +230,14 @@ def validate_vault(
         "validate_vault.py failed",
     )
     try:
-        checked_checkout(vault, expected_commit, expected_upstream, expected_remote_url)
+        checked_checkout(
+            vault,
+            expected_commit,
+            expected_branch,
+            expected_upstream,
+            expected_fetch_refspec,
+            expected_remote_url,
+        )
     except HermesError as error:
         raise HermesError(f"validation gate changed repository binding or checkout: {error}") from error
     head_after = git(vault, "rev-parse", "HEAD")
@@ -246,7 +284,9 @@ def main() -> int:
                 args.vault,
                 args.expected_commit,
                 operational_as_of,
+                manifest["expected_branch"],
                 manifest["expected_upstream"],
+                manifest["expected_fetch_refspec"],
                 manifest["expected_remote_url"],
             )
     except (HermesError, OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:

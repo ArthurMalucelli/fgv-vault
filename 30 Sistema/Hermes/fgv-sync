@@ -6,6 +6,8 @@ LOCK_PATH=${FGV_SYNC_LOCK:-/run/lock/fgv-sync.lock}
 OPERATIONAL_TIMEZONE=America/Sao_Paulo
 EXPECTED_UPSTREAM=origin/codex/vault-plan-b
 EXPECTED_BRANCH=codex/vault-plan-b
+EXPECTED_MERGE_REF=refs/heads/codex/vault-plan-b
+EXPECTED_FETCH_REFSPEC=+refs/heads/codex/vault-plan-b:refs/remotes/origin/codex/vault-plan-b
 EXPECTED_REMOTE_URL=https://github.com/ArthurMalucelli/fgv-vault.git
 AS_OF_DATE=${FGV_AS_OF_DATE:-$(TZ=$OPERATIONAL_TIMEZONE date +%F)}
 LOCK_ACQUIRED=0
@@ -109,7 +111,19 @@ gate_reason() {
 }
 
 fetch_origin() {
-  git fetch --prune origin 1>&2
+  repository_binding_is_canonical || return 14
+  git fetch --prune origin "$EXPECTED_FETCH_REFSPEC" 1>&2 || return 15
+  repository_binding_is_canonical || return 14
+}
+
+require_fetch_origin() {
+  fetch_code=0
+  fetch_origin || fetch_code=$?
+  case "$fetch_code" in
+    0) ;;
+    14) die "repository_binding_changed" 2 ;;
+    *) die "fetch_failed" 2 ;;
+  esac
 }
 
 upstream_name() {
@@ -186,19 +200,39 @@ remote_binding_is_canonical() {
   [ "$normalized_effective_push" = "$EXPECTED_REMOTE_URL" ] || return 1
 }
 
-repository_binding_is_canonical() {
+branch_binding_is_canonical() {
   branch=$(branch_name || true)
   [ "$branch" = "$EXPECTED_BRANCH" ] || return 1
+
+  branch_remote_status=0
+  branch_remote=$(git config --get-all "branch.$EXPECTED_BRANCH.remote" 2>/dev/null) || branch_remote_status=$?
+  [ "$branch_remote_status" -eq 0 ] || return 1
+  [ "$branch_remote" = origin ] || return 1
+  case "$branch_remote" in *$'\n'*) return 1 ;; esac
+
+  branch_merge_status=0
+  branch_merge=$(git config --get-all "branch.$EXPECTED_BRANCH.merge" 2>/dev/null) || branch_merge_status=$?
+  [ "$branch_merge_status" -eq 0 ] || return 1
+  [ "$branch_merge" = "$EXPECTED_MERGE_REF" ] || return 1
+  case "$branch_merge" in *$'\n'*) return 1 ;; esac
+
+  fetch_refspec_status=0
+  fetch_refspec=$(git config --get-all remote.origin.fetch 2>/dev/null) || fetch_refspec_status=$?
+  [ "$fetch_refspec_status" -eq 0 ] || return 1
+  [ "$fetch_refspec" = "$EXPECTED_FETCH_REFSPEC" ] || return 1
+  case "$fetch_refspec" in *$'\n'*) return 1 ;; esac
+
   upstream=$(upstream_name || true)
   [ "$upstream" = "$EXPECTED_UPSTREAM" ] || return 1
+}
+
+repository_binding_is_canonical() {
+  branch_binding_is_canonical || return 1
   remote_binding_is_canonical
 }
 
 require_repository_binding() {
-  branch=$(branch_name || true)
-  [ "$branch" = "$EXPECTED_BRANCH" ] || die "upstream_mismatch" 2
-  upstream=$(upstream_name || true)
-  [ "$upstream" = "$EXPECTED_UPSTREAM" ] || die "upstream_mismatch" 2
+  branch_binding_is_canonical || die "upstream_mismatch" 2
   remote_binding_is_canonical || die "origin_remote_mismatch" 2
 }
 
@@ -216,9 +250,7 @@ status_command() {
   head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
   status_before=$(git status --porcelain=v1 --untracked-files=all)
   if [ -n "$status_before" ]; then dirty=true; else dirty=false; fi
-  branch=$(branch_name || true)
-  upstream=$(upstream_name || true)
-  if [ "$branch" != "$EXPECTED_BRANCH" ] || [ "$upstream" != "$EXPECTED_UPSTREAM" ]; then
+  if ! branch_binding_is_canonical; then
     emit_sync unknown upstream_mismatch "$head" "$dirty" 0 0
     exit 2
   fi
@@ -226,10 +258,14 @@ status_command() {
     emit_sync unknown origin_remote_mismatch "$head" "$dirty" 0 0
     exit 2
   fi
-  if ! fetch_origin; then
-    emit_sync unknown fetch_failed "$head" "$dirty" 0 0
+  fetch_code=0
+  fetch_origin || fetch_code=$?
+  if [ "$fetch_code" -ne 0 ]; then
+    if [ "$fetch_code" -eq 14 ]; then fetch_reason=repository_binding_changed; else fetch_reason=fetch_failed; fi
+    emit_sync unknown "$fetch_reason" "$head" "$dirty" 0 0
     exit 2
   fi
+  upstream=$EXPECTED_UPSTREAM
   counts=$(relation_counts "$upstream" || true)
   if [ -z "$counts" ]; then
     emit_sync unknown divergence_check_failed "$head" "$dirty" 0 0
@@ -290,7 +326,8 @@ refresh() {
   require_repository_binding
   require_clean
   original_head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
-  fetch_origin || die "fetch_failed" 2
+  require_fetch_origin
+  upstream=$EXPECTED_UPSTREAM
   counts=$(relation_counts "$upstream" || true)
   [ -n "$counts" ] || die "divergence_check_failed" 2
   ahead=${counts%%[[:space:]]*}
@@ -370,7 +407,8 @@ publish() {
   [ -z "$(git diff --cached --name-only)" ] || die "preexisting_staged_changes" 2
   scope_is_closed || die "changes_outside_scope" 2
 
-  fetch_origin || die "fetch_failed" 2
+  require_fetch_origin
+  upstream=$EXPECTED_UPSTREAM
   counts=$(relation_counts "$upstream" || true)
   [ -n "$counts" ] || die "divergence_check_failed" 2
   ahead=${counts%%[[:space:]]*}

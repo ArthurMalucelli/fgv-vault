@@ -6,8 +6,7 @@ import subprocess
 import sys
 
 VAULT = os.environ["FGV_VAULT_ROOT"]
-MATERIALS = "10 Matérias/{materia}/Aulas/{data}/Material/"
-SYNC = ["fgv-sync", "publish"]
+SYNC = ["fgv-sync", "status"]
 CATALOG_QUERY = ["python3", ".fgv/scripts/hermes_catalog_query.py"]
 
 

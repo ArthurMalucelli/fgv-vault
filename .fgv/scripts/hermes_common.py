@@ -28,7 +28,9 @@ MANIFEST_KEYS = {
     "contract_version",
     "vps_git_owner",
     "operational_timezone",
+    "expected_branch",
     "expected_upstream",
+    "expected_fetch_refspec",
     "expected_remote_url",
     "canonical_paths",
     "retrieval_order",
@@ -41,7 +43,9 @@ COMPONENT_KEYS = {"id", "path", "classification", "format", "required_markers"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 CANONICAL_OPERATIONAL_TIMEZONE = "America/Sao_Paulo"
+CANONICAL_BRANCH = "codex/vault-plan-b"
 CANONICAL_UPSTREAM = "origin/codex/vault-plan-b"
+CANONICAL_FETCH_REFSPEC = "+refs/heads/codex/vault-plan-b:refs/remotes/origin/codex/vault-plan-b"
 CANONICAL_REMOTE_URL = "https://github.com/ArthurMalucelli/fgv-vault.git"
 
 
@@ -122,13 +126,31 @@ def _git_config_values(vault: Path, key: str) -> list[str]:
 
 
 def validate_repository_binding(
-    vault: Path, expected_upstream: str, expected_remote_url: str
+    vault: Path,
+    expected_branch: str,
+    expected_upstream: str,
+    expected_fetch_refspec: str,
+    expected_remote_url: str,
 ) -> tuple[str, str, str]:
     branch_result = _git(vault, "symbolic-ref", "--quiet", "--short", "HEAD")
     branch = branch_result.stdout.strip()
-    expected_branch = expected_upstream.removeprefix("origin/")
     if branch_result.returncode != 0 or branch != expected_branch:
         raise HermesError("checkout branch does not match the canonical branch")
+    branch_remotes = _git_config_values(vault, f"branch.{expected_branch}.remote")
+    if branch_remotes != ["origin"]:
+        raise HermesError("checkout branch remote does not match origin")
+    branch_merges = _git_config_values(vault, f"branch.{expected_branch}.merge")
+    expected_merge = f"refs/heads/{expected_branch}"
+    if branch_merges != [expected_merge]:
+        raise HermesError("checkout branch source does not match the canonical branch")
+    fetch_refspecs = _git_config_values(vault, "remote.origin.fetch")
+    if fetch_refspecs != [expected_fetch_refspec]:
+        raise HermesError("origin fetch refspec is not uniquely canonical")
+    if expected_upstream != f"origin/{expected_branch}":
+        raise HermesError("expected upstream is inconsistent with the canonical branch")
+    expected_refspec = f"+refs/heads/{expected_branch}:refs/remotes/{expected_upstream}"
+    if expected_fetch_refspec != expected_refspec:
+        raise HermesError("expected fetch refspec is inconsistent with the canonical upstream")
     upstream_result = _git(
         vault, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"
     )
@@ -175,6 +197,20 @@ def validate_repository_binding(
     return branch, upstream, origin_url
 
 
+def authenticated_remote_branch_commit(vault: Path, expected_branch: str) -> str:
+    reference = f"refs/heads/{expected_branch}"
+    result = _git(vault, "ls-remote", "--exit-code", "origin", reference)
+    if result.returncode != 0:
+        raise HermesError("canonical remote branch is unavailable")
+    lines = result.stdout.splitlines()
+    if len(lines) != 1:
+        raise HermesError("canonical remote branch response is ambiguous")
+    fields = lines[0].split()
+    if len(fields) != 2 or COMMIT_RE.fullmatch(fields[0]) is None or fields[1] != reference:
+        raise HermesError("canonical remote branch response is invalid")
+    return fields[0]
+
+
 def safe_relative(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
         raise HermesError(f"{label} must be a non-empty POSIX relative path")
@@ -202,8 +238,12 @@ def load_manifest(path: Path) -> tuple[dict[str, Any], str]:
         raise HermesError("manifest vps_git_owner must be fgv-sync")
     if value["operational_timezone"] != CANONICAL_OPERATIONAL_TIMEZONE:
         raise HermesError("manifest operational_timezone is not canonical")
+    if value["expected_branch"] != CANONICAL_BRANCH:
+        raise HermesError("manifest expected_branch is not canonical")
     if value["expected_upstream"] != CANONICAL_UPSTREAM:
         raise HermesError("manifest expected_upstream is not canonical")
+    if value["expected_fetch_refspec"] != CANONICAL_FETCH_REFSPEC:
+        raise HermesError("manifest expected_fetch_refspec is not canonical")
     if (
         value["expected_remote_url"] != CANONICAL_REMOTE_URL
         or normalize_remote_url(value["expected_remote_url"]) != CANONICAL_REMOTE_URL
@@ -344,7 +384,16 @@ def _call_name(node: ast.AST) -> str:
 
 
 def _literal_string(node: ast.AST | None) -> str | None:
-    return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left = _literal_string(node.left)
+        right = _literal_string(node.right)
+        return left + right if left is not None and right is not None else None
+    if isinstance(node, ast.JoinedStr):
+        values = [_literal_string(value) for value in node.values]
+        return "".join(str(value) for value in values) if all(value is not None for value in values) else None
+    return None
 
 
 def _shell_tokens(command: str) -> list[str]:
@@ -547,6 +596,38 @@ def _dynamic_callable_kind(node: ast.AST, symbols: dict[str, str]) -> str | None
     return None
 
 
+def _bounded_catalog_query_command(node: ast.AST | None) -> list[str] | None:
+    if not isinstance(node, (ast.List, ast.Tuple)):
+        return None
+    elements = node.elts
+    if len(elements) not in {8, 10}:
+        return None
+    literal_at = {index: _literal_string(value) for index, value in enumerate(elements)}
+    if literal_at.get(0) not in {"python3", "python"} or literal_at.get(1) != ".fgv/scripts/hermes_catalog_query.py":
+        return None
+    flags = [literal_at.get(index) for index in range(2, len(elements), 2)]
+    required = {"--vault", "--query-type", "--expected-catalog-sha256"}
+    if not required <= set(flags) or any(flag not in required | {"--subject-id"} for flag in flags):
+        return None
+    for index in range(3, len(elements), 2):
+        value = elements[index]
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            continue
+        if isinstance(value, ast.Name):
+            continue
+        if (
+            isinstance(value, ast.Subscript)
+            and _call_name(value.value) in {"os.environ", "environ"}
+            and _literal_string(value.slice) is not None
+        ):
+            continue
+        return None
+    return [
+        str(literal_at.get(index) if index % 2 == 0 else "__runtime_value__")
+        for index in range(len(elements))
+    ]
+
+
 def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
     try:
         tree = ast.parse(text)
@@ -614,6 +695,18 @@ def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
             continue
         name = _callable_expression_name(node.func, symbols)
         line = int(getattr(node, "lineno", 0))
+        if name in {"open", "pathlib.Path.open"} or name.endswith((".read_text", ".read_bytes", ".open")):
+            fragments = "".join(
+                child.value
+                for child in ast.walk(node)
+                if isinstance(child, ast.Constant) and isinstance(child.value, str)
+            ).replace(" ", "")
+            if "catalog.jsonl" in fragments or ("catalog" in fragments and ".jsonl" in fragments):
+                findings.append((line, "direct_catalog_access", "direct catalog.jsonl access is forbidden"))
+            receiver = node.func.value if isinstance(node.func, ast.Attribute) else (node.args[0] if node.args else None)
+            is_path, read_target = _path_expression(receiver, symbols, path_values)
+            if is_path and read_target is not None and str(read_target).endswith("catalog.jsonl"):
+                findings.append((line, "direct_catalog_access", "direct catalog.jsonl access is forbidden"))
         dynamic_kind = _dynamic_callable_kind(node.func, symbols)
         if name == "__hermes_dynamic_process__" or dynamic_kind == "process":
             findings.append((line, "dynamic_command", "dynamic Python process callable is not allowed"))
@@ -638,6 +731,8 @@ def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
                 values = [_literal_string(item) for item in argument.elts]
                 if all(item is not None for item in values):
                     tokens = [str(item) for item in values]
+                else:
+                    tokens = _bounded_catalog_query_command(argument)
             if tokens is None:
                 findings.append((line, "dynamic_command", "Python process command is not a closed literal"))
             else:
@@ -696,20 +791,52 @@ def _python_has_bounded_catalog_query_call(text: str) -> bool:
         tree = ast.parse(text)
     except SyntaxError:
         return False
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call) or _call_name(node.func) != "subprocess.run":
-            continue
-        argument = node.args[0] if node.args else None
-        if not isinstance(argument, (ast.List, ast.Tuple)):
-            continue
-        tokens = [_literal_string(item) for item in argument.elts]
-        if (
-            ".fgv/scripts/hermes_catalog_query.py" in tokens
-            and "--vault" in tokens
-            and "--query-type" in tokens
-        ):
-            return True
-    return False
+    functions = {
+        node.name: node
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    if "main" not in functions:
+        return False
+    module_calls_main = any(
+        any(isinstance(call, ast.Call) and _call_name(call.func) == "main" for call in ast.walk(node))
+        for node in tree.body
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+    )
+    if not module_calls_main:
+        return False
+    reachable = {"main"}
+    pending = ["main"]
+    while pending:
+        current = pending.pop()
+        for call in (node for node in ast.walk(functions[current]) if isinstance(node, ast.Call)):
+            name = _call_name(call.func)
+            if name in functions and name not in reachable:
+                reachable.add(name)
+                pending.append(name)
+    all_process_calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and _call_name(node.func) == "subprocess.run"
+    ]
+    reachable_process_calls = [
+        node
+        for name in reachable
+        for node in ast.walk(functions[name])
+        if isinstance(node, ast.Call) and _call_name(node.func) == "subprocess.run"
+    ]
+    if len(all_process_calls) != 1 or len(reachable_process_calls) != 1:
+        return False
+    argument = reachable_process_calls[0].args[0] if reachable_process_calls[0].args else None
+    if not isinstance(argument, (ast.List, ast.Tuple)):
+        return False
+    tokens = [_literal_string(item) for item in argument.elts]
+    return {
+        ".fgv/scripts/hermes_catalog_query.py",
+        "--vault",
+        "--query-type",
+        "--expected-catalog-sha256",
+    } <= set(tokens)
 
 
 def _cron_command_findings(text: str) -> list[tuple[int, str, str]]:

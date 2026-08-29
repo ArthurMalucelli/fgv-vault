@@ -14,11 +14,14 @@ import time
 
 from hermes_catalog_query import MAX_CANDIDATES, MAX_OUTPUT_BYTES, query_catalog
 from hermes_common import (
+    CANONICAL_BRANCH,
+    CANONICAL_FETCH_REFSPEC,
     CANONICAL_OPERATIONAL_TIMEZONE,
     CANONICAL_REMOTE_URL,
     CANONICAL_UPSTREAM,
     COMMIT_RE,
     HermesError,
+    authenticated_remote_branch_commit,
     read_relative_file,
     require_current_operational_as_of,
     sha256_bytes,
@@ -72,13 +75,16 @@ def load_catalog_manifest(payload: bytes) -> dict[str, object]:
     return manifest
 
 
-def run_query(vault: Path, query: dict[str, object]) -> dict[str, object]:
+def run_query(
+    vault: Path, query: dict[str, object], expected_catalog_sha256: str
+) -> dict[str, object]:
     started = time.perf_counter_ns()
     _, query_payload = query_catalog(
         vault,
         str(query["query_type"]),
         str(query["subject_id"]) if query.get("subject_id") else None,
         MAX_CANDIDATES,
+        expected_catalog_sha256,
     )
     query_output = json.loads(query_payload.decode("utf-8"))
     candidates = query_output["candidates"]
@@ -88,7 +94,13 @@ def run_query(vault: Path, query: dict[str, object]) -> dict[str, object]:
     query_lines = len(query_payload.splitlines())
     if query_bytes > MAX_OUTPUT_BYTES or query_lines > MAX_OUTPUT_LINES:
         raise HermesError("catalog query output budget failed")
-    steps = ["catalog_query", "dashboard_snapshot", "checkout_status", "select_exact_path"]
+    steps = [
+        "dashboard_snapshot",
+        "catalog_query",
+        "dashboard_snapshot_recheck",
+        "checkout_status",
+        "select_exact_path",
+    ]
     selected_candidate = candidates[0] if candidates else None
     selected = selected_candidate.get("path") if isinstance(selected_candidate, dict) else None
     opened: list[str] = []
@@ -143,8 +155,22 @@ def checkout_status(vault: Path) -> tuple[str, bool, str, str]:
     if status.returncode != 0:
         raise HermesError("cannot inspect checkout state")
     _, upstream, origin_url = validate_repository_binding(
-        vault, CANONICAL_UPSTREAM, CANONICAL_REMOTE_URL
+        vault,
+        CANONICAL_BRANCH,
+        CANONICAL_UPSTREAM,
+        CANONICAL_FETCH_REFSPEC,
+        CANONICAL_REMOTE_URL,
     )
+    remote_commit = authenticated_remote_branch_commit(vault, CANONICAL_BRANCH)
+    validate_repository_binding(
+        vault,
+        CANONICAL_BRANCH,
+        CANONICAL_UPSTREAM,
+        CANONICAL_FETCH_REFSPEC,
+        CANONICAL_REMOTE_URL,
+    )
+    if remote_commit != head.stdout.strip():
+        raise HermesError("checkout HEAD does not match the authenticated remote branch")
     upstream_commit = subprocess.run(
         ["git", "-C", str(vault), "rev-parse", CANONICAL_UPSTREAM],
         text=True,
@@ -177,7 +203,13 @@ def run_state_checks(vault: Path, as_of: str) -> str:
         if result.returncode != 0:
             raise HermesError(f"{name} failed")
         try:
-            validate_repository_binding(vault, CANONICAL_UPSTREAM, CANONICAL_REMOTE_URL)
+            validate_repository_binding(
+                vault,
+                CANONICAL_BRANCH,
+                CANONICAL_UPSTREAM,
+                CANONICAL_FETCH_REFSPEC,
+                CANONICAL_REMOTE_URL,
+            )
         except HermesError as error:
             raise HermesError(f"{name} changed repository binding: {error}") from error
     return "pass"
@@ -207,10 +239,12 @@ def main() -> int:
             args.as_of, CANONICAL_OPERATIONAL_TIMEZONE
         )
         catalog_payload = required_payload(args.vault, "30 Sistema/Estado/catalog.jsonl")
+        catalog_sha256 = sha256_bytes(catalog_payload)
         catalog_manifest = load_catalog_manifest(catalog_payload)
         if catalog_manifest.get("as_of") != operational_as_of:
             raise HermesError("catalog as_of does not match operational as_of")
-        snapshot = required_payload(args.vault, "30 Sistema/Estado/dashboard-snapshot.md").decode("utf-8")
+        snapshot_payload = required_payload(args.vault, "30 Sistema/Estado/dashboard-snapshot.md")
+        snapshot = snapshot_payload.decode("utf-8")
         match = re.search(r'^catalog_sha256:\s*["\']?sha256:([0-9a-f]{64})["\']?\s*$', snapshot, re.MULTILINE)
         if match is None or match.group(1) != sha256_bytes(catalog_payload):
             raise HermesError("dashboard snapshot does not authenticate the catalog")
@@ -241,7 +275,17 @@ def main() -> int:
             if query["query_type"] not in QUERY_TYPES or not isinstance(query["id"], str) or query["id"] in seen_ids:
                 raise HermesError("query id or type is invalid")
             seen_ids.add(query["id"])
-            results.append(run_query(args.vault, query))
+            results.append(run_query(args.vault, query, catalog_sha256))
+        if required_payload(args.vault, "30 Sistema/Estado/catalog.jsonl") != catalog_payload:
+            raise HermesError("catalog changed after snapshot authentication")
+        if required_payload(args.vault, "30 Sistema/Estado/dashboard-snapshot.md") != snapshot_payload:
+            raise HermesError("dashboard snapshot changed during retrieval smoke")
+        final_commit, final_dirty, final_upstream, final_origin = checkout_status(args.vault)
+        if final_commit != actual_commit:
+            raise HermesError("retrieval queries changed checkout HEAD")
+        if final_upstream != upstream or final_origin != origin_url:
+            raise HermesError("retrieval queries changed checkout Git binding")
+        dirty = dirty or final_dirty
         stale = dirty or actual_commit != args.expected_commit
         passed = all(item["matched"] for item in results) and (args.fixture_mode or not stale)
         report = {

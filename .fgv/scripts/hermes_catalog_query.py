@@ -9,7 +9,7 @@ from pathlib import Path, PurePosixPath
 import re
 import sys
 
-from hermes_common import HermesError, read_relative_file
+from hermes_common import HermesError, read_relative_file, sha256_bytes
 
 
 MAX_CANDIDATES = 5
@@ -31,6 +31,7 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--query-type", required=True, choices=sorted(QUERY_TYPES))
     value.add_argument("--subject-id")
     value.add_argument("--limit", type=int, default=MAX_CANDIDATES)
+    value.add_argument("--expected-catalog-sha256", required=True)
     return value
 
 
@@ -63,12 +64,16 @@ def is_direct_material(path: object) -> bool:
     )
 
 
-def load_records(vault: Path) -> tuple[dict[str, object], list[dict[str, object]]]:
+def load_records(
+    vault: Path, expected_catalog_sha256: str | None = None
+) -> tuple[dict[str, object], list[dict[str, object]]]:
     if not vault.is_absolute() or not vault.is_dir() or vault.is_symlink():
         raise HermesError("vault must be an absolute non-symlink directory")
     payload, issue = read_relative_file(vault, "30 Sistema/Estado/catalog.jsonl")
     if issue or payload is None:
         raise HermesError(f"catalog cannot be trusted: {issue}")
+    if expected_catalog_sha256 is not None and sha256_bytes(payload) != expected_catalog_sha256:
+        raise HermesError("catalog changed after snapshot authentication")
     records: list[dict[str, object]] = []
     for number, line in enumerate(payload.decode("utf-8").splitlines(), 1):
         try:
@@ -154,11 +159,15 @@ def candidate_record(
 
 
 def query_catalog(
-    vault: Path, query_type: str, subject_id: str | None, limit: int
+    vault: Path,
+    query_type: str,
+    subject_id: str | None,
+    limit: int,
+    expected_catalog_sha256: str | None = None,
 ) -> tuple[dict[str, object], bytes]:
     if limit < 1 or limit > MAX_CANDIDATES:
         raise HermesError(f"limit must be between 1 and {MAX_CANDIDATES}")
-    manifest, records = load_records(vault)
+    manifest, records = load_records(vault, expected_catalog_sha256)
     selected = select_records(records, query_type, subject_id)[:limit]
     report = {
         "candidates": [candidate_record(item, records) for item in selected],
@@ -176,7 +185,13 @@ def query_catalog(
 def main() -> int:
     args = parser().parse_args()
     try:
-        _, payload = query_catalog(args.vault, args.query_type, args.subject_id, args.limit)
+        _, payload = query_catalog(
+            args.vault,
+            args.query_type,
+            args.subject_id,
+            args.limit,
+            args.expected_catalog_sha256,
+        )
         sys.stdout.buffer.write(payload)
         return 0
     except (HermesError, OSError, UnicodeDecodeError, KeyError, TypeError) as error:
