@@ -9,7 +9,7 @@
     },
     {
       "path": ".fgv/scripts/hermes_catalog_query.py",
-      "sha256": "0c7f2c5fb8e5fc81cdfcda93604135a3821a515a5d7ad433b67c9c2d12aac05d"
+      "sha256": "c4ff0529503d3bcd138baeec033cb35c0090e7c43192afa7c5e6ff1820bb570b"
     },
     {
       "path": ".fgv/scripts/hermes_channel_smoke.py",

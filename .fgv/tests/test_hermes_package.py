@@ -284,7 +284,7 @@ class HermesPackageContractTests(unittest.TestCase):
         prefix = "10 Matérias/Estatistica2/Aulas/08.18/Material/"
         records = [
             {
-                "date": "2026-08-18",
+                "date": "2026-08-19",
                 "path": prefix + "Slides_Aula05.pdf",
                 "record_type": "file",
                 "subject_ids": ["estatistica-2"],

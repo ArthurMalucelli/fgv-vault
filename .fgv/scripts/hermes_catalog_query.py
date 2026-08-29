@@ -92,17 +92,16 @@ def original_pdf_for_extracted(path: object) -> str | None:
 def deduplicate_extracted_materials(
     records: list[dict[str, object]],
 ) -> list[dict[str, object]]:
-    selected: list[dict[str, object]] = []
     suppressed_pdfs: set[str] = set()
     for record in records:
-        path = str(record.get("path") or "")
-        if path.casefold() in suppressed_pdfs:
-            continue
-        selected.append(record)
-        original = original_pdf_for_extracted(path)
+        original = original_pdf_for_extracted(record.get("path"))
         if original is not None:
             suppressed_pdfs.add(original.casefold())
-    return selected
+    return [
+        record
+        for record in records
+        if str(record.get("path") or "").casefold() not in suppressed_pdfs
+    ]
 
 
 def load_records(
