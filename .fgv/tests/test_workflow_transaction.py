@@ -122,6 +122,45 @@ class WorkflowTransactionTests(unittest.TestCase):
                 path.read_bytes(), b"base\nexternal-edit\nworkflow-edit\n"
             )
 
+    def test_manual_semantic_task_deduplicates_by_recomputed_task_id(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            vault, source, analysis = self.make_fixture(root)
+            payload = analysis_payload()
+            payload["concept_candidates"] = []
+            payload["calendar_mentions"] = []
+            analysis.write_text(
+                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+            )
+            tasks = vault / "00 Home" / "Tasks.md"
+            tasks.parent.mkdir(parents=True)
+            original = (
+                "# Tasks\n\n"
+                "- [ ]   REVISAR   PROVISÕES #cont    📅  2026-09-04 🔺   \n"
+            ).encode("utf-8")
+            tasks.write_bytes(original)
+            plan = plan_for_runtime(
+                runtime="codex",
+                vault_root=vault,
+                source=source,
+                analysis_path=analysis,
+                class_date="2026-08-28",
+            )
+
+            receipt = apply_plan(
+                plan,
+                vault_root=vault,
+                source=source,
+                analysis_path=analysis,
+                processor="codex",
+                state_runner=FakeState(vault),
+            )
+
+            task = receipt["actions"]["tasks"][0]
+            self.assertEqual(task["outcome"], "semantic_existing")
+            self.assertIsNone(task["marker"])
+            self.assertEqual(tasks.read_bytes(), original)
+
     def make_fixture(self, root: Path) -> tuple[Path, Path, Path]:
         vault = root / "vault"
         scripts = vault / ".fgv" / "scripts"
@@ -299,6 +338,115 @@ class WorkflowTransactionTests(unittest.TestCase):
                 (vault / "00 Home" / "Tasks.md").read_text(encoding="utf-8").count("Revisar provisões"),
                 1,
             )
+
+    def test_same_task_from_two_classes_preserves_first_canonical_identity(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            vault, source, analysis = self.make_fixture(root)
+            payload = analysis_payload()
+            payload["concept_candidates"] = []
+            payload["calendar_mentions"] = []
+            analysis.write_text(
+                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+            )
+            second_payload = analysis_payload()
+            second_payload["concept_candidates"] = []
+            second_payload["calendar_mentions"] = []
+            second_payload["task_mentions"][0]["description"] = (
+                "REVISAR   PROVISÕES"
+            )
+            second_payload["task_mentions"][0]["priority"] = "🔺"
+            second_analysis = analysis.with_name("analysis-second.json")
+            second_analysis.write_text(
+                json.dumps(second_payload, ensure_ascii=False), encoding="utf-8"
+            )
+            first_plan = plan_for_runtime(
+                runtime="codex",
+                vault_root=vault,
+                source=source,
+                analysis_path=analysis,
+                class_date="2026-08-28",
+            )
+            second_plan = plan_for_runtime(
+                runtime="claude",
+                vault_root=vault,
+                source=source,
+                analysis_path=second_analysis,
+                class_date="2026-08-29",
+            )
+            self.assertEqual(
+                first_plan["task_actions"][0]["task_id"],
+                second_plan["task_actions"][0]["task_id"],
+            )
+            self.assertNotEqual(
+                first_plan["transaction_id"], second_plan["transaction_id"]
+            )
+
+            first = apply_plan(
+                first_plan,
+                vault_root=vault,
+                source=source,
+                analysis_path=analysis,
+                processor="codex",
+                state_runner=FakeState(vault),
+            )
+            second = apply_plan(
+                second_plan,
+                vault_root=vault,
+                source=source,
+                analysis_path=second_analysis,
+                processor="claude",
+                as_of="2026-08-29",
+                state_runner=FakeState(vault),
+            )
+
+            first_task = first["actions"]["tasks"][0]
+            second_task = second["actions"]["tasks"][0]
+            task_id = first_task["task_id"]
+            tasks_path = vault / "00 Home" / "Tasks.md"
+            tasks_text = tasks_path.read_text(encoding="utf-8")
+            self.assertEqual(tasks_text.count(f"fgv-task:{task_id}"), 1)
+            self.assertEqual(tasks_text.count("Revisar provisões"), 1)
+            self.assertNotIn("🔺", tasks_text)
+            self.assertEqual(second_task["outcome"], "existing")
+            self.assertEqual(second_task["marker"], first_task["marker"])
+            self.assertIn(first_plan["transaction_id"], second_task["marker"])
+            self.assertNotIn(second_plan["transaction_id"], second_task["marker"])
+
+            rerun = apply_plan(
+                second_plan,
+                vault_root=vault,
+                source=source,
+                analysis_path=second_analysis,
+                processor="claude",
+                as_of="2026-08-29",
+                state_runner=FakeState(vault),
+            )
+            self.assertEqual(rerun, second)
+            self.assertEqual(
+                tasks_path.read_text(encoding="utf-8").count(f"fgv-task:{task_id}"),
+                1,
+            )
+
+            canonical_line = next(
+                line
+                for line in tasks_path.read_text(encoding="utf-8").splitlines()
+                if f"fgv-task:{task_id}" in line
+            )
+            duplicate_line = canonical_line.replace(
+                first_plan["transaction_id"], second_plan["transaction_id"]
+            )
+            with tasks_path.open("a", encoding="utf-8") as handle:
+                handle.write(duplicate_line + "\n")
+            with self.assertRaisesRegex(IOError, "exactly once"):
+                apply_plan(
+                    first_plan,
+                    vault_root=vault,
+                    source=source,
+                    analysis_path=analysis,
+                    processor="codex",
+                    state_runner=FakeState(vault),
+                )
 
     def test_apply_reauthenticates_external_inputs_before_writing(self) -> None:
         with TemporaryDirectory() as temporary_directory:

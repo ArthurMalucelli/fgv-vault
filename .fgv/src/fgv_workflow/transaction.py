@@ -698,10 +698,11 @@ def _ensure_task(path: Path, action: dict, transaction_id: str) -> dict:
     marker, expected_core, action_hash = _task_material(action, transaction_id)
     observed = _inspect_task(path, action, transaction_id)
     if observed is not None:
+        outcome, observed_marker = observed
         return {
             **action,
-            "outcome": observed,
-            "marker": marker if observed == "existing" else None,
+            "outcome": outcome,
+            "marker": observed_marker,
             "action_sha256": action_hash,
         }
     prefix = ""
@@ -711,7 +712,7 @@ def _ensure_task(path: Path, action: dict, transaction_id: str) -> dict:
         prefix = "\n## Adicionadas pela skill /fgv\n\n"
     line = f"- [ ] {expected_core} {marker}\n"
     _append_shared_bytes(path, (prefix + line).encode("utf-8"))
-    if _inspect_task(path, action, transaction_id) != "existing":
+    if _inspect_task(path, action, transaction_id) != ("existing", marker):
         raise IOError(f"task marker missing after append: {action['task_id']}")
     return {
         **action,
@@ -733,43 +734,80 @@ def _task_material(action: dict, transaction_id: str) -> tuple[str, str, str]:
     return marker, expected_core, action_hash
 
 
-def _inspect_task(path: Path, action: dict, transaction_id: str) -> str | None:
+def _inspect_task(
+    path: Path,
+    action: dict,
+    transaction_id: str,
+) -> tuple[str, str | None] | None:
     if not path.exists():
         return None
     if not path.is_file() or path.is_symlink():
         raise IOError(f"task path is not a regular file: {path}")
-    marker, expected_core, _action_hash = _task_material(action, transaction_id)
+    _marker, _expected_core, _action_hash = _task_material(action, transaction_id)
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except UnicodeError as error:
         raise IOError(f"task file is not valid UTF-8: {path}") from error
-    exact_marker = re.compile(
-        r"^- \[[ xX]\] " + re.escape(f"{expected_core} {marker}") + r"$"
+    task_id = action["task_id"]
+    identity = f"fgv-task:{task_id}"
+    canonical_task = re.compile(
+        r"^- \[[ xX]\][ \t]+(?P<description>.+?)[ \t]+"
+        r"(?P<tag>#[\w-]+)[ \t]+📅[ \t]+"
+        r"(?P<due>\d{4}-\d{2}-\d{2})"
+        r"(?:[ \t]+(?P<priority>🔺|⏫|🔽))?"
+        r"(?:[ \t]+(?P<marker><!-- fgv-task:"
+        r"(?P<marker_task_id>[0-9a-f]{16}) "
+        r"source:(?P<marker_source>[0-9a-f]{20}) -->))?[ \t]*$"
     )
-    marker_lines = [line for line in lines if marker in line]
-    if marker_lines and (
-        len(marker_lines) != 1 or exact_marker.fullmatch(marker_lines[0]) is None
-    ):
-        raise IOError(f"task marker content mismatch: {action['task_id']}")
-    semantic_core = " ".join(
-        f"{action['description']} {action['tag']} 📅 {action['due']}".casefold().split()
-    )
-    semantic_with_priority = " ".join(expected_core.casefold().split())
+
+    def matches_action(match: re.Match[str]) -> bool:
+        observed_description = match.group("description")
+        observed_tag = match.group("tag")
+        observed_due = match.group("due")
+        return (
+            make_task_id(observed_description, observed_due, observed_tag) == task_id
+            and " ".join(observed_description.casefold().split())
+            == " ".join(action["description"].casefold().split())
+            and observed_tag == action["tag"]
+            and observed_due == action["due"]
+        )
+
+    marker_lines = [line for line in lines if identity in line.casefold()]
+    marker_match = None
+    if marker_lines:
+        if len(marker_lines) != 1:
+            raise IOError(f"task identity must occur exactly once: {task_id}")
+        marker_match = canonical_task.fullmatch(marker_lines[0])
+        if (
+            marker_match is None
+            or marker_match.group("marker_task_id") != task_id
+            or not matches_action(marker_match)
+        ):
+            raise IOError(f"task marker content mismatch: {task_id}")
     semantic_lines = []
     for line in lines:
-        match = re.fullmatch(r"- \[[ xX]\] (.*)", line)
+        match = canonical_task.fullmatch(line)
         if match is None:
             continue
-        body = " ".join(match.group(1).casefold().split())
-        if body in {semantic_core, semantic_with_priority}:
+        observed_task_id = make_task_id(
+            match.group("description"),
+            match.group("due"),
+            match.group("tag"),
+        )
+        marker_task_id = match.group("marker_task_id")
+        if marker_task_id is not None:
+            if observed_task_id == task_id and marker_task_id != task_id:
+                raise IOError(f"task marker content mismatch: {task_id}")
+            continue
+        if observed_task_id == task_id and matches_action(match):
             semantic_lines.append(line)
     identity_count = len(marker_lines) + len(semantic_lines)
     if identity_count > 1:
-        raise IOError(f"task identity must occur exactly once: {action['task_id']}")
-    if marker_lines:
-        return "existing"
+        raise IOError(f"task identity must occur exactly once: {task_id}")
+    if marker_match is not None:
+        return "existing", marker_match.group("marker")
     if semantic_lines:
-        return "semantic_existing"
+        return "semantic_existing", None
     return None
 
 
@@ -790,25 +828,30 @@ def _authenticate_task_outcome(
     recorded: dict,
     transaction_id: str,
 ) -> None:
-    marker, expected_core, action_hash = _task_material(action, transaction_id)
+    _marker, _expected_core, action_hash = _task_material(action, transaction_id)
     outcome = recorded.get("outcome")
     if outcome not in {"appended", "existing", "semantic_existing"}:
         raise IOError(f"receipt task outcome is invalid: {action['task_id']}")
+    observed = _inspect_task(path, action, transaction_id)
+    if observed is None:
+        raise IOError(f"task identity is missing: {action['task_id']}")
+    observed_outcome, observed_marker = observed
+    if outcome == "semantic_existing":
+        if observed_outcome != "semantic_existing":
+            raise IOError(f"semantic task unexpectedly gained marker: {action['task_id']}")
+        expected_marker = None
+    else:
+        if observed_outcome != "existing":
+            raise IOError(f"task marker content mismatch: {action['task_id']}")
+        expected_marker = observed_marker
     expected_record = {
         **action,
         "outcome": outcome,
-        "marker": None if outcome == "semantic_existing" else marker,
+        "marker": expected_marker,
         "action_sha256": action_hash,
     }
     if recorded != expected_record:
         raise IOError(f"receipt task action mismatch: {action['task_id']}")
-    observed = _inspect_task(path, action, transaction_id)
-    if observed is None:
-        raise IOError(f"task identity is missing: {action['task_id']}")
-    if outcome == "semantic_existing" and observed != "semantic_existing":
-        raise IOError(f"semantic task unexpectedly gained marker: {action['task_id']}")
-    if outcome in {"appended", "existing"} and observed != "existing":
-        raise IOError(f"task marker content mismatch: {action['task_id']}")
 
 
 def _manifest_bytes(plan: dict, raw_path: Path, started_at: str) -> bytes:
