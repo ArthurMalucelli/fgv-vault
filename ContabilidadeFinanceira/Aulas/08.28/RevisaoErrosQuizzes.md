@@ -116,7 +116,18 @@ Padrão: classifiquei linhas da DRE pelo pagamento (lógica de caixa). Correçõ
 - **Pago por 1 ano, vigência no mês:** caixa leva o total (216), DRE leva 1/12 (18).
 - Drill pra esse formato de questão: pra cada linha da tabela, duas colunas no rascunho, "DRE março?" e "caixa março?", item por item, antes de preencher qualquer campo.
 
-## 9. Processo (2 pontos perdidos por processo, não por conceito)
+## 9. Treinos 1-3 (Banho & Bicho, Navalha, Corpo em Foco): erros novos
+
+- **Plug de fechamento** (3x): inventar número pra coluna fechar (+30, 55) transforma o check em cúmplice. Diferença em coluna = perna solta, o tamanho diz o que falta.
+- **Lançamentos fantasma sem caixa somem**: CMV, juros incorridos, consumo de antecipada, amortização, salário devido. Gatilho mental ainda é o dinheiro. Antídoto: varredura final "que despesa/receita de competência este item gera NESTE período?"
+- **Dupla contagem**: receita antecipada inicial virando receita NÃO passa pelo caixa de novo (o dinheiro entrou no período passado). Cada real entra 1x no caixa e 1x na receita.
+- **Pagar dívida antes do vencimento**: quitei empréstimo de x3 no trimestre. Só sai caixa do que VENCEU e o enunciado mandou pagar.
+- **Passivo negativo é impossível**: Salários (60), Juros (9). Passivo só cai até zero.
+- **LA numa linha só** na planilha, senão o campo da prova sai incompleto.
+- **Aporte de capital não é receita**: Caixa e Capital Social, DRE não vê.
+- **IR = % sobre o LAIR**: fechar a cascata antes, provisionar em Impostos a Pagar.
+
+## 10. Processo (2 pontos perdidos por processo, não por conceito)
 
 - Typo: digitei 244 com 240 certo no rascunho. Releitura campo a campo antes do submit.
 - Número condicional de terceiro (IA incluída) não entra em campo de prova sem validar a condição no enunciado.
