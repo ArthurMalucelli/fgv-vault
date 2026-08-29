@@ -161,6 +161,37 @@ class LessonRenameOverlayEntry:
 
 
 @dataclass(frozen=True)
+class PostRewriteOwnerAuth:
+    owner: str
+    sha256: str
+    size_bytes: int
+    mode: int
+
+    def __post_init__(self) -> None:
+        if not self.owner:
+            raise RewriteError("post-rewrite owner must be non-empty")
+        if re.fullmatch(r"[0-9a-f]{64}", self.sha256) is None:
+            raise RewriteError("post-rewrite owner sha256 is invalid")
+        if type(self.size_bytes) is not int or self.size_bytes < 0:
+            raise RewriteError("post-rewrite owner size is invalid")
+        if type(self.mode) is not int or self.mode < 0 or self.mode > 0o7777:
+            raise RewriteError("post-rewrite owner mode is invalid")
+
+
+# Home was rewritten here and then intentionally transferred to the dashboard
+# component. Exact authentication preserves historical recovery without
+# classifying the authorized Home as a partial rewrite.
+POST_REWRITE_OWNERS: Mapping[str, PostRewriteOwnerAuth] = {
+    "00 Home/Home.md": PostRewriteOwnerAuth(
+        owner="fgv_state.dashboard",
+        sha256="d8c267e6014b508561e78f71179d06cb278994ce54ff8e014fbf411af41ac9d7",
+        size_bytes=1159,
+        mode=0o644,
+    ),
+}
+
+
+@dataclass(frozen=True)
 class RecoveryOperation:
     path: str
     original: bytes
@@ -1740,6 +1771,15 @@ def rewrite_vault(
             operation = _open_operation(root_fd, relative)
             operations.append(operation)
             by_relative[relative] = operation
+            post_owner = POST_REWRITE_OWNERS.get(relative) if production else None
+            if post_owner is not None and (
+                len(operation.original) == post_owner.size_bytes
+                and hashlib.sha256(operation.original).hexdigest() == post_owner.sha256
+                and operation.mode == post_owner.mode
+            ):
+                operation.output = operation.original
+                states.append("fresh")
+                continue
             try:
                 text = operation.original.decode("utf-8")
             except UnicodeDecodeError as error:

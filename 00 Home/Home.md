@@ -25,7 +25,7 @@ tags: [home]
 - Cada aula fica em `10 Matérias/<Matéria>/Aulas/MM.DD/`.
 - O resumo usa `Resumo - <tema>.md`.
 - A transcrição usa `Transcrito - <tema>.md`.
-- Slides, PDFs, planilhas e outros anexos ficam em `Materiais/` dentro da aula.
+- Slides, PDFs, planilhas e outros anexos ficam em `Material/` dentro da aula.
 - `00 Home/Tasks.md` é a lista canônica de prazos.
 
 ## Atalhos úteis

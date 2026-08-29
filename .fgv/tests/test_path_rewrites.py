@@ -5,6 +5,7 @@ import io
 import json
 import os
 from pathlib import Path
+import stat
 from tempfile import TemporaryDirectory
 import time
 import unicodedata
@@ -765,7 +766,25 @@ class ProductionContractTests(unittest.TestCase):
         self.assertEqual(plan.manifest_auth, module.DEFAULT_MANIFEST_AUTH)
         for operation in plan.operations:
             self.assertNotEqual(operation.original, operation.output)
-            self.assertEqual((ROOT / operation.path).read_bytes(), operation.output)
+            current = (ROOT / operation.path).read_bytes()
+            post_owner = module.POST_REWRITE_OWNERS.get(operation.path)
+            if post_owner is None:
+                self.assertEqual(current, operation.output)
+            else:
+                self.assertEqual(len(current), post_owner.size_bytes)
+                self.assertEqual(hashlib.sha256(current).hexdigest(), post_owner.sha256)
+                self.assertNotEqual(current, operation.output)
+
+    def test_post_rewrite_home_owner_is_exactly_authenticated(self) -> None:
+        module = self.require_rewriter()
+        auth = module.POST_REWRITE_OWNERS["00 Home/Home.md"]
+        home = ROOT / "00 Home/Home.md"
+        payload = home.read_bytes()
+
+        self.assertEqual(auth.owner, "fgv_state.dashboard")
+        self.assertEqual(len(payload), auth.size_bytes)
+        self.assertEqual(hashlib.sha256(payload).hexdigest(), auth.sha256)
+        self.assertEqual(stat.S_IMODE(home.stat().st_mode), auth.mode)
 
     def test_production_rejects_caller_supplied_recovery_authority(self) -> None:
         module = self.require_rewriter()

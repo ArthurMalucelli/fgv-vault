@@ -2,8 +2,8 @@
 tipo: dashboard_snapshot
 schema_version: 1
 as_of: 2026-08-28
-build_fingerprint: "sha256:88d6d678e3b535a694551571823bce727058638d2cb2ce4b8a26273d180809dc"
-catalog_sha256: "sha256:463682601905e6cdd9e31175ee890b4bfe36da62595e9bb2a8bf561d74be6822"
+build_fingerprint: "sha256:26b17febdbc733b3e23cf5c3fd7323d6f7d97f2484df14e4cf8e45efe67836f5"
+catalog_sha256: "sha256:dea98ed80608fcb3e0f7972702a7545b271123f30217e02a5119b53160ff1ccf"
 ---
 
 <!-- GENERATED FILE. Edite as fontes e regenere. -->
