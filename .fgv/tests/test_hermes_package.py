@@ -280,6 +280,36 @@ class HermesPackageContractTests(unittest.TestCase):
 
         self.assertEqual(selected[0]["path"], prefix + "Exercicios_Aula05.docx")
 
+    def test_eclass_material_prefers_extracted_markdown_and_deduplicates_pdf(self) -> None:
+        prefix = "10 Matérias/Estatistica2/Aulas/08.18/Material/"
+        records = [
+            {
+                "date": "2026-08-18",
+                "path": prefix + "Slides_Aula05.pdf",
+                "record_type": "file",
+                "subject_ids": ["estatistica-2"],
+            },
+            {
+                "date": "2026-08-18",
+                "path": prefix + "Slides_Aula05.extracted.md",
+                "record_type": "file",
+                "subject_ids": ["estatistica-2"],
+            },
+            {
+                "date": "2026-08-18",
+                "path": prefix + "Script_Aula05.R",
+                "record_type": "file",
+                "subject_ids": ["estatistica-2"],
+            },
+        ]
+
+        selected = select_records(records, "eclass_material", "estatistica-2")
+        selected_paths = [record["path"] for record in selected]
+
+        self.assertEqual(selected_paths[0], prefix + "Slides_Aula05.extracted.md")
+        self.assertNotIn(prefix + "Slides_Aula05.pdf", selected_paths)
+        self.assertEqual(selected_paths[1], prefix + "Script_Aula05.R")
+
 
 class HermesAuditTests(unittest.TestCase):
     def audit(self, home: Path, output: Path) -> subprocess.CompletedProcess[str]:

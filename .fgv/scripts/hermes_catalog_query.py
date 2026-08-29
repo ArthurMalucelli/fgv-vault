@@ -23,6 +23,7 @@ QUERY_TYPES = {
     "legacy_summary_name",
 }
 LESSON_DATE_RE = re.compile(r"^[0-9]{2}\.[0-9]{2}$")
+EXTRACTED_MATERIAL_SUFFIX = ".extracted.md"
 PRIMARY_MATERIAL_SUFFIXES = {
     ".doc",
     ".docx",
@@ -76,7 +77,32 @@ def is_direct_material(path: object) -> bool:
 def material_priority(path: object) -> int:
     if not isinstance(path, str):
         return 0
+    if path.casefold().endswith(EXTRACTED_MATERIAL_SUFFIX):
+        return 2
     return 1 if PurePosixPath(path).suffix.casefold() in PRIMARY_MATERIAL_SUFFIXES else 0
+
+
+def original_pdf_for_extracted(path: object) -> str | None:
+    if not isinstance(path, str) or not path.casefold().endswith(EXTRACTED_MATERIAL_SUFFIX):
+        return None
+    base = path[: -len(EXTRACTED_MATERIAL_SUFFIX)]
+    return base if base.casefold().endswith(".pdf") else base + ".pdf"
+
+
+def deduplicate_extracted_materials(
+    records: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    selected: list[dict[str, object]] = []
+    suppressed_pdfs: set[str] = set()
+    for record in records:
+        path = str(record.get("path") or "")
+        if path.casefold() in suppressed_pdfs:
+            continue
+        selected.append(record)
+        original = original_pdf_for_extracted(path)
+        if original is not None:
+            suppressed_pdfs.add(original.casefold())
+    return selected
 
 
 def load_records(
@@ -126,14 +152,16 @@ def select_records(
             if is_direct_material(item.get("path"))
             and not PurePosixPath(str(item.get("path"))).name.startswith(("Resumo", "Transcrito"))
         ]
-        return sorted(
-            selected,
-            key=lambda item: (
-                str(item.get("date") or ""),
-                material_priority(item.get("path")),
-                str(item["path"]),
-            ),
-            reverse=True,
+        return deduplicate_extracted_materials(
+            sorted(
+                selected,
+                key=lambda item: (
+                    str(item.get("date") or ""),
+                    material_priority(item.get("path")),
+                    str(item["path"]),
+                ),
+                reverse=True,
+            )
         )
     if query_type == "next_assessment":
         selected = [
