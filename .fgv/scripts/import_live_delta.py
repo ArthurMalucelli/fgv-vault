@@ -387,6 +387,30 @@ def build_outputs(root: Path) -> tuple[dict[PurePosixPath, bytes], bytes]:
         )
         if reachable.returncode != 0:
             raise ImportError(f"source authority is not reachable from tip: {commit}")
+    delta_bytes = bytes(
+        _git(
+            root,
+            "diff",
+            "--name-only",
+            "--no-renames",
+            "-z",
+            SOURCE_BASE,
+            SOURCE_TIP,
+            binary=True,
+        )
+    )
+    changed_sources = {
+        unicodedata.normalize("NFC", raw.decode("utf-8"))
+        for raw in delta_bytes.split(b"\0")
+        if raw
+    }
+    declared_sources = {str(spec["source"]) for spec in RECORDS}
+    if len(declared_sources) != len(RECORDS) or changed_sources != declared_sources:
+        missing = sorted(changed_sources - declared_sources)
+        extra = sorted(declared_sources - changed_sources)
+        raise ImportError(
+            f"live delta source coverage diverged: missing={missing!r} extra={extra!r}"
+        )
     source_base_tree = str(_git(root, "rev-parse", f"{SOURCE_BASE}^{{tree}}"))
     source_tip_tree = str(_git(root, "rev-parse", f"{SOURCE_TIP}^{{tree}}"))
     outputs: dict[PurePosixPath, bytes] = {}
