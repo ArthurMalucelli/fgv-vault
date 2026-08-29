@@ -304,6 +304,15 @@ def _inspect_command_tokens(tokens: list[str]) -> list[tuple[str, str]]:
                     findings.extend(_inspect_command_tokens(_shell_tokens(segment[command_index])))
                 except ValueError:
                     findings.append(("invalid_shell", "nested shell command is not tokenizable"))
+        if re.fullmatch(r"python(?:3(?:\.\d+)?)?", executable_name) and "-c" in segment[index + 1 :]:
+            code_index = segment.index("-c", index + 1) + 1
+            if code_index >= len(segment):
+                findings.append(("dynamic_command", "python -c code is missing"))
+            else:
+                findings.extend(
+                    (rule, f"python -c: {detail}")
+                    for _, rule, detail in _python_command_findings(segment[code_index])
+                )
         if executable_name == "git":
             findings.append(("unauthorized_git", "Git command outside literal fgv-sync"))
             if _git_subcommand(segment, index) in {"reset", "clean"}:
@@ -315,21 +324,134 @@ def _inspect_command_tokens(tokens: list[str]) -> list[tuple[str, str]]:
     return findings
 
 
+def _resolve_symbol(name: str, symbols: dict[str, str]) -> str:
+    current = name
+    seen: set[str] = set()
+    while current and current not in seen:
+        seen.add(current)
+        if current in symbols:
+            current = symbols[current]
+            continue
+        first, separator, rest = current.partition(".")
+        if first in symbols:
+            current = symbols[first] + (separator + rest if separator else "")
+            continue
+        break
+    return current
+
+
+def _callable_expression_name(node: ast.AST, symbols: dict[str, str]) -> str:
+    raw = _call_name(node)
+    if isinstance(node, ast.Call) and _call_name(node.func) == "getattr" and len(node.args) >= 2:
+        owner = _resolve_symbol(_call_name(node.args[0]), symbols)
+        attribute = _literal_string(node.args[1])
+        if owner and attribute:
+            raw = f"{owner}.{attribute}"
+    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Call):
+        importer = node.value
+        if _call_name(importer.func) == "__import__" and importer.args:
+            module = _literal_string(importer.args[0])
+            if module in {"os", "pathlib", "shutil", "subprocess"}:
+                raw = f"{module}.{node.attr}"
+    return _resolve_symbol(raw, symbols)
+
+
+def _assigned_names(node: ast.AST) -> list[str]:
+    if isinstance(node, ast.Name):
+        return [node.id]
+    if isinstance(node, ast.Attribute):
+        name = _call_name(node)
+        return [name] if name else []
+    if isinstance(node, (ast.Tuple, ast.List)):
+        return [name for item in node.elts for name in _assigned_names(item)]
+    return []
+
+
+def _path_expression(
+    node: ast.AST | None,
+    symbols: dict[str, str],
+    path_values: dict[str, str | None],
+) -> tuple[bool, str | None]:
+    literal = _literal_string(node)
+    if literal is not None:
+        return True, literal
+    if isinstance(node, ast.Name) and node.id in path_values:
+        return True, path_values[node.id]
+    if isinstance(node, ast.Call):
+        constructor = _callable_expression_name(node.func, symbols)
+        if constructor in {"pathlib.Path", "pathlib.PurePath", "pathlib.PurePosixPath"}:
+            if not node.args:
+                return True, None
+            return _path_expression(node.args[0], symbols, path_values)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        left_is_path, left = _path_expression(node.left, symbols, path_values)
+        right = _literal_string(node.right)
+        if left_is_path:
+            if left is None or right is None:
+                return True, None
+            return True, str(PurePosixPath(left) / right)
+    return False, None
+
+
+def _dynamic_callable_kind(node: ast.AST, symbols: dict[str, str]) -> str | None:
+    if not isinstance(node, ast.Call) or _call_name(node.func) != "getattr" or len(node.args) < 2:
+        return None
+    owner = _resolve_symbol(_call_name(node.args[0]), symbols)
+    attribute = _literal_string(node.args[1])
+    if owner in {"os", "shutil", "subprocess"}:
+        return "process"
+    is_path, _ = _path_expression(node.args[0], symbols, {})
+    if is_path and (attribute is None or attribute in {"unlink", "rmdir", "rename", "replace"}):
+        return "path"
+    return None
+
+
 def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
     try:
         tree = ast.parse(text)
     except SyntaxError:
         return [(0, "invalid_format", "Python component does not parse")]
     findings: list[tuple[int, str, str]] = []
-    aliases: dict[str, str] = {}
-    for node in tree.body:
+    symbols: dict[str, str] = {}
+    for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name in {"os", "shutil", "subprocess"}:
-                    aliases[alias.asname or alias.name] = alias.name
-        elif isinstance(node, ast.ImportFrom) and node.module in {"os", "shutil", "subprocess"}:
+                if alias.name in {"os", "pathlib", "shutil", "subprocess"}:
+                    symbols.setdefault(alias.asname or alias.name, alias.name)
+        elif isinstance(node, ast.ImportFrom) and node.module in {"os", "pathlib", "shutil", "subprocess"}:
             for alias in node.names:
-                aliases[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+                symbols.setdefault(alias.asname or alias.name, f"{node.module}.{alias.name}")
+    assignments: list[tuple[list[str], ast.AST]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            names = [name for target in node.targets for name in _assigned_names(target)]
+            assignments.append((names, node.value))
+        elif isinstance(node, ast.AnnAssign):
+            assignments.append((_assigned_names(node.target), node.value))
+    for _ in range(len(assignments) + 1):
+        changed = False
+        for names, value in assignments:
+            dynamic_kind = _dynamic_callable_kind(value, symbols)
+            if dynamic_kind == "process":
+                resolved = "__hermes_dynamic_process__"
+            elif dynamic_kind == "path":
+                resolved = "__hermes_dynamic_path__"
+            else:
+                resolved = _callable_expression_name(value, symbols)
+            if not resolved:
+                continue
+            for name in names:
+                if name not in symbols:
+                    symbols[name] = resolved
+                    changed = True
+        if not changed:
+            break
+    path_values: dict[str, str | None] = {}
+    for names, value in assignments:
+        is_path, path_value = _path_expression(value, symbols, path_values)
+        if is_path:
+            for name in names:
+                path_values.setdefault(name, path_value)
     process_calls = {
         "subprocess.call",
         "subprocess.check_call",
@@ -349,13 +471,21 @@ def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
-        name = _call_name(node.func)
-        first, separator, rest = name.partition(".")
-        if first in aliases:
-            name = aliases[first] + (separator + rest if separator else "")
+        name = _callable_expression_name(node.func, symbols)
         line = int(getattr(node, "lineno", 0))
+        dynamic_kind = _dynamic_callable_kind(node.func, symbols)
+        if name == "__hermes_dynamic_process__" or dynamic_kind == "process":
+            findings.append((line, "dynamic_command", "dynamic Python process callable is not allowed"))
+        if name == "__hermes_dynamic_path__" or dynamic_kind == "path":
+            findings.append((line, "dynamic_destructive_path", "dynamic pathlib callable is not allowed"))
         if name in process_calls or name.startswith("os.exec") or name.startswith("os.spawn"):
-            argument = node.args[0] if node.args else None
+            argument_offset = 1 if name.startswith("os.spawn") else 0
+            argument = node.args[argument_offset] if len(node.args) > argument_offset else None
+            if argument is None:
+                argument = next(
+                    (keyword.value for keyword in node.keywords if keyword.arg in {"args", "command"}),
+                    None,
+                )
             tokens: list[str] | None = None
             literal = _literal_string(argument)
             if literal is not None:
@@ -372,11 +502,22 @@ def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
             else:
                 findings.extend((line, rule, detail) for rule, detail in _inspect_command_tokens(tokens))
         if name in destructive_calls:
-            target = _literal_string(node.args[0] if node.args else None)
-            if target is None:
+            is_path, target = _path_expression(node.args[0] if node.args else None, symbols, path_values)
+            if not is_path or target is None:
                 findings.append((line, "dynamic_destructive_path", "Python destructive path is not a closed literal"))
             elif _sensitive_delete_target(target):
                 findings.append((line, "destructive_command", "Python call deletes vault or Hermes path"))
+        if isinstance(node.func, ast.Attribute) and node.func.attr in {"unlink", "rmdir", "rename", "replace"}:
+            is_path, target = _path_expression(node.func.value, symbols, path_values)
+            if is_path:
+                targets = [target]
+                if node.func.attr in {"rename", "replace"}:
+                    _, destination = _path_expression(node.args[0] if node.args else None, symbols, path_values)
+                    targets.append(destination)
+                if any(item is None for item in targets):
+                    findings.append((line, "dynamic_destructive_path", "pathlib destructive path is not a closed literal"))
+                elif any(_sensitive_delete_target(str(item)) for item in targets):
+                    findings.append((line, "destructive_command", "pathlib call mutates vault or Hermes path"))
     return findings
 
 

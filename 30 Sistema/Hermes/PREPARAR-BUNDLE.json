@@ -4,14 +4,14 @@
   "package_manifest_sha256": "bbdcf0a8be36eee71a4dc0afb6fb42df1e8e7dd192d4bf4294bf6f637a9bfcf3",
   "files": [
     {"path": ".fgv/scripts/audit_hermes.py", "sha256": "7b4faec7b37a8a2a4b7974fb093c528400da3c4fcbe9f0ed099dd0b779c0063d"},
-    {"path": ".fgv/scripts/hermes_common.py", "sha256": "f432c24f3eb6add39d6a9baa5106f4720e63dca83e8e81a67212e1dd94d3ecf7"},
+    {"path": ".fgv/scripts/hermes_common.py", "sha256": "4b316674ccefd2013fe0c24e0fedaddc5fab4910509465ec1a44718a1f9ad5fa"},
     {"path": ".fgv/scripts/hermes_retrieval_smoke.py", "sha256": "b56ed54101141b66a807d2bcd94a6ed06553f762f81acef93c562f67781a630f"},
     {"path": ".fgv/scripts/validate_hermes_cutover.py", "sha256": "d27b4f97526e8bd80cdaaec1e0cb8378d48bcba8b0942b4e3278eb4e4f9cb91e"},
-    {"path": ".fgv/scripts/validate_hermes_readiness.py", "sha256": "55e1f4b27467f59bf3ab684fa80e4f1b25f7cf3ad6558fd1e8045c6418401c81"},
+    {"path": ".fgv/scripts/validate_hermes_readiness.py", "sha256": "7ecf14372fbdc2caf56d6b471919e48bc3d82c9a49e8163962ea987c90c084fe"},
     {"path": ".fgv/scripts/verify_hermes_bundle.py", "sha256": "ea6a1c22074e481566da756345b1ba40f5c2735af783f81374b535bf3640b0da"},
     {"path": "30 Sistema/Hermes/HERMES-CONTRACT.md", "sha256": "3630611579120f8f1fc37fc5d00b96d8b32a382b64a935923227bcc11d0111d8"},
-    {"path": "30 Sistema/Hermes/PROMPT-HERMES-PREPARAR.md", "sha256": "5baa46263b82fdba195132845f6a4b56608b9d332dd4cc21954e58537c0355fa"},
-    {"path": "30 Sistema/Hermes/READINESS-REPORT-TEMPLATE.md", "sha256": "c64096ab256f60fef2028ed599ac983b8b587ee19b246c545659a77a8b750e47"},
+    {"path": "30 Sistema/Hermes/PROMPT-HERMES-PREPARAR.md", "sha256": "506bce53f65fc3e89aff14416c4a3f154fc1824a000041320699bfb0be7138c1"},
+    {"path": "30 Sistema/Hermes/READINESS-REPORT-TEMPLATE.md", "sha256": "8782607a7d5677a368aeb73a6b24ff7492597b4bc8a3d2fc997412375f1efa32"},
     {"path": "30 Sistema/Hermes/fgv-sync", "sha256": "1478e404bc7b6488b76ef059379aaaf57ad3bd5082254b9dc1b45726598e61ae"},
     {"path": "30 Sistema/Hermes/hermes-manifest.json", "sha256": "bbdcf0a8be36eee71a4dc0afb6fb42df1e8e7dd192d4bf4294bf6f637a9bfcf3"},
     {"path": "30 Sistema/Hermes/retrieval-queries.json", "sha256": "236069af8f8509323a9308893b754511babb8713eeb82ba99c146f0a483e4849"}

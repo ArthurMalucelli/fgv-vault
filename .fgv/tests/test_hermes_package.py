@@ -18,6 +18,18 @@ OLD_HOME = FIXTURES / "hermes-home"
 MIGRATED_HOME = FIXTURES / "hermes-home-migrated"
 RETRIEVAL_VAULT = FIXTURES / "hermes-retrieval-vault"
 TEST_COMMIT = "1" * 40
+LIVE_QUERY_EXPECTED = {
+    "ultima-aula-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
+    "transcrito-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Transcrito - Introdução a derivadas.md",
+    "proxima-avaliacao": "00 Home/Tasks.md",
+    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx",
+    "conceito-gap": "20 Conhecimento/Conceitos/Dividend Yield.md",
+    "compat-resumo": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
+}
+LIVE_QUERY_STEPS = [
+    "catalog", "dashboard_snapshot", "checkout_status", "select_exact_path",
+    "verify_sha256", "open_exact_file",
+]
 
 
 def run_python(script: str, *args: str) -> subprocess.CompletedProcess[str]:
@@ -207,6 +219,67 @@ class HermesAuditTests(unittest.TestCase):
                     for finding in findings
                 )
             )
+
+    def test_audit_blocks_nested_assignment_cron_python_and_pathlib_bypasses(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / ".hermes"
+            shutil.copytree(MIGRATED_HOME, home)
+            python_component = home / "scripts/eclass-scan.py"
+            python_component.write_text(
+                "import subprocess\n"
+                "from pathlib import Path\n"
+                "runner = subprocess.run\n"
+                "def nested():\n"
+                "    from subprocess import run as nested_runner\n"
+                "    nested_runner(['git', 'reset', '--hard'])\n"
+                "runner(['/usr/bin/git', 'clean', '-fd'])\n"
+                "Path('/root/vault').unlink()\n",
+                encoding="utf-8",
+            )
+            cron = home / "cron/jobs.json"
+            cron.write_text(
+                json.dumps({
+                    "jobs": [{
+                        "name": "python-bypass",
+                        "command": "python3 -c 'import os; os.system(\"git reset --hard\")'",
+                    }]
+                }),
+                encoding="utf-8",
+            )
+            output = Path(tmp) / "audit.json"
+            result = self.audit(home, output)
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            findings = json.loads(output.read_text(encoding="utf-8"))["findings"]
+            rules = [finding["rule"] for finding in findings]
+            self.assertGreaterEqual(rules.count("unauthorized_git"), 3)
+            self.assertGreaterEqual(rules.count("destructive_command"), 4)
+
+    def test_audit_fails_closed_on_dynamic_process_and_path_callables(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / ".hermes"
+            shutil.copytree(MIGRATED_HOME, home)
+            target = home / "scripts/eclass-scan.py"
+            target.write_text(
+                "import os\n"
+                "import subprocess\n"
+                "from pathlib import Path\n"
+                "process = getattr(subprocess, os.environ['PROCESS_METHOD'])\n"
+                "shell = getattr(os, os.environ['OS_METHOD'])\n"
+                "deleter = getattr(Path('/root/vault'), os.environ['PATH_METHOD'])\n"
+                "process(['fgv-sync', 'status'])\n"
+                "shell('fgv-sync status')\n"
+                "deleter()\n",
+                encoding="utf-8",
+            )
+            output = Path(tmp) / "audit.json"
+            result = self.audit(home, output)
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            rules = [
+                finding["rule"]
+                for finding in json.loads(output.read_text(encoding="utf-8"))["findings"]
+            ]
+            self.assertGreaterEqual(rules.count("dynamic_command"), 2)
+            self.assertIn("dynamic_destructive_path", rules)
 
 
 class HermesCutoverValidationTests(unittest.TestCase):
@@ -567,24 +640,43 @@ class HermesReadinessTests(unittest.TestCase):
         package_hermes.mkdir(parents=True)
         self.manifest = package_hermes / "hermes-manifest.json"
         shutil.copyfile(HERMES_DIR / "hermes-manifest.json", self.manifest)
+        self.package_queries = package_hermes / "retrieval-queries.json"
+        shutil.copyfile(HERMES_DIR / "retrieval-queries.json", self.package_queries)
         manifest_hash = hashlib.sha256(self.manifest.read_bytes()).hexdigest()
+        query_hash = hashlib.sha256(self.package_queries.read_bytes()).hexdigest()
         self.bundle = package_hermes / "PREPARAR-BUNDLE.json"
         self.bundle.write_text(json.dumps({
             "schema_version": 1,
             "phase": "PREPARAR",
             "package_manifest_sha256": manifest_hash,
-            "files": [{"path": "30 Sistema/Hermes/hermes-manifest.json", "sha256": manifest_hash}],
+            "files": [
+                {"path": "30 Sistema/Hermes/hermes-manifest.json", "sha256": manifest_hash},
+                {"path": "30 Sistema/Hermes/retrieval-queries.json", "sha256": query_hash},
+            ],
         }, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         bundle_hash = hashlib.sha256(self.bundle.read_bytes()).hexdigest()
 
         self.evidence_dir = self.base / "evidence"
         self.evidence_dir.mkdir()
+        retrieval_queries = [
+            {
+                "bytes_opened": 100 + index,
+                "duration_ms": index + 1,
+                "id": query_id,
+                "matched": True,
+                "opened_files": [expected_path],
+                "selected_path": expected_path,
+                "steps": LIVE_QUERY_STEPS,
+            }
+            for index, (query_id, expected_path) in enumerate(LIVE_QUERY_EXPECTED.items())
+        ]
         evidence_values = {
             "audit_after": {"status": "pass", "findings": []},
             "cutover_validation": {"status": "ready", "vault_commit": TEST_COMMIT},
             "retrieval_smoke": {
                 "status": "pass", "as_of_commit": TEST_COMMIT, "sync_state": "clean",
                 "stale": False, "fixture_mode": False, "state_check": "pass",
+                "queries": retrieval_queries,
             },
             "test_suite": {"status": "pass", "tested_commit": TEST_COMMIT, "failures": 0},
             "eclass_smoke": {"status": "pass", "tested_commit": TEST_COMMIT},
@@ -621,7 +713,10 @@ class HermesReadinessTests(unittest.TestCase):
             "smoke_tests": {"academic_retrieval": "pass", "eclass": "pass", "whatsapp": "pass"},
             "retrieval_fixture_mode": False,
             "retrieval_sync_state": "clean",
-            "query_timings": [{"id": "latest_class", "duration_ms": 4}],
+            "query_timings": [
+                {"id": query_id, "duration_ms": index + 1}
+                for index, query_id in enumerate(LIVE_QUERY_EXPECTED)
+            ],
             "context_tokens": 1200,
             "diff_summary": ["staged configuration only"],
             "evidence": evidence,
@@ -645,10 +740,71 @@ class HermesReadinessTests(unittest.TestCase):
             "--expected-report-sha256", checksum,
         )
 
+    def replace_retrieval_evidence(self, value: dict[str, object]) -> dict[str, object]:
+        path = self.evidence_paths["retrieval_smoke"]
+        path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        report = json.loads(json.dumps(self.report, ensure_ascii=False))
+        report["evidence"]["retrieval_smoke"]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        return report
+
     def test_ready_exact_sha_and_checksums_pass(self) -> None:
         result = self.validate(self.report)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads(result.stdout)["status"], "ready")
+
+    def test_readiness_rejects_retrieval_evidence_without_exact_six_queries(self) -> None:
+        base = json.loads(self.evidence_paths["retrieval_smoke"].read_text(encoding="utf-8"))
+        mutations: list[tuple[str, dict[str, object], list[dict[str, object]] | None]] = []
+        without_queries = dict(base)
+        without_queries.pop("queries")
+        mutations.append(("missing", without_queries, None))
+        one_query = dict(base)
+        one_query["queries"] = list(base["queries"][:1])
+        mutations.append(("only_one", one_query, None))
+        wrong_path = json.loads(json.dumps(base))
+        wrong_path["queries"][0]["selected_path"] = "00 Home/Tasks.md"
+        mutations.append(("wrong_path", wrong_path, None))
+        duplicate = json.loads(json.dumps(base))
+        duplicate["queries"][-1] = dict(duplicate["queries"][0])
+        mutations.append(("duplicate", duplicate, None))
+        swapped = json.loads(json.dumps(base))
+        swapped["queries"][0], swapped["queries"][1] = swapped["queries"][1], swapped["queries"][0]
+        mutations.append(("swapped", swapped, None))
+        matched_false = json.loads(json.dumps(base))
+        matched_false["queries"][2]["matched"] = False
+        mutations.append(("matched_false", matched_false, None))
+        fixture = json.loads(json.dumps(base))
+        fixture["fixture_mode"] = True
+        mutations.append(("fixture", fixture, None))
+        wrong_commit = json.loads(json.dumps(base))
+        wrong_commit["as_of_commit"] = "0" * 40
+        mutations.append(("wrong_commit", wrong_commit, None))
+        stale = json.loads(json.dumps(base))
+        stale["stale"] = True
+        stale["sync_state"] = "stale"
+        mutations.append(("stale", stale, None))
+        extra_key = json.loads(json.dumps(base))
+        extra_key["untrusted"] = "pass"
+        mutations.append(("extra_key", extra_key, None))
+        for label, evidence, timings in mutations:
+            with self.subTest(label=label):
+                report = self.replace_retrieval_evidence(evidence)
+                if timings is not None:
+                    report["query_timings"] = timings
+                self.assertNotEqual(self.validate(report).returncode, 0)
+
+    def test_readiness_requires_exact_six_unique_query_timings(self) -> None:
+        variants = (
+            self.report["query_timings"][:1],
+            [*self.report["query_timings"][:-1], dict(self.report["query_timings"][0])],
+            [*self.report["query_timings"][:-1], {"id": "unknown", "duration_ms": 6}],
+            [{**item, "duration_ms": 999 if index == 0 else item["duration_ms"]} for index, item in enumerate(self.report["query_timings"])],
+        )
+        for timings in variants:
+            with self.subTest(timings=timings):
+                report = json.loads(json.dumps(self.report, ensure_ascii=False))
+                report["query_timings"] = timings
+                self.assertNotEqual(self.validate(report).returncode, 0)
 
     def test_non_ready_mismatched_commit_or_manifest_is_blocked(self) -> None:
         mutations = (
@@ -685,6 +841,12 @@ class HermesReadinessTests(unittest.TestCase):
         self.assertNotEqual(self.validate(self.report, "0" * 64).returncode, 0)
         backup_file = next(path for path in self.backup.rglob("*") if path.is_file() and path != self.backup_manifest)
         backup_file.write_bytes(backup_file.read_bytes() + b"tampered")
+        self.assertNotEqual(self.validate(self.report).returncode, 0)
+
+    def test_canonical_live_query_set_is_loaded_and_bundle_pinned(self) -> None:
+        queries = json.loads(self.package_queries.read_text(encoding="utf-8"))
+        queries[0]["id"] = "substituted"
+        self.package_queries.write_text(json.dumps(queries, ensure_ascii=False), encoding="utf-8")
         self.assertNotEqual(self.validate(self.report).returncode, 0)
 
 
@@ -810,7 +972,13 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
     def test_live_queries_are_distinct_existing_and_require_fresh_commit(self) -> None:
         live_path = HERMES_DIR / "retrieval-queries.json"
         self.assertNotEqual(live_path.read_bytes(), (FIXTURES / "retrieval-queries.json").read_bytes())
-        for query in json.loads(live_path.read_text(encoding="utf-8")):
+        live_queries = json.loads(live_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            {query["id"]: query["expected_path"] for query in live_queries},
+            LIVE_QUERY_EXPECTED,
+        )
+        self.assertEqual([query["id"] for query in live_queries], list(LIVE_QUERY_EXPECTED))
+        for query in live_queries:
             self.assertTrue((ROOT / query["expected_path"]).is_file(), query["expected_path"])
         with tempfile.TemporaryDirectory() as tmp:
             vault, actual_commit = self.make_vault(Path(tmp), live_queries=True)

@@ -44,10 +44,12 @@ O gate recebe JSON UTF-8 sem comentários e com exatamente as chaves abaixo. `ti
   "retrieval_fixture_mode": false,
   "retrieval_sync_state": "clean",
   "query_timings": [
-    {
-      "id": "latest_class",
-      "duration_ms": 4
-    }
+    {"id": "ultima-aula-matematica", "duration_ms": 1},
+    {"id": "transcrito-matematica", "duration_ms": 2},
+    {"id": "proxima-avaliacao", "duration_ms": 3},
+    {"id": "material-eclass", "duration_ms": 4},
+    {"id": "conceito-gap", "duration_ms": 5},
+    {"id": "compat-resumo", "duration_ms": 6}
   ],
   "context_tokens": 1200,
   "diff_summary": [
@@ -68,4 +70,6 @@ O inventário produtivo esperado é vazio. Qualquer arquivo untracked ou mudanç
 
 O backup manifest é JSON fechado com `schema_version`, `production_commit`, `inventory_sha256` e `files`. Cada item de `files` tem `source_path`, `backup_path` e `sha256`. Ele precisa listar exatamente todos os arquivos regulares da configuração Hermes ativa, sem symlinks, em ordem de `source_path`. O validador compara origem, cópia e hashes byte a byte.
 
-As seis evidências são arquivos JSON reais e pinados. O smoke acadêmico precisa declarar `fixture_mode: false`, `stale: false`, `sync_state: clean`, `state_check: pass` e `as_of_commit` igual a `tested_commit`. O resultado de cutover precisa declarar `vault_commit` igual a `tested_commit`. Um relatório preenchido sem esses arquivos não autoriza CUTOVER.
+As seis evidências são arquivos JSON reais e pinados. O smoke acadêmico usa schema fechado e precisa declarar `fixture_mode: false`, `stale: false`, `sync_state: clean`, `state_check: pass` e `as_of_commit` igual a `tested_commit`.
+
+O smoke contém exatamente estes seis resultados, nesta ordem: `ultima-aula-matematica`, `transcrito-matematica`, `proxima-avaliacao`, `material-eclass`, `conceito-gap` e `compat-resumo`. Cada resultado precisa ter `matched: true`, abrir apenas o path esperado em `retrieval-queries.json` e registrar os seis passos catalog-first. `query_timings` repete exatamente os seis IDs e as durações presentes nessa evidência, sem duplicatas. O resultado de cutover precisa declarar `vault_commit` igual a `tested_commit`. Um relatório preenchido sem esses arquivos não autoriza CUTOVER.

@@ -64,6 +64,40 @@ EVIDENCE_RECORD_KEYS = {"path", "sha256"}
 BUNDLE_KEYS = {"schema_version", "phase", "package_manifest_sha256", "files"}
 BUNDLE_FILE_KEYS = {"path", "sha256"}
 BACKUP_MANIFEST_KEYS = {"schema_version", "production_commit", "inventory_sha256", "files"}
+LIVE_QUERY_PATHS = {
+    "ultima-aula-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
+    "transcrito-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Transcrito - Introdução a derivadas.md",
+    "proxima-avaliacao": "00 Home/Tasks.md",
+    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx",
+    "conceito-gap": "20 Conhecimento/Conceitos/Dividend Yield.md",
+    "compat-resumo": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
+}
+RETRIEVAL_EVIDENCE_KEYS = {
+    "as_of_commit",
+    "fixture_mode",
+    "queries",
+    "stale",
+    "state_check",
+    "sync_state",
+    "status",
+}
+RETRIEVAL_QUERY_KEYS = {
+    "bytes_opened",
+    "duration_ms",
+    "id",
+    "matched",
+    "opened_files",
+    "selected_path",
+    "steps",
+}
+RETRIEVAL_STEPS = [
+    "catalog",
+    "dashboard_snapshot",
+    "checkout_status",
+    "select_exact_path",
+    "verify_sha256",
+    "open_exact_file",
+]
 
 
 def parser() -> argparse.ArgumentParser:
@@ -149,11 +183,50 @@ def validate_bundle(
         paths.append(relative)
     if paths != sorted(paths) or len(paths) != len(set(paths)):
         raise HermesError("bundle paths must be sorted and unique")
+    if not {
+        "30 Sistema/Hermes/hermes-manifest.json",
+        "30 Sistema/Hermes/retrieval-queries.json",
+    } <= set(paths):
+        raise HermesError("bundle must pin the manifest and canonical live query set")
     return sha256_bytes(payload)
 
 
+def load_live_query_paths(manifest_path: Path) -> dict[str, str]:
+    package_root = manifest_path.parent.parent.parent.absolute()
+    payload, issue = read_relative_file(package_root, "30 Sistema/Hermes/retrieval-queries.json")
+    if issue or payload is None:
+        raise HermesError(f"canonical live query set cannot be trusted: {issue}")
+    try:
+        queries = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise HermesError(f"canonical live query set is invalid JSON: {error}") from error
+    if not isinstance(queries, list) or len(queries) != len(LIVE_QUERY_PATHS):
+        raise HermesError("canonical live query set must contain exactly six queries")
+    loaded: dict[str, str] = {}
+    for query in queries:
+        allowed_schemas = (
+            {"id", "question", "query_type", "expected_path"},
+            {"id", "question", "query_type", "subject_id", "expected_path"},
+        )
+        if not isinstance(query, dict) or set(query) not in allowed_schemas:
+            raise HermesError("canonical live query schema is closed and invalid")
+        query_id = query.get("id")
+        expected_path = query.get("expected_path")
+        if not isinstance(query_id, str) or not isinstance(expected_path, str) or query_id in loaded:
+            raise HermesError("canonical live query ID or path is invalid")
+        safe_relative(expected_path, f"canonical live query {query_id} expected_path")
+        loaded[query_id] = expected_path
+    if loaded != LIVE_QUERY_PATHS or list(loaded) != list(LIVE_QUERY_PATHS):
+        raise HermesError("canonical live query IDs or expected paths diverged")
+    return loaded
+
+
 def validate_report_shape(
-    report: dict[str, object], expected_commit: str, manifest: dict[str, object], manifest_sha256: str
+    report: dict[str, object],
+    expected_commit: str,
+    manifest: dict[str, object],
+    manifest_sha256: str,
+    live_query_paths: dict[str, str],
 ) -> list[str]:
     failures: list[str] = []
     if set(report) != REPORT_KEYS:
@@ -193,10 +266,14 @@ def validate_report_shape(
     if not isinstance(timings, list) or not timings:
         failures.append("query_timings")
     else:
+        timing_ids: list[str] = []
         for item in timings:
             if not isinstance(item, dict) or set(item) != {"id", "duration_ms"} or not isinstance(item["id"], str) or not item["id"] or type(item["duration_ms"]) is not int or item["duration_ms"] < 0:
                 failures.append("query_timings")
                 break
+            timing_ids.append(item["id"])
+        if timing_ids != list(live_query_paths):
+            failures.append("query_timings")
     if type(report["context_tokens"]) is not int or report["context_tokens"] < 0:
         failures.append("context_tokens")
     summary = report["diff_summary"]
@@ -340,7 +417,9 @@ def validate_production_and_backup(report: dict[str, object], vault: Path, herme
     return failures
 
 
-def validate_evidence(report: dict[str, object], tested_commit: str) -> list[str]:
+def validate_evidence(
+    report: dict[str, object], tested_commit: str, live_query_paths: dict[str, str]
+) -> list[str]:
     evidence = report["evidence"]
     if not isinstance(evidence, dict) or set(evidence) != EVIDENCE_IDS:
         return ["evidence"]
@@ -372,7 +451,7 @@ def validate_evidence(report: dict[str, object], tested_commit: str) -> list[str
     if cutover.get("status") != "ready" or cutover.get("vault_commit") != tested_commit:
         failures.append("evidence:cutover_validation")
     retrieval = payloads["retrieval_smoke"]
-    if not (
+    if set(retrieval) != RETRIEVAL_EVIDENCE_KEYS or not (
         retrieval.get("status") == "pass"
         and retrieval.get("as_of_commit") == tested_commit
         and retrieval.get("sync_state") == "clean"
@@ -381,6 +460,38 @@ def validate_evidence(report: dict[str, object], tested_commit: str) -> list[str
         and retrieval.get("state_check") == "pass"
     ):
         failures.append("evidence:retrieval_smoke")
+    else:
+        queries = retrieval.get("queries")
+        query_durations: dict[str, int] = {}
+        if not isinstance(queries, list) or len(queries) != len(live_query_paths):
+            failures.append("evidence:retrieval_smoke")
+        else:
+            for expected_id, query in zip(live_query_paths, queries, strict=True):
+                expected_path = live_query_paths[expected_id]
+                if not isinstance(query, dict) or set(query) != RETRIEVAL_QUERY_KEYS:
+                    failures.append("evidence:retrieval_smoke")
+                    break
+                if not (
+                    query.get("id") == expected_id
+                    and query.get("selected_path") == expected_path
+                    and query.get("opened_files") == [expected_path]
+                    and query.get("matched") is True
+                    and query.get("steps") == RETRIEVAL_STEPS
+                    and type(query.get("duration_ms")) is int
+                    and int(query["duration_ms"]) >= 0
+                    and type(query.get("bytes_opened")) is int
+                    and int(query["bytes_opened"]) > 0
+                ):
+                    failures.append("evidence:retrieval_smoke")
+                    break
+                query_durations[expected_id] = int(query["duration_ms"])
+            report_timings = report.get("query_timings")
+            expected_timings = [
+                {"duration_ms": query_durations.get(query_id), "id": query_id}
+                for query_id in live_query_paths
+            ]
+            if report_timings != expected_timings:
+                failures.append("evidence:retrieval_smoke_timings")
     suite = payloads["test_suite"]
     if suite.get("status") != "pass" or suite.get("tested_commit") != tested_commit or suite.get("failures") != 0:
         failures.append("evidence:test_suite")
@@ -402,18 +513,27 @@ def main() -> int:
         if SHA256_RE.fullmatch(args.expected_report_sha256) is None:
             raise HermesError("expected-report-sha256 must be lowercase SHA-256")
         manifest, manifest_sha256 = load_manifest(args.manifest)
+        live_query_paths = load_live_query_paths(args.manifest)
         report_payload = stable_payload(args.report, "report")
         report_sha256 = sha256_bytes(report_payload)
         if report_sha256 != args.expected_report_sha256:
             failures.append("report_sha256")
         report = json_object(report_payload, "report")
-        failures.extend(validate_report_shape(report, args.tested_commit, manifest, manifest_sha256))
+        failures.extend(
+            validate_report_shape(
+                report,
+                args.tested_commit,
+                manifest,
+                manifest_sha256,
+                live_query_paths,
+            )
+        )
         bundle_sha256 = validate_bundle(args.bundle, args.manifest, manifest_sha256)
         if report.get("prepare_bundle_sha256") != bundle_sha256:
             failures.append("prepare_bundle_sha256")
         if not failures:
             failures.extend(validate_production_and_backup(report, args.production_vault, args.hermes_home))
-            failures.extend(validate_evidence(report, args.tested_commit))
+            failures.extend(validate_evidence(report, args.tested_commit, live_query_paths))
     except (HermesError, KeyError, TypeError, OSError) as error:
         failures.append(f"invalid_input:{error}")
     failures = sorted(set(failures))
