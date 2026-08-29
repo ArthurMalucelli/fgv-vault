@@ -161,6 +161,18 @@ def _valid_date(value: object, field: str, warnings: list[str]) -> str | None:
         return None
 
 
+def infer_path_date(relative_path: str, semester: str, warnings: list[str] | None = None) -> str | None:
+    target_warnings = warnings if warnings is not None else []
+    match = CLASS_DATE_RE.search(_nfc(relative_path).replace("\\", "/"))
+    if not match:
+        return None
+    return _valid_date(
+        f"{semester[:4]}-{match.group(1)}-{match.group(2)}",
+        "path date",
+        target_warnings,
+    )
+
+
 def _infer_type(relative_path: str) -> str:
     path = _nfc(relative_path).replace("\\", "/")
     name = PurePosixPath(path).name.casefold()
@@ -188,10 +200,8 @@ def parse_markdown_metadata(text: str, relative_path: str, semester: str) -> Mar
     parsed_date = _valid_date(date_value, "data", warnings)
     date_source = "frontmatter" if parsed_date else None
     if parsed_date is None:
-        match = CLASS_DATE_RE.search(_nfc(relative_path).replace("\\", "/"))
-        if match:
-            parsed_date = _valid_date(f"{semester[:4]}-{match.group(1)}-{match.group(2)}", "path date", warnings)
-            date_source = "path" if parsed_date else None
+        parsed_date = infer_path_date(relative_path, semester, warnings)
+        date_source = "path" if parsed_date else None
     heading = H1_RE.search(body)
     title = _nfc(str(raw.get("title") or (heading.group(1) if heading else PurePosixPath(relative_path).stem)))
     mastery_raw = raw.get("dominio")

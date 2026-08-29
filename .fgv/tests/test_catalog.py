@@ -20,8 +20,11 @@ class CatalogTests(unittest.TestCase):
             }, ensure_ascii=False),
             "00 Home/Home.md": "# Home\n",
             "00 Home/Tasks.md": "```\n- [ ] exemplo #cont\n```\n- [ ] Prova #cont 📅 2026-08-28\n",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.25/Slides/Aula.pdf": "root lesson material",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.27/Resumo - DRE.md": "---\nmateria: ContabilidadeFinanceira\nstatus: completo\n---\n# DRE\n",
-            "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Materiais/Slides.pdf": "today material",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.26/Material/Slides.pdf": "older material",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Material/Exercícios.docx": "newer material",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Material/Resumo - Leitura.md": "# Leitura de apoio\n",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.29/Transcrito - Futuro.md": "# Futuro\n",
             "20 Conhecimento/Conceitos/DRE.md": "---\nmaterias: [ContabilidadeFinanceira]\n---\n# DRE\n",
             "30 Sistema/Tutor/concepts-history.json": json.dumps({"DRE": {"subject": "ContabilidadeFinanceira", "times_probed": 1, "last_status": "parcial"}}),
@@ -29,6 +32,7 @@ class CatalogTests(unittest.TestCase):
             "30 Sistema/Estado/old.md": "never index",
             "30 Sistema/Estado/.generation.lock": "",
             "90 Arquivo/2026.1/ProdutosFinanceiros/Aulas/05.20/Resumo.md": "---\nmateria: ProdutosFinanceiros\n---\n# RF\n",
+            "90 Arquivo/2026.1/ProdutosFinanceiros/Aulas/05.21/Material/Slides.pdf": "archived material",
         }
         for relative, content in files.items():
             path = vault / relative
@@ -60,6 +64,26 @@ class CatalogTests(unittest.TestCase):
         records = [json.loads(line) for line in first.decode().splitlines()]
         self.assertEqual(records[0]["record_type"], "manifest")
         self.assertEqual(sum(r["record_type"] == "task" for r in records), 1)
+
+    def test_every_lesson_file_derives_date_from_active_or_archive_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = self.make_vault(Path(tmp))
+            settings = load_settings(vault / ".fgv/config/subjects.json")
+            build = build_catalog(vault, settings, "2026-08-28")
+
+        by_path = {
+            record["path"]: record
+            for record in build.records
+            if record["record_type"] == "file"
+        }
+        active = by_path[
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Material/Exercícios.docx"
+        ]
+        archived = by_path[
+            "90 Arquivo/2026.1/ProdutosFinanceiros/Aulas/05.21/Material/Slides.pdf"
+        ]
+        self.assertEqual((active["date"], active["date_source"]), ("2026-08-28", "path"))
+        self.assertEqual((archived["date"], archived["date_source"]), ("2026-05-21", "path"))
 
     def test_nfc_collision_is_fatal(self):
         with self.assertRaises(ValueError):

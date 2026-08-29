@@ -28,6 +28,11 @@ class NavigationShellTests(unittest.TestCase):
             self.assertIn(f"materias: [{subject['id']}]", text)
             self.assertIn(f"# {subject['display_name']}", text)
             self.assertIn("[[00 Home/Tasks|Tasks]]", text)
+            self.assertIn(
+                f"`{subject['path']}/Aulas/MM.DD/Material/`",
+                text,
+            )
+            self.assertNotIn(f"`{subject['path']}/Material/`", text)
 
     def test_home_navigation_shells_exist(self) -> None:
         revisions = (ROOT / "00 Home/Revisões.md").read_text()

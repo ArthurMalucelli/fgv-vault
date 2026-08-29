@@ -48,12 +48,23 @@ def _classes(records: tuple[dict[str, object], ...], settings: Settings, as_of: 
                 continue
             if class_date > today:
                 continue
-            grouped.setdefault((subject.id, folder), {"subject_id": subject.id, "folder": folder, "date": class_date.isoformat(), "files": []})["files"].append(record)
+            grouped.setdefault(
+                (subject.id, folder),
+                {
+                    "subject_id": subject.id,
+                    "folder": folder,
+                    "date": class_date.isoformat(),
+                    "lesson_root": prefix + folder,
+                    "files": [],
+                },
+            )["files"].append(record)
     return sorted(grouped.values(), key=lambda item: (-date.fromisoformat(str(item["date"])).toordinal(), str(item["subject_id"]), str(item["folder"])))
 
 
 def _class_link(state: dict[str, object], name: str) -> str:
-    notes = sorted((record for record in state["files"] if record.get("kind") == "note"),
+    lesson_root = PurePosixPath(str(state["lesson_root"]))
+    notes = sorted((record for record in state["files"] if record.get("kind") == "note"
+                    and PurePosixPath(str(record["path"])).parent == lesson_root),
                    key=lambda record: (0 if PurePosixPath(str(record["path"])).name.casefold().startswith("resumo") else 1, str(record["path"])))
     label = f"{name} {state['folder']}"
     return _wikilink(str(notes[0]["path"]), label) if notes else f"`{_escape(label)}`"
@@ -84,10 +95,17 @@ def render_dashboard(records: tuple[dict[str, object], ...], settings: Settings,
     for state in classes:
         subject = subject_by_id[str(state["subject_id"])]
         files = list(state["files"])
-        names = [PurePosixPath(str(record["path"])).name.casefold() for record in files if record.get("kind") == "note"]
+        lesson_root = PurePosixPath(str(state["lesson_root"]))
+        names = [PurePosixPath(str(record["path"])).name.casefold() for record in files
+                 if record.get("kind") == "note"
+                 and PurePosixPath(str(record["path"])).parent == lesson_root]
         has_transcript = any(name.startswith("transcrito") for name in names)
         has_summary = any(name.startswith("resumo") for name in names)
-        has_material = any(record.get("kind") != "note" or "/Materiais/" in str(record["path"]) for record in files)
+        material_prefix = str(lesson_root / "Material") + "/"
+        has_material = any(
+            record.get("kind") != "note" or str(record["path"]).startswith(material_prefix)
+            for record in files
+        )
         link = _class_link(state, subject.name)
         if str(state["date"]) == as_of:
             pending = []

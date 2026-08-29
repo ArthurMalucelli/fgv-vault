@@ -11,7 +11,7 @@ from pathlib import Path, PurePosixPath
 
 from . import GENERATOR_VERSION, SCHEMA_VERSION
 from .config import Settings, resolve_subject_ids
-from .frontmatter import parse_markdown_metadata
+from .frontmatter import infer_path_date, parse_markdown_metadata
 from .tasks import parse_tasks
 
 
@@ -162,18 +162,19 @@ def _file_record(
     kind = KIND_BY_SUFFIX.get(path.suffix.casefold(), "other")
     scope, semester = _scope_and_semester(relative, settings)
     subject_ids = tuple(sorted(set(resolve_subject_ids([], relative, settings) + _archive_ids(relative, archive_subjects))))
+    warnings: list[str] = []
+    path_date = infer_path_date(relative, semester or settings.semester, warnings)
     record: dict[str, object] = {
-        "aliases": [], "date": None, "date_source": None,
+        "aliases": [], "date": path_date, "date_source": "path" if path_date else None,
         "extension": path.suffix.casefold().removeprefix("."), "kind": kind,
         "mastery": None, "note_type": "other", "path": relative,
         "record_type": "file", "review_due": None, "schema_version": SCHEMA_VERSION,
         "scope": scope, "semester": semester, "sha256": sha256_bytes(payload), "size_bytes": len(payload),
         "status": None, "subject_ids": list(subject_ids), "subjects_raw": [], "tags": [],
-        "title": _nfc(path.stem), "topic": None, "warnings": [],
+        "title": _nfc(path.stem), "topic": None, "warnings": warnings,
     }
     if kind != "note":
         return record
-    warnings: list[str] = []
     try:
         text = payload.decode("utf-8")
     except UnicodeDecodeError:

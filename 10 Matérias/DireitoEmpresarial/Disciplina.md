@@ -10,6 +10,6 @@ contract_version: 1
 
 - [[00 Home/Tasks|Tasks]]
 - Aulas: `10 Matérias/DireitoEmpresarial/Aulas/MM.DD/`
-- Material da disciplina: `10 Matérias/DireitoEmpresarial/Material/`
+- Material por aula: `10 Matérias/DireitoEmpresarial/Aulas/MM.DD/Material/`
 
 Em cada aula, o resumo é a entrada principal e o transcrito preserva o contexto completo.
