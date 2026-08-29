@@ -13,6 +13,15 @@ class HomeContractTests(unittest.TestCase):
         self.assertIn("[[00 Home/Tasks|Tasks]]", home)
         self.assertIn("![[30 Sistema/Estado/dashboard-snapshot#Painel]]", home)
         self.assertNotIn("GENERATED FILE", home)
+        self.assertIn("## Estrutura Plan B", home)
+        self.assertIn("`10 Matérias/`", home)
+        self.assertIn("`Resumo - <tema>.md`", home)
+        self.assertIn("`Transcrito - <tema>.md`", home)
+        self.assertIn("## Atalhos úteis", home)
+        self.assertNotIn("```tasks", home)
+        self.assertNotIn("```dataview", home)
+        self.assertNotIn("TecnologiaDadosENegocios", home)
+        self.assertNotIn("MatematicaAplicada1", home)
 
     def test_state_readme_declares_ownership_and_fallback(self):
         readme = (ROOT / "30 Sistema/Estado/README.md").read_text(encoding="utf-8")
@@ -20,6 +29,9 @@ class HomeContractTests(unittest.TestCase):
         self.assertIn("fonte canônica", readme)
         self.assertIn("filesystem", readme)
         self.assertIn("fallback", readme)
+        self.assertIn("source_fingerprint", readme)
+        self.assertIn("build_fingerprint", readme)
+        self.assertIn("fgv-sync", readme)
 
 
 if __name__ == "__main__":

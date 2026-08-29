@@ -11,3 +11,10 @@ PYTHONPATH=.fgv/scripts python3 .fgv/scripts/generate_state.py --vault . --as-of
 Não edite os arquivos gerados manualmente. Em conflito Git, preserve as fontes e regenere o estado.
 
 Hermes deve validar `schema_version` e o `catalog_sha256` incorporado ao snapshot. Se o catálogo estiver ausente, incompatível ou inconsistente, o fallback é a leitura direta do filesystem.
+
+## Proveniência
+
+- `source_fingerprint` autentica os bytes e caminhos das fontes acadêmicas que entraram no build.
+- `build_fingerprint` combina contrato, versão do gerador, data `as_of` e `source_fingerprint`.
+- `catalog_sha256` vincula o snapshot aos bytes exatos de `catalog.jsonl`.
+- A proveniência por commit Git pertence ao `fgv-sync`. O gerador local não grava commit, hostname ou horário de máquina no estado.

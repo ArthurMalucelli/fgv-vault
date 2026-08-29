@@ -21,6 +21,7 @@ class CatalogTests(unittest.TestCase):
             "00 Home/Home.md": "# Home\n",
             "00 Home/Tasks.md": "```\n- [ ] exemplo #cont\n```\n- [ ] Prova #cont 📅 2026-08-28\n",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.27/Resumo - DRE.md": "---\nmateria: ContabilidadeFinanceira\nstatus: completo\n---\n# DRE\n",
+            "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Materiais/Slides.pdf": "today material",
             "10 Matérias/ContabilidadeFinanceira/Aulas/08.29/Transcrito - Futuro.md": "# Futuro\n",
             "20 Conhecimento/Conceitos/DRE.md": "---\nmaterias: [ContabilidadeFinanceira]\n---\n# DRE\n",
             "30 Sistema/Tutor/concepts-history.json": json.dumps({"DRE": {"subject": "ContabilidadeFinanceira", "times_probed": 1, "last_status": "parcial"}}),

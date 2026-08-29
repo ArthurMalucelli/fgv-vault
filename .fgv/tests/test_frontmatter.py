@@ -46,6 +46,34 @@ proxima_revisao: 2026-08-29
         self.assertEqual(metadata.subjects_raw, ("MatemáticaAplicada",))
         self.assertEqual(metadata.note_type, "conceito")
 
+    def test_ambiguous_yaml_constructs_are_ignored_with_warnings(self):
+        metadata = parse_markdown_metadata(
+            """---
+tags: [primeira]
+tags: [segunda]
+tema: valor # comentário ambíguo
+aliases: &nomes [A, B]
+status: *estado
+descricao: >-
+  texto dobrado
+title: "Hash # literal"
+---
+# Fallback
+""",
+            "10 Matérias/Psicologia/Nota.md",
+            "2026.2",
+        )
+        self.assertEqual(metadata.tags, ("primeira",))
+        self.assertIsNone(metadata.topic)
+        self.assertEqual(metadata.aliases, ())
+        self.assertIsNone(metadata.status)
+        self.assertEqual(metadata.title, "Hash # literal")
+        warnings = "\n".join(metadata.warnings)
+        self.assertIn("duplicate frontmatter key: tags", warnings)
+        self.assertIn("inline comment", warnings)
+        self.assertIn("anchor or alias", warnings)
+        self.assertIn("block scalar", warnings)
+
 
 if __name__ == "__main__":
     unittest.main()

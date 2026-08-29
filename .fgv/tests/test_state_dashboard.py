@@ -21,6 +21,11 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("# Painel", output)
         self.assertIn("Prova", output)
         self.assertIn("08.27", output)
+        self.assertIn("### Aulas de hoje, processamento pendente", output)
+        today_section = output.split("### Aulas de hoje, processamento pendente", 1)[1].split("### Aulas sem transcrito", 1)[0]
+        historical_missing = output.split("### Aulas sem transcrito", 1)[1].split("### Aulas com material e sem resumo", 1)[0]
+        self.assertIn("08.28", today_section)
+        self.assertNotIn("08.28", historical_missing)
         self.assertNotIn("08.29", output)
         self.assertIn("Aprendizagem ativa", output)
         self.assertIn("Aprendizagem arquivada", output)

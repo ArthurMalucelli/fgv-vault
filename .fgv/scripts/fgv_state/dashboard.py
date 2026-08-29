@@ -77,6 +77,7 @@ def render_dashboard(records: tuple[dict[str, object], ...], settings: Settings,
     upcoming = sorted([record for record in tasks if record.get("due") and today < date.fromisoformat(str(record["due"])) <= horizon], key=task_sort)
 
     classes = _classes(records, settings, as_of)
+    today_pending: list[str] = []
     missing_transcript: list[str] = []
     material_without_summary: list[str] = []
     latest: dict[str, dict[str, object]] = {}
@@ -88,10 +89,19 @@ def render_dashboard(records: tuple[dict[str, object], ...], settings: Settings,
         has_summary = any(name.startswith("resumo") for name in names)
         has_material = any(record.get("kind") != "note" or "/Materiais/" in str(record["path"]) for record in files)
         link = _class_link(state, subject.name)
-        if not has_transcript:
-            missing_transcript.append(f"- {link}: sem transcrito")
-        if has_material and not has_summary:
-            material_without_summary.append(f"- {link}: com material e sem resumo")
+        if str(state["date"]) == as_of:
+            pending = []
+            if not has_transcript:
+                pending.append("sem transcrito")
+            if has_material and not has_summary:
+                pending.append("com material e sem resumo")
+            if pending:
+                today_pending.append(f"- {link}: {'; '.join(pending)}")
+        else:
+            if not has_transcript:
+                missing_transcript.append(f"- {link}: sem transcrito")
+            if has_material and not has_summary:
+                material_without_summary.append(f"- {link}: com material e sem resumo")
         current = latest.get(subject.id)
         if current is None or str(state["date"]) > str(current["date"]):
             latest[subject.id] = state
@@ -119,6 +129,7 @@ def render_dashboard(records: tuple[dict[str, object], ...], settings: Settings,
     _append(lines, "### Hoje", [task_line(record) for record in due_today])
     _append(lines, "### Próximos 7 dias", [task_line(record) for record in upcoming])
     lines.extend(("## Processamento", ""))
+    _append(lines, "### Aulas de hoje, processamento pendente", today_pending)
     _append(lines, "### Aulas sem transcrito", missing_transcript)
     _append(lines, "### Aulas com material e sem resumo", material_without_summary)
     _append(lines, "## Revisões vencidas", [f"- {_escape(record['review_due'])}, {_wikilink(str(record['path']), record['title'])}" for record in reviews])

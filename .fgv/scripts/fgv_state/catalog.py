@@ -84,10 +84,10 @@ def _ensure_unique_normalized_paths(paths: list[str]) -> list[str]:
 
 def _walk_root(vault: Path, root_relative: str, reverse: bool) -> list[tuple[str, Path]]:
     root = vault / root_relative
-    if not root.exists():
-        return []
     if root.is_symlink():
         raise ValueError(f"symbolic link is not allowed: {root_relative}")
+    if not root.exists():
+        return []
     found: list[tuple[str, Path]] = []
     for current_raw, directory_names, file_names in os.walk(root, followlinks=False):
         current = Path(current_raw)

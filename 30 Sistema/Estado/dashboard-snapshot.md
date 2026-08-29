@@ -2,8 +2,8 @@
 tipo: dashboard_snapshot
 schema_version: 1
 as_of: 2026-08-28
-build_fingerprint: "sha256:f6a34383c4dd78302d77c7ef3b444502539693d41c785fe564993a95a4e09256"
-catalog_sha256: "sha256:af77b3928ad044e4e468b16dd30a139d77bffc81df6d2cbdc6f49235468f47c5"
+build_fingerprint: "sha256:7c8f587eb97791540eb437c6c6456d72c335da99ff2be36a7f7ad522932cfb24"
+catalog_sha256: "sha256:44ea75f6376e9a336cb5963a8b1c8de837062067743d2cefbbaefd7a3c66edea"
 ---
 
 <!-- GENERATED FILE. Edite as fontes e regenere. -->
@@ -27,9 +27,12 @@ Nenhuma.
 
 ## Processamento
 
+### Aulas de hoje, processamento pendente
+
+- `Tecnologia, Dados e Negócios 08.28`: sem transcrito; com material e sem resumo
+
 ### Aulas sem transcrito
 
-- `Tecnologia, Dados e Negócios 08.28`: sem transcrito
 - `Matemática Aplicada I 08.27`: sem transcrito
 - [[10 Matérias/ContabilidadeFinanceira/Aulas/08.26/ResolucaoQuizDreLojasAlagoanas|Contabilidade Financeira 08.26]]: sem transcrito
 - `Estudos Organizacionais 08.26`: sem transcrito
@@ -46,7 +49,6 @@ Nenhuma.
 
 ### Aulas com material e sem resumo
 
-- `Tecnologia, Dados e Negócios 08.28`: com material e sem resumo
 - `Matemática Aplicada I 08.27`: com material e sem resumo
 - [[10 Matérias/ContabilidadeFinanceira/Aulas/08.26/ResolucaoQuizDreLojasAlagoanas|Contabilidade Financeira 08.26]]: com material e sem resumo
 - `Estudos Organizacionais 08.26`: com material e sem resumo

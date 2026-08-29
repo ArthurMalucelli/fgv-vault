@@ -1,8 +1,49 @@
 from __future__ import annotations
 
 import os
+import stat
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
+
+import fcntl
+
+
+LOCK_NAME = ".generation.lock"
+
+
+@contextmanager
+def generation_lock(vault: Path):
+    state_directory = vault / "30 Sistema/Estado"
+    directory_flags = os.O_RDONLY
+    if hasattr(os, "O_DIRECTORY"):
+        directory_flags |= os.O_DIRECTORY
+    if hasattr(os, "O_CLOEXEC"):
+        directory_flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        directory_flags |= os.O_NOFOLLOW
+    directory_descriptor = os.open(state_directory, directory_flags)
+    flags = os.O_RDWR | os.O_CREAT | os.O_NONBLOCK
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    try:
+        descriptor = os.open(LOCK_NAME, flags, 0o600, dir_fd=directory_descriptor)
+    except Exception:
+        os.close(directory_descriptor)
+        raise
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ValueError("state generation lock must be a regular file")
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+        finally:
+            os.close(descriptor)
+            os.close(directory_descriptor)
 
 
 def _prepare(path: Path, payload: bytes) -> Path:

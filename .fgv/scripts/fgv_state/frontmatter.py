@@ -63,6 +63,33 @@ def _parse_value(raw: str, warnings: list[str], key: str) -> object:
     return _nfc(value)
 
 
+def _unsupported_value(value: str) -> str | None:
+    stripped = value.strip()
+    if re.fullmatch(r"[>|][0-9+-]*", stripped):
+        return "unsupported block scalar"
+    quote: str | None = None
+    escaped = False
+    for index, character in enumerate(value):
+        if quote is not None:
+            if escaped:
+                escaped = False
+            elif quote == '"' and character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+            continue
+        if character in {"'", '"'}:
+            quote = character
+            continue
+        if character == "#" and (index == 0 or value[index - 1].isspace()):
+            return "unsupported inline comment"
+        if character in {"&", "*"} and (index == 0 or value[index - 1].isspace() or value[index - 1] in "[,{:"):
+            following = value[index + 1:index + 2]
+            if following and (following.isalnum() or following in "_-"):
+                return "unsupported anchor or alias"
+    return None
+
+
 def _parse_frontmatter(text: str) -> tuple[dict[str, object], str, list[str]]:
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
@@ -95,10 +122,17 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, object], str, list[str]]:
         if not key:
             warnings.append(f"empty frontmatter key at line {line_number}")
             continue
+        if key in metadata:
+            warnings.append(f"duplicate frontmatter key: {key}")
+            continue
         if not value.strip():
             metadata[key] = []
             list_key = key
         else:
+            unsupported = _unsupported_value(value)
+            if unsupported:
+                warnings.append(f"{unsupported} for {key}")
+                continue
             metadata[key] = _parse_value(value, warnings, key)
     body = "\n".join(lines[closing + 1:]) + ("\n" if text.endswith("\n") else "")
     return metadata, body, warnings
