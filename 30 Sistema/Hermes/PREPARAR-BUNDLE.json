@@ -13,7 +13,7 @@
     },
     {
       "path": ".fgv/scripts/hermes_channel_smoke.py",
-      "sha256": "cd95ab5151e97c30f4bf06876d741950062c12a2038bf52ebab3580875f417a1"
+      "sha256": "25588eb9885c209f8673a18bfdaba221e0c758f5116d8c66c0b7c44d99a44779"
     },
     {
       "path": ".fgv/scripts/hermes_common.py",
@@ -37,11 +37,11 @@
     },
     {
       "path": "30 Sistema/Hermes/HERMES-CONTRACT.md",
-      "sha256": "284af5936d263e3b2a07ad6077fe75e5b364e25a0a947650b066eced3f3a31a8"
+      "sha256": "a1837c9f75911bc85a02899378fe2c6d627d22bbc4e84b583b1c2cdc3d9912be"
     },
     {
       "path": "30 Sistema/Hermes/PROMPT-HERMES-PREPARAR.md",
-      "sha256": "2d3427388282b499e5a55ece155f8e10dcb5c8cad83e37ad7efbfa8fcf7a7e1c"
+      "sha256": "2c080d1c45aa97bbc29f4f99072021f7745f31d22b0484961f689b50f44cd1e0"
     },
     {
       "path": "30 Sistema/Hermes/READINESS-REPORT-TEMPLATE.md",
@@ -49,7 +49,7 @@
     },
     {
       "path": "30 Sistema/Hermes/README.md",
-      "sha256": "14ef9eeac16b4189d71e4092323d8d597a3b0a203e3a373cf7dc3718da6fab7c"
+      "sha256": "8d40fe49476484bbf25fd722a3f24e3d5db6dde2d1a10fdc88945e2afba97ea7"
     },
     {
       "path": "30 Sistema/Hermes/fgv-sync",

@@ -14,4 +14,4 @@ python3 .fgv/scripts/verify_hermes_bundle.py --root "$PWD" --bundle '30 Sistema/
 
 O primeiro prompt é o handoff inicial para o Hermes. O segundo fica guardado até Arthur revisar o readiness report.
 
-Consultas acadêmicas usam `hermes_catalog_query.py` com o SHA-256 pinado pelo snapshot. Evidências Eclass e WhatsApp só são válidas quando `hermes_channel_smoke.py` valida o schema AST fechado, executa novamente os entrypoints staging reais com Python isolado `-I` e autentica challenge, stdout consumido, path aberto, checkout e branch remota.
+Consultas acadêmicas usam `hermes_catalog_query.py` com o SHA-256 pinado pelo snapshot. Evidências Eclass e WhatsApp só são válidas quando `hermes_channel_smoke.py` valida o schema AST fechado e o source UTF-8 canônico, executa com Python isolado `-I` exatamente os bytes auditados pela entrada padrão, sem reabrir o pathname, e autentica challenge, stdout consumido, path aberto, checkout e branch remota.

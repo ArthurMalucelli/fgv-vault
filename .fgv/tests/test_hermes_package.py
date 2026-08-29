@@ -15,6 +15,12 @@ import unittest
 from unittest import mock
 from zoneinfo import ZoneInfo
 
+from hermes_channel_smoke import (
+    _run_pinned_channel_payload,
+    audit_channel_entrypoint,
+)
+from hermes_common import HermesError
+
 
 ROOT = Path(__file__).resolve().parents[2]
 HERMES_DIR = ROOT / "30 Sistema/Hermes"
@@ -478,6 +484,34 @@ class HermesAuditTests(unittest.TestCase):
                 for finding in json.loads(output.read_text(encoding="utf-8"))["findings"]
             }
             self.assertIn("missing_bounded_query_call", rules)
+
+    def test_channel_audit_rejects_noncanonical_source_encoding(self) -> None:
+        canonical = (MIGRATED_HOME / "scripts/eclass-scan.py").read_bytes()
+        payload = (
+            b"# coding: utf-7\n"
+            b"# +AAo-import pathlib+AAo-INJECTED = pathlib.Path\n"
+            + canonical
+        )
+
+        with self.assertRaisesRegex(HermesError, "canonical UTF-8"):
+            audit_channel_entrypoint(payload)
+
+    def test_channel_executor_runs_pinned_bytes_without_reopening_a_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            swapped_path = root / "entrypoint.py"
+            swapped_path.write_bytes(b"print('swapped')\n")
+            audited_payload = b"print('pinned')\n"
+
+            result = _run_pinned_channel_payload(
+                audited_payload,
+                vault=root,
+                environment=os.environ.copy(),
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(result.stdout, b"pinned\n")
+            self.assertNotIn(b"swapped", result.stdout)
 
 
 class HermesCutoverValidationTests(unittest.TestCase):

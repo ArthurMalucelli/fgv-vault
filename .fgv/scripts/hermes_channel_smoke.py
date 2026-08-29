@@ -7,12 +7,14 @@ import argparse
 import ast
 import base64
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import tokenize
 
 from hermes_catalog_query import MAX_CANDIDATES, MAX_OUTPUT_BYTES, query_catalog
 from hermes_common import (
@@ -102,6 +104,12 @@ def _reachable_function_nodes(tree: ast.Module) -> tuple[set[str], dict[str, ast
 
 def audit_channel_entrypoint(payload: bytes) -> None:
     try:
+        encoding, _ = tokenize.detect_encoding(io.BytesIO(payload).readline)
+    except (LookupError, SyntaxError) as error:
+        raise HermesError(f"channel entrypoint source encoding is invalid: {error}") from error
+    if encoding != "utf-8":
+        raise HermesError("channel entrypoint source encoding must be canonical UTF-8")
+    try:
         text = payload.decode("utf-8")
         tree = ast.parse(text)
     except (UnicodeDecodeError, SyntaxError) as error:
@@ -155,6 +163,20 @@ def audit_channel_entrypoint(payload: bytes) -> None:
             normalized = (source + fragments).replace("'", "").replace('"', "").replace(" ", "")
             if "catalog.jsonl" in normalized or "catalog+.jsonl" in normalized:
                 raise HermesError("channel entrypoint may not read catalog.jsonl directly")
+
+
+def _run_pinned_channel_payload(
+    payload: bytes, *, vault: Path, environment: dict[str, str]
+) -> subprocess.CompletedProcess[bytes]:
+    """Execute the exact audited bytes without reopening their source pathname."""
+    return subprocess.run(
+        [sys.executable, "-I", "-", "--hermes-channel-smoke"],
+        cwd=vault,
+        input=payload,
+        capture_output=True,
+        check=False,
+        env=environment,
+    )
 
 
 def _checkout(vault: Path, tested_commit: str) -> tuple[str, str]:
@@ -254,12 +276,10 @@ def execute_channel_flow(
         FGV_HERMES_EXPECTED_CATALOG_SHA256=catalog_sha256,
         PYTHONDONTWRITEBYTECODE="1",
     )
-    result = subprocess.run(
-        [sys.executable, "-I", str(hermes_home / entrypoint_relative), "--hermes-channel-smoke"],
-        cwd=vault,
-        capture_output=True,
-        check=False,
-        env=environment,
+    result = _run_pinned_channel_payload(
+        entrypoint_payload,
+        vault=vault,
+        environment=environment,
     )
     if result.returncode != 0 or result.stderr:
         raise HermesError("channel entrypoint smoke execution failed")
