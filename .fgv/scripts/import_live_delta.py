@@ -26,6 +26,8 @@ SOURCE_COMMITS = (
     "a93c71f599f5d4fa9568946250f0958b2c28b64d",
     SOURCE_TIP,
 )
+DESTINATION_AUTHORITY = "c840413926da944254edb57b14564cf68c001e3b"
+DESTINATION_AUTHORITY_TREE = "d91754bd4026d690d9fe7b115663eef28182c4e4"
 MANIFEST = PurePosixPath("30 Sistema/Estado/live-delta-manifest.json")
 
 
@@ -178,8 +180,14 @@ def _body(payload: bytes) -> bytes:
 
 
 def build_outputs(root: Path) -> tuple[dict[PurePosixPath, bytes], bytes]:
-    authority_commit = str(_git(root, "rev-parse", "HEAD"))
-    authority_tree = str(_git(root, "rev-parse", "HEAD^{tree}"))
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", DESTINATION_AUTHORITY, "HEAD"],
+        cwd=root,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise ImportError("destination authority is not an ancestor of HEAD")
     source_base_tree = str(_git(root, "rev-parse", f"{SOURCE_BASE}^{{tree}}"))
     source_tip_tree = str(_git(root, "rev-parse", f"{SOURCE_TIP}^{{tree}}"))
     outputs: dict[PurePosixPath, bytes] = {}
@@ -237,8 +245,8 @@ def build_outputs(root: Path) -> tuple[dict[PurePosixPath, bytes], bytes]:
     authority: dict[str, object] = {
         "schema": SCHEMA,
         "schema_version": 1,
-        "destination_authority_commit": authority_commit,
-        "destination_authority_tree": authority_tree,
+        "destination_authority_commit": DESTINATION_AUTHORITY,
+        "destination_authority_tree": DESTINATION_AUTHORITY_TREE,
         "source_base_commit": SOURCE_BASE,
         "source_base_tree": source_base_tree,
         "source_tip_commit": SOURCE_TIP,
