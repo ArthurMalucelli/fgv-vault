@@ -251,7 +251,7 @@ def _validate_state(root: Path, as_of: str) -> dict[str, int]:
     manifest = json.loads(first_line)
     counts = manifest.get("counts")
     _require(isinstance(counts, dict), "catalog counts are missing")
-    _require(counts.get("files") == 1028, "catalog academic file count diverged")
+    _require(counts.get("files") == 1036, "catalog academic file count diverged")
     _require(counts.get("tasks") == 9, "catalog task count diverged")
     _require(counts.get("learning_states") == 5, "catalog learning-state count diverged")
     _require(counts.get("warnings") == 0, "catalog contains warnings")
@@ -308,7 +308,7 @@ def validate(root: Path, as_of: str, *, require_packages: bool = True) -> dict[s
         "packages": packages,
         "known_limitations": [
             "Migration applicators are integrity tools for a quiescent trusted-user vault, not an OS security boundary.",
-            "One modified live revision and four untracked live training files remain outside this certified Git authority until Obsidian Git commits them.",
+            "Hermes and VPS production remain unchanged until the separately authorized cutover.",
         ],
     }
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")

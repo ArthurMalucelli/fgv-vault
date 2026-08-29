@@ -24,8 +24,11 @@ class VaultValidationTests(unittest.TestCase):
         self.assertEqual(report["counts"]["byte_identical"], 1008)
         self.assertEqual(report["counts"]["lesson_metadata_only"], 40)
         self.assertEqual(report["counts"]["authorized_body_transforms"], 11)
-        self.assertEqual(report["counts"]["live_delta_records"], 5)
-        self.assertEqual(report["counts"]["files"], 1028)
+        self.assertEqual(report["counts"]["live_delta_records"], 13)
+        self.assertEqual(report["counts"]["files"], 1036)
+        self.assertFalse(
+            any("untracked" in item for item in report["known_limitations"])
+        )
         digest_payload = dict(report)
         digest = digest_payload.pop("aggregate_sha256")
         canonical = json.dumps(
