@@ -1,0 +1,5 @@
+{
+  "jobs": [
+    {"name": "refresh-fgv", "command": "/usr/local/bin/fgv-sync refresh"}
+  ]
+}

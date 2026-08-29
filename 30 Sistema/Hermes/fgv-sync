@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+set -eu
+
+VAULT_INPUT=${FGV_VAULT_ROOT:-/root/vault}
+LOCK_PATH=${FGV_SYNC_LOCK:-/run/lock/fgv-sync.lock}
+LOCK_ACQUIRED=0
+
+emit_blocked() {
+  printf '{"reason":"%s","status":"blocked"}\n' "$1"
+}
+
+die() {
+  code=$2
+  emit_blocked "$1"
+  exit "$code"
+}
+
+release_lock() {
+  if [ "$LOCK_ACQUIRED" -eq 1 ]; then
+    rmdir "$LOCK_PATH" 2>/dev/null || true
+  fi
+}
+
+acquire_lock() {
+  case "$LOCK_PATH" in
+    /*) ;;
+    *) die "lock_path_not_absolute" 64 ;;
+  esac
+  if ! mkdir "$LOCK_PATH" 2>/dev/null; then
+    die "lock_busy" 75
+  fi
+  LOCK_ACQUIRED=1
+  chmod 700 "$LOCK_PATH"
+  trap release_lock EXIT HUP INT TERM
+}
+
+enter_repo() {
+  case "$VAULT_INPUT" in
+    /*) ;;
+    *) die "vault_path_not_absolute" 64 ;;
+  esac
+  [ -d "$VAULT_INPUT" ] || die "vault_missing" 66
+  cd "$VAULT_INPUT"
+  VAULT_ROOT=$(pwd -P)
+  top=$(git rev-parse --show-toplevel 2>/dev/null) || die "vault_not_git_repository" 65
+  top=$(cd "$top" && pwd -P)
+  [ "$top" = "$VAULT_ROOT" ] || die "vault_not_repository_root" 65
+}
+
+status_json() {
+  head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
+  if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
+    dirty=true
+  else
+    dirty=false
+  fi
+  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  ahead=0
+  behind=0
+  if [ -z "$upstream" ]; then
+    sync_state=no_upstream
+  else
+    counts=$(git rev-list --left-right --count "HEAD...$upstream" 2>/dev/null || true)
+    if [ -z "$counts" ]; then
+      sync_state=unknown
+    else
+      ahead=${counts%%[[:space:]]*}
+      behind=${counts##*[[:space:]]}
+      if [ "$dirty" = true ]; then
+        sync_state=dirty
+      elif [ "$ahead" -gt 0 ] && [ "$behind" -gt 0 ]; then
+        sync_state=diverged
+      elif [ "$ahead" -gt 0 ]; then
+        sync_state=ahead
+      elif [ "$behind" -gt 0 ]; then
+        sync_state=stale
+      else
+        sync_state=clean
+      fi
+    fi
+  fi
+  printf '{"ahead":%s,"as_of_commit":"%s","behind":%s,"dirty":%s,"sync_state":"%s"}\n' \
+    "$ahead" "$head" "$behind" "$dirty" "$sync_state"
+}
+
+require_clean() {
+  [ -z "$(git status --porcelain=v1 --untracked-files=all)" ] || die "working_tree_not_clean" 2
+}
+
+run_state_gates() {
+  as_of=${FGV_AS_OF_DATE:-$(date -u +%F)}
+  if [ -f .fgv/scripts/generate_state.py ]; then
+    PYTHONDONTWRITEBYTECODE=1 python3 .fgv/scripts/generate_state.py --vault "$VAULT_ROOT" --as-of "$as_of" 1>&2 || die "state_rebuild_failed" 2
+    PYTHONDONTWRITEBYTECODE=1 python3 .fgv/scripts/generate_state.py --vault "$VAULT_ROOT" --as-of "$as_of" --check 1>&2 || die "state_check_failed" 2
+  fi
+  if [ -f .fgv/scripts/validate_vault.py ]; then
+    PYTHONDONTWRITEBYTECODE=1 python3 .fgv/scripts/validate_vault.py --vault "$VAULT_ROOT" --as-of "$as_of" 1>&2 || die "vault_validation_failed" 2
+  fi
+}
+
+refresh() {
+  acquire_lock
+  enter_repo
+  require_clean
+  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  [ -n "$upstream" ] || die "upstream_missing" 2
+  git fetch --prune origin || die "fetch_failed" 2
+  counts=$(git rev-list --left-right --count "HEAD...$upstream") || die "divergence_check_failed" 2
+  ahead=${counts%%[[:space:]]*}
+  behind=${counts##*[[:space:]]}
+  [ "$ahead" -eq 0 ] || die "branch_diverged_or_ahead" 2
+  if [ "$behind" -gt 0 ]; then
+    git merge --ff-only "$upstream" 1>&2 || die "fast_forward_failed" 2
+  fi
+  run_state_gates
+  status_json
+}
+
+valid_publish_path() {
+  candidate=$1
+  case "$candidate" in
+    ""|/*|../*|*/../*|*/..|./*|*/./*|*/.|.git|.git/*|*$'\n'*|*$'\r'*) return 1 ;;
+  esac
+  [ ! -L "$candidate" ] || return 1
+  [ -f "$candidate" ] || return 1
+  return 0
+}
+
+path_in_scope() {
+  candidate=$1
+  shift
+  for allowed in "$@"; do
+    [ "$candidate" = "$allowed" ] && return 0
+  done
+  return 1
+}
+
+publish() {
+  shift
+  message=
+  paths=()
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --message)
+        [ "$#" -ge 2 ] || die "message_value_missing" 64
+        message=$2
+        shift 2
+        ;;
+      --path)
+        [ "$#" -ge 2 ] || die "path_value_missing" 64
+        paths+=("$2")
+        shift 2
+        ;;
+      *) die "unknown_publish_argument" 64 ;;
+    esac
+  done
+  [ -n "$message" ] || die "message_missing" 64
+  case "$message" in *$'\n'*|*$'\r'*) die "message_must_be_one_line" 64 ;; esac
+  [ "${#paths[@]}" -gt 0 ] || die "publish_path_missing" 64
+
+  acquire_lock
+  enter_repo
+  for candidate in "${paths[@]}"; do
+    valid_publish_path "$candidate" || die "unsafe_publish_path" 64
+  done
+  [ -z "$(git diff --cached --name-only)" ] || die "preexisting_staged_changes" 2
+
+  while IFS= read -r -d '' line; do
+    [ -n "$line" ] || continue
+    state=${line:0:2}
+    candidate=${line:3}
+    case "$state" in *R*|*C*) die "rename_or_copy_outside_publish_contract" 2 ;; esac
+    path_in_scope "$candidate" "${paths[@]}" || die "changes_outside_scope" 2
+  done < <(git status --porcelain=v1 --untracked-files=all -z)
+
+  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  [ -n "$upstream" ] || die "upstream_missing" 2
+  git fetch --prune origin || die "fetch_failed" 2
+  counts=$(git rev-list --left-right --count "HEAD...$upstream") || die "divergence_check_failed" 2
+  ahead=${counts%%[[:space:]]*}
+  behind=${counts##*[[:space:]]}
+  [ "$ahead" -eq 0 ] && [ "$behind" -eq 0 ] || die "branch_not_synchronized" 2
+
+  run_state_gates
+  while IFS= read -r -d '' line; do
+    [ -n "$line" ] || continue
+    state=${line:0:2}
+    candidate=${line:3}
+    case "$state" in *R*|*C*) die "rename_or_copy_outside_publish_contract" 2 ;; esac
+    path_in_scope "$candidate" "${paths[@]}" || die "changes_outside_scope" 2
+  done < <(git status --porcelain=v1 --untracked-files=all -z)
+
+  git add -- "${paths[@]}" || die "stage_failed" 2
+  [ -n "$(git diff --cached --name-only)" ] || die "nothing_to_publish" 2
+  while IFS= read -r -d '' candidate; do
+    [ -n "$candidate" ] || continue
+    path_in_scope "$candidate" "${paths[@]}" || die "staged_path_outside_scope" 2
+  done < <(git diff --cached --name-only -z)
+
+  git commit -m "$message" 1>&2 || die "commit_failed" 2
+  git push 1>&2 || die "push_failed" 2
+  status_json
+}
+
+[ "$#" -ge 1 ] || die "subcommand_missing" 64
+case "$1" in
+  status)
+    [ "$#" -eq 1 ] || die "status_takes_no_arguments" 64
+    enter_repo
+    status_json
+    ;;
+  refresh)
+    [ "$#" -eq 1 ] || die "refresh_takes_no_arguments" 64
+    refresh
+    ;;
+  publish)
+    publish "$@"
+    ;;
+  *) die "unknown_subcommand" 64 ;;
+esac

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "package_id": "fgv-hermes-plan-b",
+  "contract_version": 1,
+  "vps_git_owner": "fgv-sync",
+  "canonical_paths": {
+    "subjects_root": "10 Matérias/",
+    "tasks": "00 Home/Tasks.md",
+    "state_root": "30 Sistema/Estado/",
+    "catalog": "30 Sistema/Estado/catalog.jsonl",
+    "dashboard_snapshot": "30 Sistema/Estado/dashboard-snapshot.md",
+    "materials_segment": "Materiais/"
+  },
+  "retrieval_order": [
+    "30 Sistema/Estado/catalog.jsonl",
+    "30 Sistema/Estado/dashboard-snapshot.md",
+    "exact_catalog_path"
+  ],
+  "required_response_fields": [
+    "as_of_commit",
+    "sync_state"
+  ],
+  "components": [
+    {
+      "id": "eclass-scan.py",
+      "path": "scripts/eclass-scan.py",
+      "classification": "required",
+      "required_markers": ["FGV_VAULT_ROOT", "Materiais/", "fgv-sync"]
+    },
+    {
+      "id": "eclass",
+      "path": "skills/productivity/eclass/SKILL.md",
+      "classification": "required",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "Materiais/", "as_of_commit", "sync_state", "fgv-sync"]
+    },
+    {
+      "id": "fgv-eclass-api",
+      "path": "skills/productivity/fgv-eclass-api/SKILL.md",
+      "classification": "required",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "Materiais/", "as_of_commit", "sync_state", "fgv-sync"]
+    },
+    {
+      "id": "fgv-briefing",
+      "path": "skills/productivity/fgv-briefing/SKILL.md",
+      "classification": "required",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "as_of_commit", "sync_state", "fgv-sync"]
+    },
+    {
+      "id": "academic-reading-notes",
+      "path": "skills/productivity/academic-reading-notes/SKILL.md",
+      "classification": "required",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "as_of_commit", "sync_state", "fgv-sync"]
+    },
+    {
+      "id": "memory",
+      "path": "memories/MEMORY.md",
+      "classification": "required",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "as_of_commit", "sync_state", "fgv-sync"]
+    },
+    {
+      "id": "cronjobs",
+      "path": "cron/jobs.json",
+      "classification": "required",
+      "required_markers": ["fgv-sync"]
+    }
+  ],
+  "legacy_subject_folders": [
+    "ContabilidadeFinanceira",
+    "DireitoEmpresarial",
+    "Estatistica2",
+    "EstudosOrganizacionais",
+    "MatemáticaAplicada",
+    "Psicologia",
+    "TecnologiaDadosNegocios"
+  ],
+  "forbidden_scan_roots": [
+    ".fgv/",
+    "30 Sistema/Plans/",
+    "30 Sistema/Specs/",
+    ".git/",
+    ".obsidian/"
+  ]
+}

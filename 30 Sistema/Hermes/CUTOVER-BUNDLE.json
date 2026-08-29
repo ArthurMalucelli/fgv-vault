@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "phase": "CUTOVER",
+  "package_manifest_sha256": "7575b9e2be641badd46cdc57a35e1c392419390585e9d6692af1b75409937425",
+  "files": [
+    {
+      "path": ".fgv/scripts/audit_hermes.py",
+      "sha256": "7b4faec7b37a8a2a4b7974fb093c528400da3c4fcbe9f0ed099dd0b779c0063d"
+    },
+    {
+      "path": ".fgv/scripts/hermes_common.py",
+      "sha256": "ae94259c18b5225ac27a24c8cdb04ac0ec27c7cd0645b034c86787c4f7402850"
+    },
+    {
+      "path": ".fgv/scripts/hermes_retrieval_smoke.py",
+      "sha256": "4fb011574e675a89f229d57f5cc14f7dd5c9a459a694ac8297ebff808980598b"
+    },
+    {
+      "path": ".fgv/scripts/validate_hermes_cutover.py",
+      "sha256": "b67a5554cc3a16e0485c27432b797587bb8702be4d0863d04a83b013c9fdc47e"
+    },
+    {
+      "path": ".fgv/scripts/validate_hermes_readiness.py",
+      "sha256": "68529b07268fc9ccc572f5413c544baaec94f996813d6e91282ca11c704fa723"
+    },
+    {
+      "path": ".fgv/scripts/verify_hermes_bundle.py",
+      "sha256": "ea6a1c22074e481566da756345b1ba40f5c2735af783f81374b535bf3640b0da"
+    },
+    {
+      "path": ".fgv/tests/fixtures/retrieval-queries.json",
+      "sha256": "7eac4d0ef7db36e5c4e8bea88465450e5b2a2b568350244ae97119c9251e15bd"
+    },
+    {
+      "path": "30 Sistema/Hermes/HERMES-CONTRACT.md",
+      "sha256": "524b31e62b3674f1a9fd3f93dc0c8492ffa907815dc77d00f96b7b4519ce5eb3"
+    },
+    {
+      "path": "30 Sistema/Hermes/PROMPT-HERMES-CUTOVER.md",
+      "sha256": "26d6c98ad9d9dd71279b2bf6df62351fac75803fbea28872b3e19bd5cf064f89"
+    },
+    {
+      "path": "30 Sistema/Hermes/READINESS-REPORT-TEMPLATE.md",
+      "sha256": "b93f85dfd7ff7c40ca54d3fe6962de883818b0efd8b5e797e855f56255d5381f"
+    },
+    {
+      "path": "30 Sistema/Hermes/fgv-sync",
+      "sha256": "c5340c21d799be3119cb784e4fca18c18563251685ad808e5c6ef95031cdc00e"
+    },
+    {
+      "path": "30 Sistema/Hermes/fgv-sync.service.example",
+      "sha256": "15bf4cd6bd8cad241d84f567b7647c422066b9dc5a8541c4400c622eb9d76b6c"
+    },
+    {
+      "path": "30 Sistema/Hermes/fgv-sync.timer.example",
+      "sha256": "273f7fcb2e47c92121989ae0f98af6182d318c346fc4f97dc2b6f6fdba67d3a5"
+    },
+    {
+      "path": "30 Sistema/Hermes/hermes-manifest.json",
+      "sha256": "7575b9e2be641badd46cdc57a35e1c392419390585e9d6692af1b75409937425"
+    }
+  ]
+}

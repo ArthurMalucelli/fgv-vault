@@ -1,0 +1,43 @@
+[
+  {
+    "id": "ultima-aula",
+    "question": "Qual foi a última aula de Contabilidade?",
+    "query_type": "latest_class",
+    "subject_id": "contabilidade-financeira",
+    "expected_path": "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Resumo - DRE e provisões.md"
+  },
+  {
+    "id": "transcrito-recente",
+    "question": "Abra o transcrito mais recente de Contabilidade.",
+    "query_type": "latest_transcript",
+    "subject_id": "contabilidade-financeira",
+    "expected_path": "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Transcrito - DRE e provisões.md"
+  },
+  {
+    "id": "proxima-avaliacao",
+    "question": "Qual é a próxima avaliação?",
+    "query_type": "next_assessment",
+    "subject_id": "contabilidade-financeira",
+    "expected_path": "00 Home/Tasks.md"
+  },
+  {
+    "id": "material-eclass",
+    "question": "Qual material do Eclass existe para a aula?",
+    "query_type": "eclass_material",
+    "subject_id": "contabilidade-financeira",
+    "expected_path": "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Materiais/Slides - DRE.extracted.md"
+  },
+  {
+    "id": "conceito-gap",
+    "question": "Qual conceito está com domínio baixo?",
+    "query_type": "low_mastery_concept",
+    "expected_path": "20 Conhecimento/Conceitos/Regime de Competência.md"
+  },
+  {
+    "id": "compat-resumo",
+    "question": "Ache Resumo.md sem depender do nome antigo.",
+    "query_type": "legacy_summary_name",
+    "subject_id": "contabilidade-financeira",
+    "expected_path": "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Resumo - DRE e provisões.md"
+  }
+]

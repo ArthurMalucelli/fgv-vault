@@ -1,0 +1,5 @@
+{
+  "jobs": [
+    {"name": "pull-fgv", "command": "cd /root/vault && git pull origin main"}
+  ]
+}

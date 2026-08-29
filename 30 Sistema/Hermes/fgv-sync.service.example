@@ -1,0 +1,16 @@
+[Unit]
+Description=FGV vault single-owner refresh
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=FGV_VAULT_ROOT=/root/vault
+Environment=FGV_SYNC_LOCK=/run/lock/fgv-sync.lock
+ExecStart=/usr/local/lib/fgv/fgv-sync refresh
+StandardOutput=append:/var/log/fgv-sync.log
+StandardError=append:/var/log/fgv-sync.log
+
+[Install]
+WantedBy=multi-user.target
