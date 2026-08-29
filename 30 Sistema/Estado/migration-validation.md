@@ -5,13 +5,13 @@
 Status: `PASS`.
 
 - Data operacional: `2026-08-29`, fuso `America/Sao_Paulo`.
-- Commit de conteúdo certificado: `b47338e18bf3c68fdf55bc1fd8420e168ef625cf`.
-- Tree certificada: `2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56`.
-- Commit da implementação de runtime: `5b40839c46c842ecad5c1d6be21343ae431dc58c`.
-- Tree da implementação de runtime: `3b0a00d0f2278133503eaee041c195150c75f2f0`.
-- Commit da suíte final: `b47338e18bf3c68fdf55bc1fd8420e168ef625cf`.
-- Tree da suíte final: `2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56`.
-- SHA-256 agregado do conteúdo certificado: `c74c9c4805ebdc137c26963b504ea0a7fdacc937b14accf7432e0c583d4983c3`.
+- Commit de conteúdo certificado: `10475654fad3ae35eee801c1a80cdf10ca316ebf`.
+- Tree certificada: `6a2c982cd2103668dc57b0ef6dbe45525a2d06ec`.
+- Commit da implementação de runtime: `10475654fad3ae35eee801c1a80cdf10ca316ebf`.
+- Tree da implementação de runtime: `6a2c982cd2103668dc57b0ef6dbe45525a2d06ec`.
+- Commit da suíte final: `10475654fad3ae35eee801c1a80cdf10ca316ebf`.
+- Tree da suíte final: `6a2c982cd2103668dc57b0ef6dbe45525a2d06ec`.
+- SHA-256 agregado do conteúdo certificado: `28e37f1ba2ee3e383ec160341e63591615b366bfdd79382df0a0b6699f2402cd`.
 - Base preservada do vault vivo: `cf8fe8c440a4dd442490afee62c0119a7db5ef9c`.
 - Branch de entrega: `codex/vault-plan-b`.
 
@@ -29,7 +29,7 @@ Status: `PASS`.
 | Medida | Resultado |
 |---|---:|
 | Arquivos acadêmicos no catálogo | 1.036 |
-| Entradas verificadas no filesystem | 1.547 |
+| Entradas verificadas no filesystem | 1.549 |
 | Arquivos byte a byte idênticos | 1.008 |
 | Transformações de corpo autorizadas | 11 |
 | Aulas com mudança apenas de metadados | 40 |
@@ -46,7 +46,7 @@ Os 407 links legados não resolvidos não foram inventados nem redirecionados au
 
 ## Gates
 
-- Suíte integrada: 327 testes, `OK`.
+- Suíte integrada: 330 testes, `OK`.
 - Estado determinístico: `state fresh`.
 - Validador do vault: `pass` em todos os cinco grupos.
 - Importador do delta vivo: `no_op`, 13 registros autenticados.

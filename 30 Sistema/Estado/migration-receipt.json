@@ -1,5 +1,5 @@
 {
-  "certified_content_aggregate_sha256": "c74c9c4805ebdc137c26963b504ea0a7fdacc937b14accf7432e0c583d4983c3",
+  "certified_content_aggregate_sha256": "28e37f1ba2ee3e383ec160341e63591615b366bfdd79382df0a0b6699f2402cd",
   "as_of": "2026-08-29",
   "baseline": {
     "commit": "cf8fe8c440a4dd442490afee62c0119a7db5ef9c",
@@ -8,14 +8,14 @@
     "live_matches_origin_main": true
   },
   "branch": "codex/vault-plan-b",
-  "certified_content_commit": "b47338e18bf3c68fdf55bc1fd8420e168ef625cf",
-  "certified_content_tree": "2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56",
+  "certified_content_commit": "10475654fad3ae35eee801c1a80cdf10ca316ebf",
+  "certified_content_tree": "6a2c982cd2103668dc57b0ef6dbe45525a2d06ec",
   "counts": {
     "active_subjects": 7,
     "authorized_body_transforms": 11,
     "byte_identical": 1008,
     "catalog_files": 1036,
-    "filesystem_entries": 1547,
+    "filesystem_entries": 1549,
     "learning_states": 5,
     "lesson_metadata_only": 40,
     "links_ambiguous": 0,
@@ -32,7 +32,7 @@
     "hermes_prepare_bundle": "pass",
     "independent_review": "pass_no_p0_p1_p2",
     "integrated_tests": {
-      "count": 327,
+      "count": 330,
       "status": "pass"
     },
     "live_delta_check": "no_op",
@@ -42,21 +42,21 @@
   "packages": {
     "adapter_contract_version": 1,
     "adapter_semantic_sha256": "0b7899b7540dc18c7b084f515716c99611c683f8814223913f4898534e808156",
-    "hermes_cutover_bundle_sha256": "073bd8c599789b39dbf9d14bba1af139955d50e08d5df75d49a7807872168e79",
+    "hermes_cutover_bundle_sha256": "13e3141d25a94260327346a557dea64949e2c352842e73d7fb289d11310cda24",
     "hermes_manifest_sha256": "123e040f3169676c6a56533a8179ef72bce485747b95afaf8999ca54a8e7509c",
-    "hermes_prepare_bundle_sha256": "986560230a2c58d5d2e1e08e7e389fa7d9ce2260b7a03dd060e56bd0f34646b7"
+    "hermes_prepare_bundle_sha256": "6297c2c2e1efe747de1b86e3fe718d5f1ad7303eba5f3f90cb4a96ea64cfc5be"
   },
   "production_mutations": {
     "global_skills_installed": false,
     "live_vault_changed": false,
     "vps_changed": false
   },
-  "runtime_commit": "5b40839c46c842ecad5c1d6be21343ae431dc58c",
-  "runtime_tree": "3b0a00d0f2278133503eaee041c195150c75f2f0",
+  "runtime_commit": "10475654fad3ae35eee801c1a80cdf10ca316ebf",
+  "runtime_tree": "6a2c982cd2103668dc57b0ef6dbe45525a2d06ec",
   "schema": "fgv.migration-receipt.v1",
   "schema_version": 1,
   "status": "pass",
-  "test_suite_commit": "b47338e18bf3c68fdf55bc1fd8420e168ef625cf",
-  "test_suite_tree": "2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56",
-  "timestamp_utc": "2026-08-29T18:16:26Z"
+  "test_suite_commit": "10475654fad3ae35eee801c1a80cdf10ca316ebf",
+  "test_suite_tree": "6a2c982cd2103668dc57b0ef6dbe45525a2d06ec",
+  "timestamp_utc": "2026-08-29T18:56:02Z"
 }

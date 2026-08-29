@@ -2,27 +2,27 @@
 
 ## Identidade
 
-- Timestamp UTC: `2026-08-29T18:13:45Z`.
+- Timestamp UTC: `2026-08-29T18:56:02Z`.
 - Branch integrada: `codex/vault-plan-b`.
 - Base original do pacote Hermes: `c840413926da944254edb57b14564cf68c001e3b`.
-- Commit de runtime testado: `5b40839c46c842ecad5c1d6be21343ae431dc58c`.
-- Tree de runtime testada: `3b0a00d0f2278133503eaee041c195150c75f2f0`.
-- Commit da suíte final: `b47338e18bf3c68fdf55bc1fd8420e168ef625cf`.
-- Tree da suíte final: `2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56`.
+- Commit de runtime testado: `10475654fad3ae35eee801c1a80cdf10ca316ebf`.
+- Tree de runtime testada: `6a2c982cd2103668dc57b0ef6dbe45525a2d06ec`.
+- Commit da suíte final: `10475654fad3ae35eee801c1a80cdf10ca316ebf`.
+- Tree da suíte final: `6a2c982cd2103668dc57b0ef6dbe45525a2d06ec`.
 - VPS e vault vivo: não modificados por esta validação.
 
 ## Checksums
 
 - `hermes-manifest.json`: `123e040f3169676c6a56533a8179ef72bce485747b95afaf8999ca54a8e7509c`.
-- `PREPARAR-BUNDLE.json`: `986560230a2c58d5d2e1e08e7e389fa7d9ce2260b7a03dd060e56bd0f34646b7`.
-- `CUTOVER-BUNDLE.json`: `073bd8c599789b39dbf9d14bba1af139955d50e08d5df75d49a7807872168e79`.
+- `PREPARAR-BUNDLE.json`: `6297c2c2e1efe747de1b86e3fe718d5f1ad7303eba5f3f90cb4a96ea64cfc5be`.
+- `CUTOVER-BUNDLE.json`: `13e3141d25a94260327346a557dea64949e2c352842e73d7fb289d11310cda24`.
 
 ## Gates executados
 
 | Gate | Comando | Resultado |
 |---|---|---|
-| Correção focal final | quatro testes de UTF-8, bytes pinados, readiness e imports isolados | exit 0, 4 testes, `OK` |
-| Suíte integrada completa | `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='.fgv/scripts:.fgv/src:.fgv/tests' python3 -B -m unittest discover -s .fgv/tests -p 'test_*.py' -q` | exit 0, 327 testes, `OK` |
+| Ranking Eclass final | quatro testes de documento, extração canônica, catálogo real e bundles | exit 0, 4 testes, `OK` |
+| Suíte integrada completa | `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH='.fgv/scripts:.fgv/src:.fgv/tests' python3 -B -m unittest discover -s .fgv/tests -p 'test_*.py' -q` | exit 0, 330 testes, `OK` |
 | Bundle PREPARAR | `python3 .fgv/scripts/verify_hermes_bundle.py --root "$PWD" --bundle '30 Sistema/Hermes/PREPARAR-BUNDLE.json'` | `pass` |
 | Bundle CUTOVER | `python3 .fgv/scripts/verify_hermes_bundle.py --root "$PWD" --bundle '30 Sistema/Hermes/CUTOVER-BUNDLE.json'` | `pass` |
 | Sintaxe do wrapper | `bash -n '30 Sistema/Hermes/fgv-sync'` | exit 0 |
@@ -35,8 +35,10 @@ Também estão cobertos a data operacional de São Paulo, o bloqueio de snapshot
 
 Os gates adversariais incluem source branch maliciosa publicada no destino remoto canônico, troca do catálogo entre autenticação e consulta, probe morto de canal, reatribuição da API de processo, branch não executada, artefato de query fabricado fora do entrypoint, codificação de source divergente, troca do pathname depois da auditoria e módulo local tentando substituir a biblioteca padrão. O channel smoke exige o schema AST fechado e UTF-8 canônico, executa os bytes auditados pela entrada padrão com Python isolado `-I`, vincula challenge, bytes consumidos e hash do artefato, e o readiness repete essa execução antes de aceitar a evidência.
 
+O ranking Eclass também é testado contra o catálogo real e contra permutações adversariais. `.extracted.md` é a versão canônica de um PDF, convenções equivalentes são agrupadas como uma fonte, documentos acadêmicos principais vencem código auxiliar na mesma data e a deduplicação independe da ordem e da data declarada.
+
 As consultas de teste usam fixtures explícitas e não substituem a repetição live depois do merge do pacote Hermes. Readiness só aceita as seis queries canônicas, no commit corrente, com artefatos reais, orçamento limitado e snapshot da mesma data operacional.
 
 ## Limite deste receipt
 
-Este receipt certifica o pacote isolado, não o cutover. Depois da integração, é obrigatório repetir a suíte, `generate_state.py --check`, `validate_vault.py`, o smoke sem `--fixture-mode` e o gate do readiness report no SHA remoto final. Até lá, o estado correto é `PACKAGE_READY_FOR_INTEGRATION`, não `READY` para produção.
+Este receipt certifica o pacote integrado, não o cutover. O smoke sem `--fixture-mode` ainda precisa ser repetido no SHA remoto final, e o gate do readiness report continua obrigatório. Até lá, o estado correto é `BRANCH_CERTIFIED`, não `READY` para produção.
