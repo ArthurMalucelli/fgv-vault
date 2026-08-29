@@ -23,6 +23,15 @@ QUERY_TYPES = {
     "legacy_summary_name",
 }
 LESSON_DATE_RE = re.compile(r"^[0-9]{2}\.[0-9]{2}$")
+PRIMARY_MATERIAL_SUFFIXES = {
+    ".doc",
+    ".docx",
+    ".pdf",
+    ".ppt",
+    ".pptx",
+    ".xls",
+    ".xlsx",
+}
 
 
 def parser() -> argparse.ArgumentParser:
@@ -62,6 +71,12 @@ def is_direct_material(path: object) -> bool:
         and LESSON_DATE_RE.fullmatch(pure.parts[3]) is not None
         and pure.parts[4] == "Material"
     )
+
+
+def material_priority(path: object) -> int:
+    if not isinstance(path, str):
+        return 0
+    return 1 if PurePosixPath(path).suffix.casefold() in PRIMARY_MATERIAL_SUFFIXES else 0
 
 
 def load_records(
@@ -111,7 +126,15 @@ def select_records(
             if is_direct_material(item.get("path"))
             and not PurePosixPath(str(item.get("path"))).name.startswith(("Resumo", "Transcrito"))
         ]
-        return sorted(selected, key=lambda item: (str(item.get("date") or ""), str(item["path"])), reverse=True)
+        return sorted(
+            selected,
+            key=lambda item: (
+                str(item.get("date") or ""),
+                material_priority(item.get("path")),
+                str(item["path"]),
+            ),
+            reverse=True,
+        )
     if query_type == "next_assessment":
         selected = [
             item

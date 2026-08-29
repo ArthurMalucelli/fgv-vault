@@ -17,7 +17,7 @@ O JSON do query local tem uma linha, no máximo 16 KiB e no máximo cinco candid
 
 Os entrypoints Eclass e WhatsApp são adapters finos com schema AST fechado. Eles usam a allowlist exata de módulos da biblioteca padrão, constantes literais, o binding ambiental canônico de `VAULT`, um único `main` estruturalmente igual ao template versionado e o guard canônico. Helpers, classes, imports dinâmicos, reatribuição de APIs, chamadas em branches que não executam e stdout pré-montado são falha. O source precisa ser UTF-8 canônico. O runner envia ao Python isolado `-I`, pela entrada padrão, exatamente os bytes já auditados e hashados. O pathname não é reaberto durante a execução e módulos locais não podem substituir a biblioteca padrão.
 
-Uma busca ampla só é permitida como fallback declarado quando o catálogo não contém candidato. O fallback é limitado a `00 Home/`, `10 Matérias/`, `20 Conhecimento/` e `90 Arquivo/`. Nunca varre `.fgv/`, `30 Sistema/Plans/`, `30 Sistema/Specs/`, `.git/` ou `.obsidian/` como conteúdo acadêmico.
+Uma busca ampla só é permitida como fallback declarado quando o catálogo não contém candidato. O fallback é limitado a `00 Home/`, `10 Matérias/`, `20 Conhecimento/` e `90 Arquivo/`. Nunca varre `.fgv/`, `30 Sistema/Plans/`, `30 Sistema/Specs/`, `.git/` ou `.obsidian/` como conteúdo acadêmico. Em materiais Eclass da mesma data, o query prioriza o documento acadêmico principal, como PDF, DOCX, PPTX ou XLSX, antes de arquivos auxiliares e código.
 
 As buscas por aulas usam `Resumo*.md` e `Transcrito*.md` somente quando o arquivo é filho direto de `Aulas/MM.DD/`. Um basename igual dentro de `Material/` não é aula nem transcrito. Nunca assumem que o arquivo se chama apenas `Resumo.md` ou `Transcrito.md`.
 

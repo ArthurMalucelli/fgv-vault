@@ -17,7 +17,7 @@ from unittest import mock
 from zoneinfo import ZoneInfo
 
 import hermes_channel_smoke
-from hermes_catalog_query import query_catalog
+from hermes_catalog_query import query_catalog, select_records
 from hermes_channel_smoke import audit_channel_entrypoint
 from hermes_common import HermesError
 
@@ -39,7 +39,7 @@ LIVE_QUERY_EXPECTED = {
     "ultima-aula-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
     "transcrito-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Transcrito - Introdução a derivadas.md",
     "proxima-avaliacao": "00 Home/Tasks.md",
-    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Script_Aula05.R",
+    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx",
     "conceito-gap": "20 Conhecimento/Conceitos/Dividend Yield.md",
     "compat-resumo": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
 }
@@ -258,6 +258,27 @@ class HermesPackageContractTests(unittest.TestCase):
                     result["candidates"][0]["path"],
                     query["expected_path"],
                 )
+
+    def test_eclass_material_prefers_primary_document_over_code_on_same_date(self) -> None:
+        prefix = "10 Matérias/Estatistica2/Aulas/08.18/Material/"
+        records = [
+            {
+                "date": "2026-08-18",
+                "path": prefix + "Script_Aula05.R",
+                "record_type": "file",
+                "subject_ids": ["estatistica-2"],
+            },
+            {
+                "date": "2026-08-18",
+                "path": prefix + "Exercicios_Aula05.docx",
+                "record_type": "file",
+                "subject_ids": ["estatistica-2"],
+            },
+        ]
+
+        selected = select_records(records, "eclass_material", "estatistica-2")
+
+        self.assertEqual(selected[0]["path"], prefix + "Exercicios_Aula05.docx")
 
 
 class HermesAuditTests(unittest.TestCase):

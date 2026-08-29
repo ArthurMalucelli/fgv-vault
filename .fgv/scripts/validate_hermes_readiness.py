@@ -76,7 +76,7 @@ LIVE_QUERY_PATHS = {
     "ultima-aula-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
     "transcrito-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Transcrito - Introdução a derivadas.md",
     "proxima-avaliacao": "00 Home/Tasks.md",
-    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Script_Aula05.R",
+    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx",
     "conceito-gap": "20 Conhecimento/Conceitos/Dividend Yield.md",
     "compat-resumo": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
 }

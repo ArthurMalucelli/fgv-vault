@@ -9,7 +9,7 @@
     },
     {
       "path": ".fgv/scripts/hermes_catalog_query.py",
-      "sha256": "f81fad125d2916d12907bf4e6abadaae99683032593424aeba2a1dc51439e873"
+      "sha256": "d0a5ceb4c61276785822f4786a532b492f61c4db67f6680f413048e6e1b053b9"
     },
     {
       "path": ".fgv/scripts/hermes_channel_smoke.py",
@@ -29,7 +29,7 @@
     },
     {
       "path": ".fgv/scripts/validate_hermes_readiness.py",
-      "sha256": "e9dc20d6776f1f90a022beb6fdef8e1f599973130a785e86525335658ee1af1f"
+      "sha256": "400aa8406a9bca3143cf8cfe89c40a6eba75116fff4270b6ad4b85bb6f8cdabd"
     },
     {
       "path": ".fgv/scripts/verify_hermes_bundle.py",
@@ -37,7 +37,7 @@
     },
     {
       "path": "30 Sistema/Hermes/HERMES-CONTRACT.md",
-      "sha256": "a1837c9f75911bc85a02899378fe2c6d627d22bbc4e84b583b1c2cdc3d9912be"
+      "sha256": "b251725157244aa21a8637a38c6641e8b1d4d2b76761e7b893617bd4a78a682f"
     },
     {
       "path": "30 Sistema/Hermes/PROMPT-HERMES-CUTOVER.md",
@@ -69,7 +69,7 @@
     },
     {
       "path": "30 Sistema/Hermes/retrieval-queries.json",
-      "sha256": "df5b0f5d6ccd47720461923854bcefa4aff9f69237132286db651eec05d77cc1"
+      "sha256": "236069af8f8509323a9308893b754511babb8713eeb82ba99c146f0a483e4849"
     }
   ]
 }
