@@ -261,20 +261,103 @@ def _validate_state(root: Path, as_of: str) -> dict[str, int]:
 def _validate_packages(root: Path) -> dict[str, object]:
     adapter = _read_json(root / ADAPTER_MANIFEST)
     _require(isinstance(adapter, dict), "adapter manifest is invalid")
+    _require(
+        set(adapter)
+        == {"schema_version", "contract_version", "install_performed", "parity", "adapters"},
+        "adapter manifest schema diverged",
+    )
+    _require(adapter.get("schema_version") == 1, "adapter schema version diverged")
     _require(adapter.get("install_performed") is False, "live adapter install must remain false")
     parity = adapter.get("parity")
-    _require(isinstance(parity, dict) and parity.get("normative_contract_identical") is True, "adapter parity failed")
+    _require(
+        isinstance(parity, dict)
+        and set(parity) == {"normative_contract_identical", "semantic_sha256"}
+        and parity.get("normative_contract_identical") is True,
+        "adapter parity failed",
+    )
+    normative: dict[str, bytes] = {}
     for runtime in ("codex", "claude"):
         record = adapter.get("adapters", {}).get(runtime)
         _require(isinstance(record, dict), f"adapter record missing: {runtime}")
+        _require(
+            set(record) == {"path", "sha256", "template_sha256"},
+            f"adapter record schema diverged: {runtime}",
+        )
         path = root / ADAPTER_MANIFEST.parent / str(record["path"])
-        _require(path.is_file() and _sha256(path.read_bytes()) == record["sha256"], f"adapter hash diverged: {runtime}")
+        _require(
+            path.is_file()
+            and not path.is_symlink()
+            and _sha256(path.read_bytes()) == record["sha256"],
+            f"adapter hash diverged: {runtime}",
+        )
+        template = root / ".fgv" / "adapters" / runtime / "SKILL.md.tmpl"
+        _require(
+            template.is_file()
+            and not template.is_symlink()
+            and _sha256(template.read_bytes()) == record["template_sha256"],
+            f"adapter template hash diverged: {runtime}",
+        )
+        marker = b"\n## Ferramentas do runtime\n"
+        rendered = path.read_bytes()
+        _require(marker in rendered, f"adapter tools boundary missing: {runtime}")
+        normative[runtime] = rendered.split(marker, 1)[0].rstrip() + b"\n"
+    semantic_sha256 = _sha256(normative["codex"])
+    _require(normative["codex"] == normative["claude"], "adapter normative contracts diverged")
+    _require(parity.get("semantic_sha256") == semantic_sha256, "adapter semantic hash diverged")
+
     hermes = _read_json(root / HERMES_MANIFEST)
-    _require(isinstance(hermes, dict), "Hermes manifest is invalid")
+    _require(
+        isinstance(hermes, dict) and hermes.get("schema_version") == 1,
+        "Hermes manifest is invalid",
+    )
+    hermes_manifest_sha256 = _sha256((root / HERMES_MANIFEST).read_bytes())
+    bundle_hashes: dict[str, str] = {}
+    verifier = root / ".fgv/scripts/verify_hermes_bundle.py"
+    _require(verifier.is_file() and not verifier.is_symlink(), "Hermes bundle verifier is missing")
+    for phase, filename in (
+        ("prepare", "PREPARAR-BUNDLE.json"),
+        ("cutover", "CUTOVER-BUNDLE.json"),
+    ):
+        relative = Path("30 Sistema/Hermes") / filename
+        bundle = root / relative
+        _require(bundle.is_file() and not bundle.is_symlink(), f"Hermes {phase} bundle is missing")
+        environment = dict(os.environ)
+        environment["PYTHONDONTWRITEBYTECODE"] = "1"
+        result = subprocess.run(
+            [
+                sys.executable,
+                verifier.as_posix(),
+                "--root",
+                root.as_posix(),
+                "--bundle",
+                relative.as_posix(),
+            ],
+            cwd=root,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        try:
+            bundle_report = json.loads(result.stdout)
+        except json.JSONDecodeError as error:
+            raise ValidationError(f"Hermes {phase} bundle report is invalid") from error
+        _require(
+            result.returncode == 0
+            and isinstance(bundle_report, dict)
+            and bundle_report.get("status") == "pass"
+            and bundle_report.get("failures") == [],
+            f"Hermes {phase} bundle verification failed",
+        )
+        bundle_hashes[phase] = _sha256(bundle.read_bytes())
     return {
         "adapter_contract_version": adapter.get("contract_version"),
         "adapter_parity": True,
+        "adapter_semantic_sha256": semantic_sha256,
         "hermes_schema_version": hermes.get("schema_version"),
+        "hermes_manifest_sha256": hermes_manifest_sha256,
+        "hermes_prepare_bundle_sha256": bundle_hashes["prepare"],
+        "hermes_cutover_bundle_sha256": bundle_hashes["cutover"],
     }
 
 
