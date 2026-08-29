@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shlex
 import stat
 from typing import Any
 
@@ -28,7 +30,7 @@ MANIFEST_KEYS = {
     "legacy_subject_folders",
     "forbidden_scan_roots",
 }
-COMPONENT_KEYS = {"id", "path", "classification", "required_markers"}
+COMPONENT_KEYS = {"id", "path", "classification", "format", "required_markers"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -84,6 +86,8 @@ def load_manifest(path: Path) -> tuple[dict[str, Any], str]:
         paths.add(relative)
         if component["classification"] not in {"required", "optional", "discovered"}:
             raise HermesError("component classification is invalid")
+        if component["format"] not in {"python", "markdown", "cron_json"}:
+            raise HermesError("component format is invalid")
         markers = component["required_markers"]
         if not isinstance(markers, list) or any(not isinstance(item, str) or not item for item in markers):
             raise HermesError("component required_markers are invalid")
@@ -187,6 +191,252 @@ def atomic_json_write(path: Path, value: object) -> None:
             pass
 
 
+def _call_name(node: ast.AST) -> str:
+    parts: list[str] = []
+    current = node
+    while isinstance(current, ast.Attribute):
+        parts.append(current.attr)
+        current = current.value
+    if isinstance(current, ast.Name):
+        parts.append(current.id)
+    return ".".join(reversed(parts))
+
+
+def _literal_string(node: ast.AST | None) -> str | None:
+    return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
+
+
+def _shell_tokens(command: str) -> list[str]:
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|()")
+    lexer.commenters = ""
+    lexer.whitespace_split = True
+    return list(lexer)
+
+
+def _command_segments(tokens: list[str]) -> list[list[str]]:
+    separators = {";", "&&", "||", "|", "&", "(", ")"}
+    segments: list[list[str]] = []
+    current: list[str] = []
+    for token in tokens:
+        if token in separators:
+            if current:
+                segments.append(current)
+                current = []
+        else:
+            current.append(token)
+    if current:
+        segments.append(current)
+    return segments
+
+
+def _command_index(tokens: list[str]) -> int | None:
+    index = 0
+    if tokens and tokens[0] == "$":
+        index = 1
+    while index < len(tokens):
+        token = tokens[index]
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", token):
+            index += 1
+            continue
+        if token == "env":
+            index += 1
+            while index < len(tokens) and (
+                tokens[index].startswith("-")
+                or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", tokens[index])
+            ):
+                index += 1
+            continue
+        if token in {"command", "exec"}:
+            index += 1
+            continue
+        if token == "sudo":
+            index += 1
+            while index < len(tokens) and tokens[index].startswith("-"):
+                index += 1
+            continue
+        return index
+    return None
+
+
+def _git_subcommand(tokens: list[str], index: int) -> str | None:
+    cursor = index + 1
+    while cursor < len(tokens):
+        token = tokens[cursor]
+        if token in {"-C", "--git-dir", "--work-tree"}:
+            cursor += 2
+            continue
+        if token.startswith("-"):
+            cursor += 1
+            continue
+        return token
+    return None
+
+
+def _sensitive_delete_target(token: str) -> bool:
+    lowered = token.casefold()
+    return any(
+        marker in lowered
+        for marker in (
+            "/root/vault",
+            "/root/.hermes",
+            "fgv_vault_root",
+            "hermes_home",
+            "${vault",
+            "$vault",
+        )
+    )
+
+
+def _inspect_command_tokens(tokens: list[str]) -> list[tuple[str, str]]:
+    findings: list[tuple[str, str]] = []
+    for segment in _command_segments(tokens):
+        index = _command_index(segment)
+        if index is None:
+            continue
+        executable = segment[index]
+        executable_name = PurePosixPath(executable).name
+        if executable != "fgv-sync" and executable_name == "fgv-sync":
+            findings.append(("nonliteral_sync", "sync command must be the literal fgv-sync executable"))
+        if executable in {"sh", "bash", "zsh"} and "-c" in segment[index + 1 :]:
+            command_index = segment.index("-c", index + 1) + 1
+            if command_index < len(segment):
+                try:
+                    findings.extend(_inspect_command_tokens(_shell_tokens(segment[command_index])))
+                except ValueError:
+                    findings.append(("invalid_shell", "nested shell command is not tokenizable"))
+        if executable_name == "git":
+            findings.append(("unauthorized_git", "Git command outside literal fgv-sync"))
+            if _git_subcommand(segment, index) in {"reset", "clean"}:
+                findings.append(("destructive_command", "destructive Git command"))
+        if executable_name in {"rm", "rmdir", "unlink"} and any(
+            _sensitive_delete_target(token) for token in segment[index + 1 :]
+        ):
+            findings.append(("destructive_command", "destructive command targets vault or Hermes"))
+    return findings
+
+
+def _python_command_findings(text: str) -> list[tuple[int, str, str]]:
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return [(0, "invalid_format", "Python component does not parse")]
+    findings: list[tuple[int, str, str]] = []
+    aliases: dict[str, str] = {}
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in {"os", "shutil", "subprocess"}:
+                    aliases[alias.asname or alias.name] = alias.name
+        elif isinstance(node, ast.ImportFrom) and node.module in {"os", "shutil", "subprocess"}:
+            for alias in node.names:
+                aliases[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+    process_calls = {
+        "subprocess.call",
+        "subprocess.check_call",
+        "subprocess.check_output",
+        "subprocess.Popen",
+        "subprocess.run",
+        "os.popen",
+        "os.system",
+    }
+    destructive_calls = {
+        "os.remove",
+        "os.removedirs",
+        "os.rmdir",
+        "os.unlink",
+        "shutil.rmtree",
+    }
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = _call_name(node.func)
+        first, separator, rest = name.partition(".")
+        if first in aliases:
+            name = aliases[first] + (separator + rest if separator else "")
+        line = int(getattr(node, "lineno", 0))
+        if name in process_calls or name.startswith("os.exec") or name.startswith("os.spawn"):
+            argument = node.args[0] if node.args else None
+            tokens: list[str] | None = None
+            literal = _literal_string(argument)
+            if literal is not None:
+                try:
+                    tokens = _shell_tokens(literal)
+                except ValueError:
+                    findings.append((line, "invalid_shell", "Python command string is not tokenizable"))
+            elif isinstance(argument, (ast.List, ast.Tuple)):
+                values = [_literal_string(item) for item in argument.elts]
+                if all(item is not None for item in values):
+                    tokens = [str(item) for item in values]
+            if tokens is None:
+                findings.append((line, "dynamic_command", "Python process command is not a closed literal"))
+            else:
+                findings.extend((line, rule, detail) for rule, detail in _inspect_command_tokens(tokens))
+        if name in destructive_calls:
+            target = _literal_string(node.args[0] if node.args else None)
+            if target is None:
+                findings.append((line, "dynamic_destructive_path", "Python destructive path is not a closed literal"))
+            elif _sensitive_delete_target(target):
+                findings.append((line, "destructive_command", "Python call deletes vault or Hermes path"))
+    return findings
+
+
+def _markdown_command_findings(text: str) -> list[tuple[int, str, str]]:
+    findings: list[tuple[int, str, str]] = []
+    in_shell_fence = False
+    for number, line in enumerate(text.splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            language = stripped[3:].strip().casefold()
+            if in_shell_fence:
+                in_shell_fence = False
+            else:
+                in_shell_fence = language in {"bash", "sh", "shell", "zsh"}
+            continue
+        candidates: list[str] = []
+        if in_shell_fence and stripped and not stripped.startswith("#"):
+            candidates.append(stripped)
+        candidates.extend(re.findall(r"`([^`\n]+)`", line))
+        prose_command = re.search(r"(?<![-\w/])(?:git\b|fgv-sync\b|(?:rm|rmdir|unlink)\s).*$", line)
+        if prose_command is not None:
+            candidates.append(prose_command.group(0))
+        for command in dict.fromkeys(candidates):
+            try:
+                tokens = _shell_tokens(command)
+            except ValueError:
+                findings.append((number, "invalid_shell", "Markdown shell command is not tokenizable"))
+                continue
+            findings.extend((number, rule, detail) for rule, detail in _inspect_command_tokens(tokens))
+    return findings
+
+
+def _cron_command_findings(text: str) -> list[tuple[int, str, str]]:
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return [(0, "invalid_format", "cron component is not valid JSON")]
+    if not isinstance(payload, dict) or set(payload) != {"jobs"} or not isinstance(payload["jobs"], list):
+        return [(0, "invalid_format", "cron JSON root schema is closed and invalid")]
+    findings: list[tuple[int, str, str]] = []
+    allowed_keys = {"command", "description", "enabled", "name", "schedule"}
+    for index, job in enumerate(payload["jobs"], 1):
+        if (
+            not isinstance(job, dict)
+            or not {"name", "command"} <= set(job)
+            or not set(job) <= allowed_keys
+            or not isinstance(job["name"], str)
+            or not isinstance(job["command"], str)
+        ):
+            findings.append((index, "invalid_format", "cron job schema is closed and invalid"))
+            continue
+        try:
+            tokens = _shell_tokens(job["command"])
+        except ValueError:
+            findings.append((index, "invalid_shell", "cron command is not tokenizable"))
+            continue
+        findings.extend((index, rule, detail) for rule, detail in _inspect_command_tokens(tokens))
+    return findings
+
+
 def audit_components(home: Path, manifest: dict[str, Any]) -> dict[str, object]:
     findings: list[dict[str, object]] = []
     legacy_subjects = "|".join(re.escape(item) for item in manifest["legacy_subject_folders"])
@@ -199,20 +449,11 @@ def audit_components(home: Path, manifest: dict[str, Any]) -> dict[str, object]:
             ),
             "legacy vault path",
         ),
-        (
-            "legacy_materials",
-            re.compile(r"(?:Slides/Material|(?<!Materiais)/Material(?:/|\b))"),
-            "legacy material folder",
-        ),
+        ("legacy_materials", re.compile(r"(?:Slides/Material|Materiais(?:/|\b))"), "legacy material folder"),
         (
             "legacy_fixed_name",
             re.compile(r"(?<![-\w])(?:Resumo|Transcrito)\.md\b"),
             "fixed legacy lesson filename",
-        ),
-        (
-            "unauthorized_git",
-            re.compile(r"\bgit(?:\s+(?:-C|--git-dir|--work-tree)\s+\S+)*\s+(?:add|checkout|commit|fetch|merge|pull|push|rebase)\b"),
-            "Git command outside fgv-sync",
         ),
     )
     component_states: list[dict[str, object]] = []
@@ -270,6 +511,21 @@ def audit_components(home: Path, manifest: dict[str, Any]) -> dict[str, object]:
                             "severity": "error",
                         }
                     )
+        format_scanners = {
+            "python": _python_command_findings,
+            "markdown": _markdown_command_findings,
+            "cron_json": _cron_command_findings,
+        }
+        for number, rule, detail in format_scanners[component["format"]](text):
+            findings.append(
+                {
+                    "detail": detail,
+                    "file": relative,
+                    "line": number,
+                    "rule": rule,
+                    "severity": "error",
+                }
+            )
     findings.sort(key=lambda item: (str(item["file"]), int(item["line"]), str(item["rule"])))
     blocked = any(item["severity"] == "error" for item in findings)
     return {

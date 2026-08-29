@@ -27,7 +27,7 @@ sync_state: clean | dirty | stale | unknown
 
 `as_of_commit` não vem do catálogo. Ele é o `git rev-parse HEAD` do mesmo checkout, obtido por `fgv-sync status`. O catálogo prova seu conteúdo com `source_fingerprint` e `build_fingerprint`. Antes de responder, o owner executa `generate_state.py --check` nesse checkout. Só a combinação de check verde, working tree limpa e commit local sincronizado permite `sync_state: clean`.
 
-Se o commit local divergir do commit esperado, o check do estado falhar ou o working tree não estiver limpo, o Hermes marca `sync_state: stale` e informa a limitação antes da resposta. Ele não apresenta conteúdo stale como atual. `sync-status.json`, quando materializado por operação, é apenas um snapshot do status do owner e nunca substitui a verificação do checkout.
+Se o commit local estiver atrás ou o check do estado falhar, o Hermes usa `sync_state: stale`. Se houver mudança local, usa `sync_state: dirty`. Se o fetch autenticado, o upstream ou a relação entre commits não puder ser verificada, usa `sync_state: unknown`. Em qualquer caso diferente de `clean`, informa a limitação antes da resposta e não apresenta conteúdo como atual. `sync-status.json`, quando materializado por operação, é apenas um snapshot do status do owner e nunca substitui a verificação do checkout.
 
 Um PDF e seu arquivo `.extracted.md` são a mesma fonte. O Markdown extraído é canônico para busca; o original serve para conferência. Eles nunca contam como duas evidências independentes.
 
@@ -35,7 +35,7 @@ Um PDF e seu arquivo `.extracted.md` são a mesma fonte. O Markdown extraído é
 
 - Matérias ativas: `10 Matérias/<Materia>/`.
 - Aulas: `10 Matérias/<Materia>/Aulas/MM.DD/`.
-- Materiais Eclass: `10 Matérias/<Materia>/Aulas/MM.DD/Materiais/`.
+- Material Eclass: `10 Matérias/<Materia>/Aulas/MM.DD/Material/`.
 - Tasks: `00 Home/Tasks.md`.
 - Estado materializado: `30 Sistema/Estado/`.
 - Conceitos: `20 Conhecimento/Conceitos/`.

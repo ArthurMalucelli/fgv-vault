@@ -25,7 +25,7 @@
     "question": "Qual material do Eclass existe para a aula?",
     "query_type": "eclass_material",
     "subject_id": "contabilidade-financeira",
-    "expected_path": "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Materiais/Slides - DRE.extracted.md"
+    "expected_path": "10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Material/Slides - DRE.extracted.md"
   },
   {
     "id": "conceito-gap",

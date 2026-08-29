@@ -8,8 +8,8 @@ O pacote tem duas fases independentes:
 Antes de usar qualquer fase, valide seus checksums:
 
 ```bash
-python3 .fgv/scripts/verify_hermes_bundle.py --root . --bundle '30 Sistema/Hermes/PREPARAR-BUNDLE.json'
-python3 .fgv/scripts/verify_hermes_bundle.py --root . --bundle '30 Sistema/Hermes/CUTOVER-BUNDLE.json'
+python3 .fgv/scripts/verify_hermes_bundle.py --root "$PWD" --bundle '30 Sistema/Hermes/PREPARAR-BUNDLE.json'
+python3 .fgv/scripts/verify_hermes_bundle.py --root "$PWD" --bundle '30 Sistema/Hermes/CUTOVER-BUNDLE.json'
 ```
 
 O primeiro prompt é o handoff inicial para o Hermes. O segundo fica guardado até Arthur revisar o readiness report.

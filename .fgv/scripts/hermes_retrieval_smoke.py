@@ -86,8 +86,9 @@ def select_path(query: dict[str, object], records: list[dict[str, object]]) -> s
         candidates.sort(key=lambda item: (str(item.get("date") or ""), str(item["path"])), reverse=True)
         return str(candidates[0]["path"]) if candidates else None
     if query_type == "eclass_material":
-        candidates = [record for record in files if "/Materiais/" in str(record["path"]) and str(record["path"]).endswith(".extracted.md")]
-        candidates.sort(key=lambda item: (str(item.get("date") or ""), str(item["path"])), reverse=True)
+        candidates = [record for record in files if "/Material/" in str(record["path"])]
+        candidates.sort(key=lambda item: str(item["path"]))
+        candidates.sort(key=lambda item: str(item.get("date") or ""), reverse=True)
         return str(candidates[0]["path"]) if candidates else None
     if query_type == "next_assessment":
         tasks = [
@@ -169,24 +170,42 @@ def checkout_status(vault: Path) -> tuple[str, bool]:
     return head.stdout.strip(), bool(status.stdout)
 
 
-def run_generator_check(vault: Path, as_of: str, fixture_mode: bool) -> str:
-    generator = vault / ".fgv/scripts/generate_state.py"
-    if not generator.is_file() or generator.is_symlink():
-        if fixture_mode:
-            return "pass"
-        raise HermesError("generate_state.py is required outside fixture mode")
+def run_state_checks(vault: Path, as_of: str) -> str:
     environment = os.environ.copy()
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
-    result = subprocess.run(
-        ["python3", str(generator), "--vault", str(vault), "--as-of", as_of, "--check"],
-        text=True,
-        capture_output=True,
-        check=False,
-        env=environment,
+    gates = (
+        ("generate_state.py", ["--vault", str(vault), "--as-of", as_of, "--check"]),
+        ("validate_vault.py", ["--vault", str(vault), "--as-of", as_of]),
     )
-    if result.returncode != 0:
-        raise HermesError("generate_state.py --check failed")
+    for name, arguments in gates:
+        gate = vault / ".fgv/scripts" / name
+        if not gate.is_file() or gate.is_symlink():
+            raise HermesError(f"{name} is required")
+        result = subprocess.run(
+            ["python3", str(gate), *arguments],
+            text=True,
+            capture_output=True,
+            check=False,
+            env=environment,
+        )
+        if result.returncode != 0:
+            raise HermesError(f"{name} failed")
     return "pass"
+
+
+def load_queries(args: argparse.Namespace) -> bytes:
+    canonical = args.vault / "30 Sistema/Hermes/retrieval-queries.json"
+    if args.fixture_mode:
+        if "fixtures" not in args.queries.parts or args.queries.name != "retrieval-queries.json":
+            raise HermesError("fixture mode requires an explicit fixture query file")
+        payload, issue = read_relative_file(args.queries.parent, args.queries.name)
+    else:
+        if args.queries.absolute() != canonical.absolute():
+            raise HermesError("live smoke requires 30 Sistema/Hermes/retrieval-queries.json")
+        payload, issue = read_relative_file(args.vault, "30 Sistema/Hermes/retrieval-queries.json")
+    if issue or payload is None:
+        raise HermesError(f"cannot trust queries: {issue}")
+    return payload
 
 
 def main() -> int:
@@ -200,10 +219,12 @@ def main() -> int:
         if match is None or match.group(1) != sha256_bytes(catalog_payload):
             raise HermesError("dashboard snapshot does not authenticate the catalog")
         actual_commit, dirty = checkout_status(args.vault)
-        state_check = run_generator_check(args.vault, str(records[0].get("as_of", "")), args.fixture_mode)
-        query_payload, query_issue = read_relative_file(args.queries.parent, args.queries.name)
-        if query_issue or query_payload is None:
-            raise HermesError(f"cannot trust queries: {query_issue}")
+        state_check = run_state_checks(args.vault, str(records[0].get("as_of", "")))
+        commit_after_checks, dirty_after_checks = checkout_status(args.vault)
+        if commit_after_checks != actual_commit:
+            raise HermesError("state checks changed checkout HEAD")
+        dirty = dirty or dirty_after_checks
+        query_payload = load_queries(args)
         queries = json.loads(query_payload.decode("utf-8"))
         if not isinstance(queries, list) or not queries:
             raise HermesError("queries must be a non-empty JSON list")
@@ -217,7 +238,7 @@ def main() -> int:
             seen_ids.add(query["id"])
             results.append(run_query(args.vault, query, records))
         stale = dirty or actual_commit != args.expected_commit
-        passed = all(item["matched"] for item in results)
+        passed = all(item["matched"] for item in results) and (args.fixture_mode or not stale)
         report = {
             "as_of_commit": actual_commit,
             "fixture_mode": args.fixture_mode,

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ultima-aula-matematica",
+    "question": "Qual foi a última aula processada de Matemática Aplicada?",
+    "query_type": "latest_class",
+    "subject_id": "matematica-aplicada",
+    "expected_path": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md"
+  },
+  {
+    "id": "transcrito-matematica",
+    "question": "Abra o transcrito mais recente de Matemática Aplicada.",
+    "query_type": "latest_transcript",
+    "subject_id": "matematica-aplicada",
+    "expected_path": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Transcrito - Introdução a derivadas.md"
+  },
+  {
+    "id": "proxima-avaliacao",
+    "question": "Qual é a próxima avaliação registrada?",
+    "query_type": "next_assessment",
+    "expected_path": "00 Home/Tasks.md"
+  },
+  {
+    "id": "material-eclass",
+    "question": "Qual é o material canônico mais recente de Estatística 2?",
+    "query_type": "eclass_material",
+    "subject_id": "estatistica-2",
+    "expected_path": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx"
+  },
+  {
+    "id": "conceito-gap",
+    "question": "Qual conceito aparece primeiro entre os gaps de domínio?",
+    "query_type": "low_mastery_concept",
+    "expected_path": "20 Conhecimento/Conceitos/Dividend Yield.md"
+  },
+  {
+    "id": "compat-resumo",
+    "question": "Ache o resumo recente mesmo sem depender do nome fixo Resumo.md.",
+    "query_type": "legacy_summary_name",
+    "subject_id": "matematica-aplicada",
+    "expected_path": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md"
+  }
+]

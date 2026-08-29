@@ -3,10 +3,24 @@ set -eu
 
 VAULT_INPUT=${FGV_VAULT_ROOT:-/root/vault}
 LOCK_PATH=${FGV_SYNC_LOCK:-/run/lock/fgv-sync.lock}
+AS_OF_DATE=${FGV_AS_OF_DATE:-$(date -u +%F)}
 LOCK_ACQUIRED=0
+VALIDATION_WORKTREE=
+VALIDATION_PARENT=
 
 emit_blocked() {
   printf '{"reason":"%s","status":"blocked"}\n' "$1"
+}
+
+emit_sync() {
+  state=$1
+  reason=$2
+  commit=$3
+  dirty=$4
+  ahead=$5
+  behind=$6
+  printf '{"ahead":%s,"as_of_commit":"%s","behind":%s,"dirty":%s,"reason":"%s","sync_state":"%s"}\n' \
+    "$ahead" "$commit" "$behind" "$dirty" "$reason" "$state"
 }
 
 die() {
@@ -15,9 +29,18 @@ die() {
   exit "$code"
 }
 
-release_lock() {
+release_resources() {
+  if [ -n "$VALIDATION_WORKTREE" ]; then
+    git -C "$VAULT_ROOT" worktree remove --force "$VALIDATION_WORKTREE" >/dev/null 2>&1 || true
+    VALIDATION_WORKTREE=
+  fi
+  if [ -n "$VALIDATION_PARENT" ]; then
+    rmdir "$VALIDATION_PARENT" >/dev/null 2>&1 || true
+    VALIDATION_PARENT=
+  fi
   if [ "$LOCK_ACQUIRED" -eq 1 ]; then
-    rmdir "$LOCK_PATH" 2>/dev/null || true
+    rmdir "$LOCK_PATH" >/dev/null 2>&1 || true
+    LOCK_ACQUIRED=0
   fi
 }
 
@@ -31,7 +54,7 @@ acquire_lock() {
   fi
   LOCK_ACQUIRED=1
   chmod 700 "$LOCK_PATH"
-  trap release_lock EXIT HUP INT TERM
+  trap release_resources EXIT HUP INT TERM
 }
 
 enter_repo() {
@@ -47,73 +70,140 @@ enter_repo() {
   [ "$top" = "$VAULT_ROOT" ] || die "vault_not_repository_root" 65
 }
 
-status_json() {
-  head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
-  if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
-    dirty=true
-  else
-    dirty=false
-  fi
-  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
-  ahead=0
-  behind=0
-  if [ -z "$upstream" ]; then
-    sync_state=no_upstream
-  else
-    counts=$(git rev-list --left-right --count "HEAD...$upstream" 2>/dev/null || true)
-    if [ -z "$counts" ]; then
-      sync_state=unknown
-    else
-      ahead=${counts%%[[:space:]]*}
-      behind=${counts##*[[:space:]]}
-      if [ "$dirty" = true ]; then
-        sync_state=dirty
-      elif [ "$ahead" -gt 0 ] && [ "$behind" -gt 0 ]; then
-        sync_state=diverged
-      elif [ "$ahead" -gt 0 ]; then
-        sync_state=ahead
-      elif [ "$behind" -gt 0 ]; then
-        sync_state=stale
-      else
-        sync_state=clean
-      fi
-    fi
-  fi
-  printf '{"ahead":%s,"as_of_commit":"%s","behind":%s,"dirty":%s,"sync_state":"%s"}\n' \
-    "$ahead" "$head" "$behind" "$dirty" "$sync_state"
-}
-
 require_clean() {
   [ -z "$(git status --porcelain=v1 --untracked-files=all)" ] || die "working_tree_not_clean" 2
 }
 
-run_state_gates() {
-  as_of=${FGV_AS_OF_DATE:-$(date -u +%F)}
-  if [ -f .fgv/scripts/generate_state.py ]; then
-    PYTHONDONTWRITEBYTECODE=1 python3 .fgv/scripts/generate_state.py --vault "$VAULT_ROOT" --as-of "$as_of" 1>&2 || die "state_rebuild_failed" 2
-    PYTHONDONTWRITEBYTECODE=1 python3 .fgv/scripts/generate_state.py --vault "$VAULT_ROOT" --as-of "$as_of" --check 1>&2 || die "state_check_failed" 2
+require_gate_files() {
+  gate_root=$1
+  for gate in .fgv/scripts/generate_state.py .fgv/scripts/validate_vault.py; do
+    [ -f "$gate_root/$gate" ] || return 1
+    [ ! -L "$gate_root/$gate" ] || return 1
+  done
+}
+
+run_check_gates() {
+  gate_root=$1
+  require_gate_files "$gate_root" || return 10
+  PYTHONDONTWRITEBYTECODE=1 python3 "$gate_root/.fgv/scripts/generate_state.py" \
+    --vault "$gate_root" --as-of "$AS_OF_DATE" --check 1>&2 || return 11
+  PYTHONDONTWRITEBYTECODE=1 python3 "$gate_root/.fgv/scripts/validate_vault.py" \
+    --vault "$gate_root" --as-of "$AS_OF_DATE" 1>&2 || return 12
+}
+
+gate_reason() {
+  case "$1" in
+    10) printf required_gate_missing ;;
+    11) printf state_check_failed ;;
+    12) printf vault_validation_failed ;;
+    13) printf gate_modified_worktree ;;
+    *) printf gate_failed ;;
+  esac
+}
+
+fetch_origin() {
+  git fetch --prune origin 1>&2
+}
+
+upstream_name() {
+  git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null
+}
+
+relation_counts() {
+  git rev-list --left-right --count "HEAD...$1" 2>/dev/null
+}
+
+status_command() {
+  acquire_lock
+  enter_repo
+  head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
+  status_before=$(git status --porcelain=v1 --untracked-files=all)
+  if [ -n "$status_before" ]; then dirty=true; else dirty=false; fi
+  if ! fetch_origin; then
+    emit_sync unknown fetch_failed "$head" "$dirty" 0 0
+    exit 2
   fi
-  if [ -f .fgv/scripts/validate_vault.py ]; then
-    PYTHONDONTWRITEBYTECODE=1 python3 .fgv/scripts/validate_vault.py --vault "$VAULT_ROOT" --as-of "$as_of" 1>&2 || die "vault_validation_failed" 2
+  upstream=$(upstream_name || true)
+  if [ -z "$upstream" ]; then
+    emit_sync unknown upstream_missing "$head" "$dirty" 0 0
+    exit 2
   fi
+  counts=$(relation_counts "$upstream" || true)
+  if [ -z "$counts" ]; then
+    emit_sync unknown divergence_check_failed "$head" "$dirty" 0 0
+    exit 2
+  fi
+  ahead=${counts%%[[:space:]]*}
+  behind=${counts##*[[:space:]]}
+  gate_code=0
+  run_check_gates "$VAULT_ROOT" || gate_code=$?
+  if [ "$gate_code" -ne 0 ]; then
+    emit_sync stale "$(gate_reason "$gate_code")" "$head" "$dirty" "$ahead" "$behind"
+    exit 2
+  fi
+  [ "$(git status --porcelain=v1 --untracked-files=all)" = "$status_before" ] || {
+    emit_sync stale gate_modified_worktree "$head" true "$ahead" "$behind"
+    exit 2
+  }
+  if [ "$dirty" = true ]; then
+    emit_sync dirty working_tree_not_clean "$head" true "$ahead" "$behind"
+    exit 2
+  fi
+  if [ "$ahead" -gt 0 ]; then
+    emit_sync unknown branch_diverged_or_ahead "$head" false "$ahead" "$behind"
+    exit 2
+  fi
+  if [ "$behind" -gt 0 ]; then
+    emit_sync stale remote_ahead "$head" false 0 "$behind"
+    exit 2
+  fi
+  emit_sync clean synchronized "$head" false 0 0
+}
+
+validate_target_commit() {
+  target=$1
+  VALIDATION_PARENT=$(mktemp -d "${TMPDIR:-/tmp}/fgv-sync.XXXXXX") || die "temporary_worktree_failed" 2
+  VALIDATION_WORKTREE="$VALIDATION_PARENT/candidate"
+  git worktree add --detach "$VALIDATION_WORKTREE" "$target" 1>&2 || die "temporary_worktree_failed" 2
+  gate_code=0
+  run_check_gates "$VALIDATION_WORKTREE" || gate_code=$?
+  if [ "$gate_code" -eq 0 ] && [ -n "$(git -C "$VALIDATION_WORKTREE" status --porcelain=v1 --untracked-files=all)" ]; then
+    gate_code=13
+  fi
+  if [ "$gate_code" -ne 0 ]; then
+    die "$(gate_reason "$gate_code")" 2
+  fi
+  validated=$(git -C "$VALIDATION_WORKTREE" rev-parse HEAD 2>/dev/null) || die "candidate_head_missing" 2
+  [ "$validated" = "$target" ] || die "candidate_commit_changed" 2
+  git worktree remove --force "$VALIDATION_WORKTREE" 1>&2 || die "temporary_worktree_cleanup_failed" 2
+  VALIDATION_WORKTREE=
+  rmdir "$VALIDATION_PARENT" || die "temporary_worktree_cleanup_failed" 2
+  VALIDATION_PARENT=
 }
 
 refresh() {
   acquire_lock
   enter_repo
   require_clean
-  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  original_head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
+  upstream=$(upstream_name || true)
   [ -n "$upstream" ] || die "upstream_missing" 2
-  git fetch --prune origin || die "fetch_failed" 2
-  counts=$(git rev-list --left-right --count "HEAD...$upstream") || die "divergence_check_failed" 2
+  fetch_origin || die "fetch_failed" 2
+  counts=$(relation_counts "$upstream" || true)
+  [ -n "$counts" ] || die "divergence_check_failed" 2
   ahead=${counts%%[[:space:]]*}
   behind=${counts##*[[:space:]]}
   [ "$ahead" -eq 0 ] || die "branch_diverged_or_ahead" 2
+  target=$(git rev-parse "$upstream" 2>/dev/null) || die "upstream_commit_missing" 2
+  validate_target_commit "$target"
+  [ "$(git rev-parse HEAD)" = "$original_head" ] || die "production_head_changed_during_validation" 2
+  require_clean
   if [ "$behind" -gt 0 ]; then
-    git merge --ff-only "$upstream" 1>&2 || die "fast_forward_failed" 2
+    git merge --ff-only "$target" 1>&2 || die "fast_forward_failed" 2
   fi
-  run_state_gates
-  status_json
+  [ "$(git rev-parse HEAD)" = "$target" ] || die "fast_forward_target_mismatch" 2
+  require_clean
+  emit_sync clean synchronized "$target" false 0 0
 }
 
 valid_publish_path() {
@@ -123,7 +213,6 @@ valid_publish_path() {
   esac
   [ ! -L "$candidate" ] || return 1
   [ -f "$candidate" ] || return 1
-  return 0
 }
 
 path_in_scope() {
@@ -135,10 +224,20 @@ path_in_scope() {
   return 1
 }
 
+scope_is_closed() {
+  while IFS= read -r -d '' line; do
+    [ -n "$line" ] || continue
+    state=${line:0:2}
+    candidate=${line:3}
+    case "$state" in *R*|*C*) return 1 ;; esac
+    path_in_scope "$candidate" "${PUBLISH_PATHS[@]}" || return 1
+  done < <(git status --porcelain=v1 --untracked-files=all -z)
+}
+
 publish() {
   shift
   message=
-  paths=()
+  PUBLISH_PATHS=()
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --message)
@@ -148,7 +247,7 @@ publish() {
         ;;
       --path)
         [ "$#" -ge 2 ] || die "path_value_missing" 64
-        paths+=("$2")
+        PUBLISH_PATHS+=("$2")
         shift 2
         ;;
       *) die "unknown_publish_argument" 64 ;;
@@ -156,58 +255,52 @@ publish() {
   done
   [ -n "$message" ] || die "message_missing" 64
   case "$message" in *$'\n'*|*$'\r'*) die "message_must_be_one_line" 64 ;; esac
-  [ "${#paths[@]}" -gt 0 ] || die "publish_path_missing" 64
+  [ "${#PUBLISH_PATHS[@]}" -gt 0 ] || die "publish_path_missing" 64
 
   acquire_lock
   enter_repo
-  for candidate in "${paths[@]}"; do
+  for candidate in "${PUBLISH_PATHS[@]}"; do
     valid_publish_path "$candidate" || die "unsafe_publish_path" 64
   done
   [ -z "$(git diff --cached --name-only)" ] || die "preexisting_staged_changes" 2
+  scope_is_closed || die "changes_outside_scope" 2
 
-  while IFS= read -r -d '' line; do
-    [ -n "$line" ] || continue
-    state=${line:0:2}
-    candidate=${line:3}
-    case "$state" in *R*|*C*) die "rename_or_copy_outside_publish_contract" 2 ;; esac
-    path_in_scope "$candidate" "${paths[@]}" || die "changes_outside_scope" 2
-  done < <(git status --porcelain=v1 --untracked-files=all -z)
-
-  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+  upstream=$(upstream_name || true)
   [ -n "$upstream" ] || die "upstream_missing" 2
-  git fetch --prune origin || die "fetch_failed" 2
-  counts=$(git rev-list --left-right --count "HEAD...$upstream") || die "divergence_check_failed" 2
+  fetch_origin || die "fetch_failed" 2
+  counts=$(relation_counts "$upstream" || true)
+  [ -n "$counts" ] || die "divergence_check_failed" 2
   ahead=${counts%%[[:space:]]*}
   behind=${counts##*[[:space:]]}
   [ "$ahead" -eq 0 ] && [ "$behind" -eq 0 ] || die "branch_not_synchronized" 2
 
-  run_state_gates
-  while IFS= read -r -d '' line; do
-    [ -n "$line" ] || continue
-    state=${line:0:2}
-    candidate=${line:3}
-    case "$state" in *R*|*C*) die "rename_or_copy_outside_publish_contract" 2 ;; esac
-    path_in_scope "$candidate" "${paths[@]}" || die "changes_outside_scope" 2
-  done < <(git status --porcelain=v1 --untracked-files=all -z)
+  require_gate_files "$VAULT_ROOT" || die "required_gate_missing" 2
+  PYTHONDONTWRITEBYTECODE=1 python3 "$VAULT_ROOT/.fgv/scripts/generate_state.py" \
+    --vault "$VAULT_ROOT" --as-of "$AS_OF_DATE" 1>&2 || die "state_rebuild_failed" 2
+  PYTHONDONTWRITEBYTECODE=1 python3 "$VAULT_ROOT/.fgv/scripts/generate_state.py" \
+    --vault "$VAULT_ROOT" --as-of "$AS_OF_DATE" --check 1>&2 || die "state_check_failed" 2
+  PYTHONDONTWRITEBYTECODE=1 python3 "$VAULT_ROOT/.fgv/scripts/validate_vault.py" \
+    --vault "$VAULT_ROOT" --as-of "$AS_OF_DATE" 1>&2 || die "vault_validation_failed" 2
+  scope_is_closed || die "changes_outside_scope" 2
 
-  git add -- "${paths[@]}" || die "stage_failed" 2
+  git add -- "${PUBLISH_PATHS[@]}" || die "stage_failed" 2
   [ -n "$(git diff --cached --name-only)" ] || die "nothing_to_publish" 2
   while IFS= read -r -d '' candidate; do
     [ -n "$candidate" ] || continue
-    path_in_scope "$candidate" "${paths[@]}" || die "staged_path_outside_scope" 2
+    path_in_scope "$candidate" "${PUBLISH_PATHS[@]}" || die "staged_path_outside_scope" 2
   done < <(git diff --cached --name-only -z)
-
   git commit -m "$message" 1>&2 || die "commit_failed" 2
   git push 1>&2 || die "push_failed" 2
-  status_json
+  require_clean
+  head=$(git rev-parse HEAD)
+  emit_sync clean synchronized "$head" false 0 0
 }
 
 [ "$#" -ge 1 ] || die "subcommand_missing" 64
 case "$1" in
   status)
     [ "$#" -eq 1 ] || die "status_takes_no_arguments" 64
-    enter_repo
-    status_json
+    status_command
     ;;
   refresh)
     [ "$#" -eq 1 ] || die "refresh_takes_no_arguments" 64

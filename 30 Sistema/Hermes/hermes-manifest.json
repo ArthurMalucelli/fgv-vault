@@ -9,7 +9,7 @@
     "state_root": "30 Sistema/Estado/",
     "catalog": "30 Sistema/Estado/catalog.jsonl",
     "dashboard_snapshot": "30 Sistema/Estado/dashboard-snapshot.md",
-    "materials_segment": "Materiais/"
+    "materials_segment": "Material/"
   },
   "retrieval_order": [
     "30 Sistema/Estado/catalog.jsonl",
@@ -25,42 +25,49 @@
       "id": "eclass-scan.py",
       "path": "scripts/eclass-scan.py",
       "classification": "required",
-      "required_markers": ["FGV_VAULT_ROOT", "Materiais/", "fgv-sync"]
+      "format": "python",
+      "required_markers": ["FGV_VAULT_ROOT", "Material/", "fgv-sync"]
     },
     {
       "id": "eclass",
       "path": "skills/productivity/eclass/SKILL.md",
       "classification": "required",
-      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "Materiais/", "as_of_commit", "sync_state", "fgv-sync"]
+      "format": "markdown",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "Material/", "as_of_commit", "sync_state", "fgv-sync"]
     },
     {
       "id": "fgv-eclass-api",
       "path": "skills/productivity/fgv-eclass-api/SKILL.md",
       "classification": "required",
-      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "Materiais/", "as_of_commit", "sync_state", "fgv-sync"]
+      "format": "markdown",
+      "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "Material/", "as_of_commit", "sync_state", "fgv-sync"]
     },
     {
       "id": "fgv-briefing",
       "path": "skills/productivity/fgv-briefing/SKILL.md",
       "classification": "required",
+      "format": "markdown",
       "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "as_of_commit", "sync_state", "fgv-sync"]
     },
     {
       "id": "academic-reading-notes",
       "path": "skills/productivity/academic-reading-notes/SKILL.md",
       "classification": "required",
+      "format": "markdown",
       "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "as_of_commit", "sync_state", "fgv-sync"]
     },
     {
       "id": "memory",
       "path": "memories/MEMORY.md",
       "classification": "required",
+      "format": "markdown",
       "required_markers": ["catalog.jsonl", "dashboard-snapshot.md", "as_of_commit", "sync_state", "fgv-sync"]
     },
     {
       "id": "cronjobs",
       "path": "cron/jobs.json",
       "classification": "required",
+      "format": "cron_json",
       "required_markers": ["fgv-sync"]
     }
   ],

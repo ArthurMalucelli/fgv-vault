@@ -33,8 +33,11 @@ def run_python(script: str, *args: str) -> subprocess.CompletedProcess[str]:
 def tree_digest(root: Path) -> str:
     digest = hashlib.sha256()
     for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root)
+        if ".git" in relative.parts:
+            continue
         if path.is_file() and not path.is_symlink():
-            digest.update(path.relative_to(root).as_posix().encode())
+            digest.update(relative.as_posix().encode())
             digest.update(b"\0")
             digest.update(path.read_bytes())
             digest.update(b"\0")
@@ -66,6 +69,7 @@ class HermesPackageContractTests(unittest.TestCase):
         )
         self.assertEqual(self.manifest["canonical_paths"]["tasks"], "00 Home/Tasks.md")
         self.assertEqual(self.manifest["canonical_paths"]["state_root"], "30 Sistema/Estado/")
+        self.assertEqual(self.manifest["canonical_paths"]["materials_segment"], "Material/")
         self.assertEqual(
             self.manifest["required_response_fields"], ["as_of_commit", "sync_state"]
         )
@@ -89,6 +93,10 @@ class HermesPackageContractTests(unittest.TestCase):
             },
         )
         self.assertTrue(all(c["classification"] == "required" for c in self.manifest["components"]))
+        self.assertEqual(
+            {component["format"] for component in self.manifest["components"]},
+            {"python", "markdown", "cron_json"},
+        )
 
 
 class HermesAuditTests(unittest.TestCase):
@@ -117,7 +125,7 @@ class HermesAuditTests(unittest.TestCase):
             report = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(report["status"], "blocked")
             rules = {finding["rule"] for finding in report["findings"]}
-            self.assertTrue({"legacy_path", "unauthorized_git", "legacy_materials"} <= rules)
+            self.assertTrue({"legacy_path", "unauthorized_git", "legacy_materials", "destructive_command"} <= rules)
             self.assertNotIn("secret-value", output.read_text(encoding="utf-8"))
 
     def test_output_is_byte_deterministic_and_sorted(self) -> None:
@@ -159,17 +167,91 @@ class HermesAuditTests(unittest.TestCase):
             rules = {finding["rule"] for finding in json.loads(output.read_text(encoding="utf-8"))["findings"]}
             self.assertTrue({"legacy_path", "unauthorized_git"} <= rules)
 
+    def test_format_aware_audit_ignores_comments_and_blocks_executable_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / ".hermes"
+            shutil.copytree(MIGRATED_HOME, home)
+            python_component = home / "scripts/eclass-scan.py"
+            python_component.write_text(
+                "import os\n"
+                "import subprocess as sp\n"
+                "from os import system as shell\n"
+                "# git pull and rm -rf /root/vault are comments\n"
+                "sp.run(['/usr/bin/git', '-C', '/root/vault', 'pull'])\n"
+                "shell('/bin/rm -rf /root/.hermes')\n",
+                encoding="utf-8",
+            )
+            markdown = home / "skills/productivity/eclass/SKILL.md"
+            markdown.write_text(
+                "# Commands\n\n```bash\nenv X=1 git pull\nfgv-sync status\n/usr/local/bin/fgv-sync status\n/bin/rm -rf /root/vault\n```\n",
+                encoding="utf-8",
+            )
+            cron = home / "cron/jobs.json"
+            cron.write_text(
+                json.dumps({"jobs": [{"name": "bad", "command": "sh -c '/usr/bin/git reset --hard'"}]}),
+                encoding="utf-8",
+            )
+            output = Path(tmp) / "audit.json"
+            result = self.audit(home, output)
+            self.assertEqual(result.returncode, 2)
+            findings = json.loads(output.read_text(encoding="utf-8"))["findings"]
+            rules = [finding["rule"] for finding in findings]
+            self.assertGreaterEqual(rules.count("unauthorized_git"), 3)
+            self.assertGreaterEqual(rules.count("destructive_command"), 2)
+            self.assertIn("nonliteral_sync", rules)
+            self.assertFalse(
+                any(
+                    finding["line"] == 4
+                    and finding["file"] == "scripts/eclass-scan.py"
+                    and finding["rule"] in {"unauthorized_git", "destructive_command"}
+                    for finding in findings
+                )
+            )
+
 
 class HermesCutoverValidationTests(unittest.TestCase):
-    def validate(self, home: Path) -> subprocess.CompletedProcess[str]:
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.vault = Path(self.temporary.name) / "vault"
+        shutil.copytree(RETRIEVAL_VAULT, self.vault)
+        gates = self.vault / ".fgv/scripts"
+        gates.mkdir(parents=True)
+        common = (
+            "import argparse\n"
+            "parser = argparse.ArgumentParser()\n"
+            "parser.add_argument('--vault', required=True)\n"
+            "parser.add_argument('--as-of', required=True)\n"
+        )
+        (gates / "generate_state.py").write_text(
+            common + "parser.add_argument('--check', action='store_true')\nparser.parse_args()\n",
+            encoding="utf-8",
+        )
+        (gates / "validate_vault.py").write_text(common + "parser.parse_args()\n", encoding="utf-8")
+        subprocess.run(["git", "init"], cwd=self.vault, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=self.vault, check=True)
+        subprocess.run(["git", "config", "user.name", "Fixture"], cwd=self.vault, check=True)
+        subprocess.run(["git", "add", "."], cwd=self.vault, check=True)
+        subprocess.run(["git", "commit", "-m", "fixture"], cwd=self.vault, check=True, capture_output=True)
+
+    def tearDown(self) -> None:
+        self.temporary.cleanup()
+
+    def head(self) -> str:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.vault, text=True, capture_output=True, check=True
+        ).stdout.strip()
+
+    def validate(self, home: Path, expected_commit: str | None = None) -> subprocess.CompletedProcess[str]:
         return run_python(
             "validate_hermes_cutover.py",
             "--hermes-home",
             str(home),
             "--vault",
-            "/root/vault-plan-b-test",
+            str(self.vault),
             "--manifest",
             str(HERMES_DIR / "hermes-manifest.json"),
+            "--expected-commit",
+            expected_commit or self.head(),
         )
 
     def test_old_fixture_is_blocked_and_migrated_fixture_is_ready(self) -> None:
@@ -184,8 +266,32 @@ class HermesCutoverValidationTests(unittest.TestCase):
             shutil.copytree(MIGRATED_HOME, home)
             (home / "cron/jobs.json").unlink()
             result = self.validate(home)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("missing_component", result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing_component", result.stdout)
+
+    def test_wrong_head_dirty_tree_missing_gate_and_symlink_are_blocked(self) -> None:
+        self.assertNotEqual(self.validate(MIGRATED_HOME, "0" * 40).returncode, 0)
+        note = self.vault / "00 Home/Tasks.md"
+        original = note.read_text(encoding="utf-8")
+        note.write_text(original + "dirty\n", encoding="utf-8")
+        self.assertNotEqual(self.validate(MIGRATED_HOME).returncode, 0)
+        note.write_text(original, encoding="utf-8")
+
+        validator = self.vault / ".fgv/scripts/validate_vault.py"
+        validator.unlink()
+        subprocess.run(["git", "add", "-u"], cwd=self.vault, check=True)
+        subprocess.run(["git", "commit", "-m", "remove gate"], cwd=self.vault, check=True, capture_output=True)
+        self.assertNotEqual(self.validate(MIGRATED_HOME).returncode, 0)
+
+        validator.write_text("raise SystemExit(0)\n", encoding="utf-8")
+        catalog = self.vault / "30 Sistema/Estado/catalog.jsonl"
+        external = Path(self.temporary.name) / "catalog.jsonl"
+        external.write_bytes(catalog.read_bytes())
+        catalog.unlink()
+        catalog.symlink_to(external)
+        subprocess.run(["git", "add", "."], cwd=self.vault, check=True)
+        subprocess.run(["git", "commit", "-m", "unsafe catalog"], cwd=self.vault, check=True, capture_output=True)
+        self.assertNotEqual(self.validate(MIGRATED_HOME).returncode, 0)
 
 
 class HermesSyncTests(unittest.TestCase):
@@ -199,7 +305,26 @@ class HermesSyncTests(unittest.TestCase):
         subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=seed, check=True)
         subprocess.run(["git", "config", "user.name", "Fixture"], cwd=seed, check=True)
         (seed / "note.md").write_text("one\n", encoding="utf-8")
-        subprocess.run(["git", "add", "note.md"], cwd=seed, check=True)
+        gates = seed / ".fgv/scripts"
+        gates.mkdir(parents=True)
+        (gates / "generate_state.py").write_text(
+            "import argparse\n"
+            "parser = argparse.ArgumentParser()\n"
+            "parser.add_argument('--vault', required=True)\n"
+            "parser.add_argument('--as-of', required=True)\n"
+            "parser.add_argument('--check', action='store_true')\n"
+            "parser.parse_args()\n",
+            encoding="utf-8",
+        )
+        (gates / "validate_vault.py").write_text(
+            "import argparse\n"
+            "parser = argparse.ArgumentParser()\n"
+            "parser.add_argument('--vault', required=True)\n"
+            "parser.add_argument('--as-of', required=True)\n"
+            "parser.parse_args()\n",
+            encoding="utf-8",
+        )
+        subprocess.run(["git", "add", "."], cwd=seed, check=True)
         subprocess.run(["git", "commit", "-m", "seed"], cwd=seed, check=True, capture_output=True)
         subprocess.run(["git", "push", "-u", "origin", "HEAD"], cwd=seed, check=True, capture_output=True)
         self.vault = self.base / "vault"
@@ -227,6 +352,36 @@ class HermesSyncTests(unittest.TestCase):
         self.assertRegex(report["as_of_commit"], r"^[0-9a-f]{40}$")
         self.assertEqual(report["sync_state"], "clean")
         self.assertFalse(report["dirty"])
+        (self.vault / "note.md").write_text("dirty\n", encoding="utf-8")
+        dirty_result = self.sync("status")
+        self.assertNotEqual(dirty_result.returncode, 0)
+        dirty = json.loads(dirty_result.stdout)
+        self.assertEqual(dirty["sync_state"], "dirty")
+        self.assertEqual(dirty["reason"], "working_tree_not_clean")
+
+    def test_status_fetches_remote_and_uses_only_public_states(self) -> None:
+        writer = self.base / "status-writer"
+        subprocess.run(["git", "clone", str(self.remote), str(writer)], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=writer, check=True)
+        subprocess.run(["git", "config", "user.name", "Fixture"], cwd=writer, check=True)
+        (writer / "remote.md").write_text("remote\n", encoding="utf-8")
+        subprocess.run(["git", "add", "remote.md"], cwd=writer, check=True)
+        subprocess.run(["git", "commit", "-m", "remote"], cwd=writer, check=True, capture_output=True)
+        subprocess.run(["git", "push"], cwd=writer, check=True, capture_output=True)
+        result = self.sync("status")
+        self.assertNotEqual(result.returncode, 0)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["sync_state"], "stale")
+        self.assertEqual(report["reason"], "remote_ahead")
+        self.assertIn(report["sync_state"], {"clean", "dirty", "stale", "unknown"})
+
+    def test_status_fetch_failure_is_unknown(self) -> None:
+        subprocess.run(["git", "remote", "set-url", "origin", str(self.base / "missing.git")], cwd=self.vault, check=True)
+        result = self.sync("status")
+        self.assertNotEqual(result.returncode, 0)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["sync_state"], "unknown")
+        self.assertEqual(report["reason"], "fetch_failed")
 
     def test_dirty_refresh_fails_without_modifying_files(self) -> None:
         target = self.vault / "note.md"
@@ -257,6 +412,27 @@ class HermesSyncTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual((self.vault / "remote.md").read_text(encoding="utf-8"), "remote\n")
         self.assertEqual(json.loads(result.stdout)["sync_state"], "clean")
+
+    def test_failed_candidate_gate_preserves_production_head_and_tree(self) -> None:
+        writer = self.base / "bad-writer"
+        subprocess.run(["git", "clone", str(self.remote), str(writer)], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=writer, check=True)
+        subprocess.run(["git", "config", "user.name", "Fixture"], cwd=writer, check=True)
+        gate = writer / ".fgv/scripts/generate_state.py"
+        gate.write_text("raise SystemExit(2)\n", encoding="utf-8")
+        (writer / "remote.md").write_text("must not land\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=writer, check=True)
+        subprocess.run(["git", "commit", "-m", "bad remote"], cwd=writer, check=True, capture_output=True)
+        subprocess.run(["git", "push"], cwd=writer, check=True, capture_output=True)
+        before_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.vault, text=True, capture_output=True, check=True).stdout.strip()
+        before_tree = tree_digest(self.vault)
+        result = self.sync("refresh")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout)["reason"], "state_check_failed")
+        after_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.vault, text=True, capture_output=True, check=True).stdout.strip()
+        self.assertEqual(after_head, before_head)
+        self.assertEqual(tree_digest(self.vault), before_tree)
+        self.assertFalse((self.vault / "remote.md").exists())
 
     def test_refresh_blocks_divergence_without_changing_head(self) -> None:
         writer = self.base / "writer"
@@ -301,7 +477,7 @@ class HermesSyncTests(unittest.TestCase):
 
     def test_publish_rebuilds_state_and_requires_generated_output_in_scope(self) -> None:
         script = self.vault / ".fgv/scripts/generate_state.py"
-        script.parent.mkdir(parents=True)
+        script.parent.mkdir(parents=True, exist_ok=True)
         state = self.vault / "30 Sistema/Estado/catalog.fixture"
         state.parent.mkdir(parents=True)
         state.write_text("initial\n", encoding="utf-8")
@@ -344,22 +520,99 @@ class HermesSyncTests(unittest.TestCase):
 
 
 class HermesReadinessTests(unittest.TestCase):
-    def manifest_hash(self) -> str:
-        return hashlib.sha256(
-            (HERMES_DIR / "hermes-manifest.json").read_bytes()
-        ).hexdigest()
+    def setUp(self) -> None:
+        from datetime import datetime, timezone
 
-    def valid_report(self) -> dict[str, object]:
-        return {
+        self.temporary = tempfile.TemporaryDirectory()
+        self.base = Path(self.temporary.name)
+        self.production = self.base / "production"
+        self.production.mkdir()
+        subprocess.run(["git", "init"], cwd=self.production, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=self.production, check=True)
+        subprocess.run(["git", "config", "user.name", "Fixture"], cwd=self.production, check=True)
+        (self.production / "tracked.md").write_text("tracked\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=self.production, check=True)
+        subprocess.run(["git", "commit", "-m", "production"], cwd=self.production, check=True, capture_output=True)
+        self.production_commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.production, text=True, capture_output=True, check=True
+        ).stdout.strip()
+
+        self.hermes_home = self.base / ".hermes"
+        shutil.copytree(MIGRATED_HOME, self.hermes_home)
+        self.backup = self.base / "backup"
+        records: list[dict[str, str]] = []
+        for source in sorted(path for path in self.hermes_home.rglob("*") if path.is_file()):
+            relative = source.relative_to(self.hermes_home).as_posix()
+            backup_relative = f"hermes/{relative}"
+            target = self.backup / backup_relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+            records.append({
+                "backup_path": backup_relative,
+                "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                "source_path": relative,
+            })
+        inventory_payload = json.dumps(records, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        backup_manifest = {
             "schema_version": 1,
-            "timestamp_utc": "2026-08-28T12:00:00Z",
+            "production_commit": self.production_commit,
+            "inventory_sha256": hashlib.sha256(inventory_payload).hexdigest(),
+            "files": records,
+        }
+        self.backup_manifest = self.backup / "backup-manifest.json"
+        self.backup_manifest.write_text(json.dumps(backup_manifest, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+
+        self.package_root = self.base / "package"
+        package_hermes = self.package_root / "30 Sistema/Hermes"
+        package_hermes.mkdir(parents=True)
+        self.manifest = package_hermes / "hermes-manifest.json"
+        shutil.copyfile(HERMES_DIR / "hermes-manifest.json", self.manifest)
+        manifest_hash = hashlib.sha256(self.manifest.read_bytes()).hexdigest()
+        self.bundle = package_hermes / "PREPARAR-BUNDLE.json"
+        self.bundle.write_text(json.dumps({
+            "schema_version": 1,
+            "phase": "PREPARAR",
+            "package_manifest_sha256": manifest_hash,
+            "files": [{"path": "30 Sistema/Hermes/hermes-manifest.json", "sha256": manifest_hash}],
+        }, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        bundle_hash = hashlib.sha256(self.bundle.read_bytes()).hexdigest()
+
+        self.evidence_dir = self.base / "evidence"
+        self.evidence_dir.mkdir()
+        evidence_values = {
+            "audit_after": {"status": "pass", "findings": []},
+            "cutover_validation": {"status": "ready", "vault_commit": TEST_COMMIT},
+            "retrieval_smoke": {
+                "status": "pass", "as_of_commit": TEST_COMMIT, "sync_state": "clean",
+                "stale": False, "fixture_mode": False, "state_check": "pass",
+            },
+            "test_suite": {"status": "pass", "tested_commit": TEST_COMMIT, "failures": 0},
+            "eclass_smoke": {"status": "pass", "tested_commit": TEST_COMMIT},
+            "whatsapp_smoke": {"status": "pass", "tested_commit": TEST_COMMIT},
+        }
+        evidence: dict[str, dict[str, str]] = {}
+        self.evidence_paths: dict[str, Path] = {}
+        for name, value in evidence_values.items():
+            path = self.evidence_dir / f"{name}.json"
+            path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+            self.evidence_paths[name] = path
+            evidence[name] = {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        empty_inventory = hashlib.sha256(b"[]").hexdigest()
+        self.report = {
+            "schema_version": 1,
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
             "host_role": "hermes-vps",
             "recommendation": "READY",
-            "production_commit": "0" * 40,
+            "production_commit": self.production_commit,
             "tested_commit": TEST_COMMIT,
-            "package_manifest_sha256": self.manifest_hash(),
-            "backup": {"path": "/root/backups/fgv-hermes-20260828", "sha256": "2" * 64},
-            "untracked": {"inventory_sha256": "3" * 64, "backup_sha256": "4" * 64, "preserved": True, "classified": True},
+            "package_manifest_sha256": manifest_hash,
+            "prepare_bundle_sha256": bundle_hash,
+            "backup": {
+                "path": str(self.backup),
+                "manifest_path": "backup-manifest.json",
+                "manifest_sha256": hashlib.sha256(self.backup_manifest.read_bytes()).hexdigest(),
+            },
+            "untracked": {"inventory_sha256": empty_inventory, "files": [], "preserved": True, "classified": True},
             "findings": {"required_remaining": 0, "warnings": 0},
             "component_results": {name: "pass" for name in (
                 "eclass-scan.py", "eclass", "fgv-eclass-api", "fgv-briefing",
@@ -371,24 +624,29 @@ class HermesReadinessTests(unittest.TestCase):
             "query_timings": [{"id": "latest_class", "duration_ms": 4}],
             "context_tokens": 1200,
             "diff_summary": ["staged configuration only"],
+            "evidence": evidence,
         }
 
-    def validate(self, payload: dict[str, object]) -> subprocess.CompletedProcess[str]:
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as handle:
-            json.dump(payload, handle)
-            path = handle.name
-        try:
-            return run_python(
-                "validate_hermes_readiness.py",
-                "--report", path,
-                "--tested-commit", TEST_COMMIT,
-                "--manifest", str(HERMES_DIR / "hermes-manifest.json"),
-            )
-        finally:
-            Path(path).unlink()
+    def tearDown(self) -> None:
+        self.temporary.cleanup()
+
+    def validate(self, payload: dict[str, object], expected_hash: str | None = None) -> subprocess.CompletedProcess[str]:
+        path = self.base / "readiness.json"
+        path.write_text(json.dumps(payload, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        checksum = expected_hash or hashlib.sha256(path.read_bytes()).hexdigest()
+        return run_python(
+            "validate_hermes_readiness.py",
+            "--report", str(path),
+            "--tested-commit", TEST_COMMIT,
+            "--manifest", str(self.manifest),
+            "--production-vault", str(self.production),
+            "--hermes-home", str(self.hermes_home),
+            "--bundle", str(self.bundle),
+            "--expected-report-sha256", checksum,
+        )
 
     def test_ready_exact_sha_and_checksums_pass(self) -> None:
-        result = self.validate(self.valid_report())
+        result = self.validate(self.report)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads(result.stdout)["status"], "ready")
 
@@ -400,16 +658,34 @@ class HermesReadinessTests(unittest.TestCase):
         )
         for field, value in mutations:
             with self.subTest(field=field):
-                report = self.valid_report()
+                report = dict(self.report)
                 report[field] = value
                 self.assertNotEqual(self.validate(report).returncode, 0)
 
     def test_fixture_mode_or_stale_retrieval_is_blocked(self) -> None:
         for field, value in (("retrieval_fixture_mode", True), ("retrieval_sync_state", "stale")):
             with self.subTest(field=field):
-                report = self.valid_report()
+                report = dict(self.report)
                 report[field] = value
                 self.assertNotEqual(self.validate(report).returncode, 0)
+
+    def test_stale_report_untracked_production_or_tampered_evidence_is_blocked(self) -> None:
+        report = dict(self.report)
+        report["timestamp_utc"] = "2026-08-28T12:00:00Z"
+        self.assertNotEqual(self.validate(report).returncode, 0)
+
+        (self.production / "unexpected.bin").write_bytes(b"unexpected")
+        self.assertNotEqual(self.validate(self.report).returncode, 0)
+        (self.production / "unexpected.bin").unlink()
+
+        self.evidence_paths["whatsapp_smoke"].write_bytes(b"tampered")
+        self.assertNotEqual(self.validate(self.report).returncode, 0)
+
+    def test_report_bundle_and_backup_hashes_are_enforced(self) -> None:
+        self.assertNotEqual(self.validate(self.report, "0" * 64).returncode, 0)
+        backup_file = next(path for path in self.backup.rglob("*") if path.is_file() and path != self.backup_manifest)
+        backup_file.write_bytes(backup_file.read_bytes() + b"tampered")
+        self.assertNotEqual(self.validate(self.report).returncode, 0)
 
 
 class HermesPromptTests(unittest.TestCase):
@@ -478,18 +754,39 @@ class HermesBundleTests(unittest.TestCase):
 
 
 class HermesRetrievalSmokeTests(unittest.TestCase):
+    def make_vault(self, parent: Path, live_queries: bool) -> tuple[Path, str]:
+        vault = parent / "vault"
+        shutil.copytree(RETRIEVAL_VAULT, vault)
+        gates = vault / ".fgv/scripts"
+        gates.mkdir(parents=True)
+        common = (
+            "import argparse\n"
+            "parser = argparse.ArgumentParser()\n"
+            "parser.add_argument('--vault', required=True)\n"
+            "parser.add_argument('--as-of', required=True)\n"
+        )
+        (gates / "generate_state.py").write_text(
+            common + "parser.add_argument('--check', action='store_true')\nparser.parse_args()\n",
+            encoding="utf-8",
+        )
+        (gates / "validate_vault.py").write_text(common + "parser.parse_args()\n", encoding="utf-8")
+        if live_queries:
+            query_target = vault / "30 Sistema/Hermes/retrieval-queries.json"
+            query_target.parent.mkdir(parents=True)
+            shutil.copyfile(FIXTURES / "retrieval-queries.json", query_target)
+        subprocess.run(["git", "init"], cwd=vault, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=vault, check=True)
+        subprocess.run(["git", "config", "user.name", "Fixture"], cwd=vault, check=True)
+        subprocess.run(["git", "add", "."], cwd=vault, check=True)
+        subprocess.run(["git", "commit", "-m", "fixture"], cwd=vault, check=True, capture_output=True)
+        actual_commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=vault, text=True, capture_output=True, check=True
+        ).stdout.strip()
+        return vault, actual_commit
+
     def test_queries_are_catalog_first_exact_and_provenanced(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            vault = Path(tmp) / "vault"
-            shutil.copytree(RETRIEVAL_VAULT, vault)
-            subprocess.run(["git", "init"], cwd=vault, check=True, capture_output=True)
-            subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=vault, check=True)
-            subprocess.run(["git", "config", "user.name", "Fixture"], cwd=vault, check=True)
-            subprocess.run(["git", "add", "."], cwd=vault, check=True)
-            subprocess.run(["git", "commit", "-m", "fixture"], cwd=vault, check=True, capture_output=True)
-            actual_commit = subprocess.run(
-                ["git", "rev-parse", "HEAD"], cwd=vault, text=True, capture_output=True, check=True
-            ).stdout.strip()
+            vault, actual_commit = self.make_vault(Path(tmp), live_queries=False)
             result = run_python(
                 "hermes_retrieval_smoke.py",
                 "--vault", str(vault),
@@ -509,6 +806,34 @@ class HermesRetrievalSmokeTests(unittest.TestCase):
                 self.assertLessEqual(len(query["opened_files"]), 1)
                 self.assertNotIn("filesystem_scan", query["steps"])
                 self.assertTrue(query["matched"])
+
+    def test_live_queries_are_distinct_existing_and_require_fresh_commit(self) -> None:
+        live_path = HERMES_DIR / "retrieval-queries.json"
+        self.assertNotEqual(live_path.read_bytes(), (FIXTURES / "retrieval-queries.json").read_bytes())
+        for query in json.loads(live_path.read_text(encoding="utf-8")):
+            self.assertTrue((ROOT / query["expected_path"]).is_file(), query["expected_path"])
+        with tempfile.TemporaryDirectory() as tmp:
+            vault, actual_commit = self.make_vault(Path(tmp), live_queries=True)
+            canonical_queries = vault / "30 Sistema/Hermes/retrieval-queries.json"
+            fresh = run_python(
+                "hermes_retrieval_smoke.py",
+                "--vault", str(vault),
+                "--queries", str(canonical_queries),
+                "--expected-commit", actual_commit,
+            )
+            self.assertEqual(fresh.returncode, 0, fresh.stdout + fresh.stderr)
+            self.assertEqual(json.loads(fresh.stdout)["sync_state"], "clean")
+
+            stale = run_python(
+                "hermes_retrieval_smoke.py",
+                "--vault", str(vault),
+                "--queries", str(canonical_queries),
+                "--expected-commit", TEST_COMMIT,
+            )
+            self.assertNotEqual(stale.returncode, 0)
+            stale_report = json.loads(stale.stdout)
+            self.assertEqual(stale_report["status"], "blocked")
+            self.assertTrue(stale_report["stale"])
 
 
 if __name__ == "__main__":
