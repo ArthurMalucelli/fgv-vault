@@ -17,8 +17,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class VaultValidationTests(unittest.TestCase):
+    @staticmethod
+    def catalog_as_of() -> str:
+        with (ROOT / "30 Sistema/Estado/catalog.jsonl").open(encoding="utf-8") as handle:
+            manifest = json.loads(handle.readline())
+        return str(manifest["as_of"])
+
     def test_runtime_packages_are_hash_bound_and_bundle_verified(self) -> None:
-        report = validate_vault.validate(ROOT, "2026-08-28")
+        report = validate_vault.validate(ROOT, self.catalog_as_of())
         packages = report["packages"]
         self.assertTrue(packages["adapter_parity"])
         self.assertRegex(packages["adapter_semantic_sha256"], r"^[0-9a-f]{64}$")
@@ -27,7 +33,11 @@ class VaultValidationTests(unittest.TestCase):
         self.assertRegex(packages["hermes_cutover_bundle_sha256"], r"^[0-9a-f]{64}$")
 
     def test_integrated_content_chain_and_state_are_certifiable(self) -> None:
-        report = validate_vault.validate(ROOT, "2026-08-28", require_packages=False)
+        report = validate_vault.validate(
+            ROOT,
+            self.catalog_as_of(),
+            require_packages=False,
+        )
         self.assertEqual(report["status"], "pass")
         self.assertEqual(report["counts"]["structural_records"], 1059)
         self.assertEqual(report["counts"]["byte_identical"], 1008)
