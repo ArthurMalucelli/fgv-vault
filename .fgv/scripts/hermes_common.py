@@ -786,57 +786,118 @@ def _markdown_command_findings(text: str) -> list[tuple[int, str, str]]:
     return findings
 
 
-def _python_has_bounded_catalog_query_call(text: str) -> bool:
+_CHANNEL_ADAPTER_IMPORTS = {"base64", "hashlib", "json", "os", "subprocess", "sys"}
+_CHANNEL_MAIN_TEMPLATE = ast.parse(
+    """def main():
+    if sys.argv[1:] != ["--hermes-channel-smoke"]:
+        raise SystemExit("unsupported invocation")
+    result = subprocess.run(
+        [
+            "python3",
+            ".fgv/scripts/hermes_catalog_query.py",
+            "--vault",
+            VAULT,
+            "--query-type",
+            os.environ["FGV_HERMES_QUERY_TYPE"],
+            "--subject-id",
+            os.environ["FGV_HERMES_SUBJECT_ID"],
+            "--expected-catalog-sha256",
+            os.environ["FGV_HERMES_EXPECTED_CATALOG_SHA256"],
+        ],
+        check=True,
+        capture_output=True,
+    )
+    consumed_sha256 = hashlib.sha256(result.stdout).hexdigest()
+    print(json.dumps({
+        "challenge": os.environ["FGV_HERMES_CHANNEL_CHALLENGE"],
+        "consumed_stdout_sha256": consumed_sha256,
+        "query_stdout_b64": base64.b64encode(result.stdout).decode("ascii"),
+        "schema_version": 1,
+    }, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+    return 0
+"""
+).body[0]
+_CHANNEL_GUARD_TEMPLATE = ast.parse(
+    """if __name__ == "__main__":
+    raise SystemExit(main())
+"""
+).body[0]
+_CHANNEL_VAULT_VALUE_TEMPLATE = ast.parse(
+    'VAULT = os.environ["FGV_VAULT_ROOT"]'
+).body[0].value
+
+
+def python_channel_entrypoint_findings(text: str) -> list[tuple[int, str, str]]:
+    """Validate the complete executable schema of a thin channel adapter."""
     try:
         tree = ast.parse(text)
     except SyntaxError:
-        return False
-    functions = {
-        node.name: node
-        for node in tree.body
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-    }
-    if "main" not in functions:
-        return False
-    module_calls_main = any(
-        any(isinstance(call, ast.Call) and _call_name(call.func) == "main" for call in ast.walk(node))
-        for node in tree.body
-        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
-    )
-    if not module_calls_main:
-        return False
-    reachable = {"main"}
-    pending = ["main"]
-    while pending:
-        current = pending.pop()
-        for call in (node for node in ast.walk(functions[current]) if isinstance(node, ast.Call)):
-            name = _call_name(call.func)
-            if name in functions and name not in reachable:
-                reachable.add(name)
-                pending.append(name)
-    all_process_calls = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Call) and _call_name(node.func) == "subprocess.run"
-    ]
-    reachable_process_calls = [
-        node
-        for name in reachable
-        for node in ast.walk(functions[name])
-        if isinstance(node, ast.Call) and _call_name(node.func) == "subprocess.run"
-    ]
-    if len(all_process_calls) != 1 or len(reachable_process_calls) != 1:
-        return False
-    argument = reachable_process_calls[0].args[0] if reachable_process_calls[0].args else None
-    if not isinstance(argument, (ast.List, ast.Tuple)):
-        return False
-    tokens = [_literal_string(item) for item in argument.elts]
-    return {
-        ".fgv/scripts/hermes_catalog_query.py",
-        "--vault",
-        "--query-type",
-        "--expected-catalog-sha256",
-    } <= set(tokens)
+        return [(0, "channel_schema", "channel adapter does not parse")]
+    findings: list[tuple[int, str, str]] = []
+    imports: list[str] = []
+    assignments: list[ast.Assign] = []
+    functions: list[ast.FunctionDef] = []
+    guards: list[ast.If] = []
+    phase = 0
+    for node in tree.body:
+        line = int(getattr(node, "lineno", 0))
+        if isinstance(node, ast.Import) and phase == 0:
+            if len(node.names) != 1 or node.names[0].asname is not None:
+                findings.append((line, "channel_schema", "channel imports must be exact and unaliased"))
+            else:
+                imports.append(node.names[0].name)
+            continue
+        if isinstance(node, ast.Assign) and phase <= 1:
+            phase = 1
+            assignments.append(node)
+            continue
+        if isinstance(node, ast.FunctionDef) and phase <= 2:
+            phase = 2
+            functions.append(node)
+            continue
+        if isinstance(node, ast.If) and phase <= 3:
+            phase = 3
+            guards.append(node)
+            continue
+        findings.append((line, "channel_schema", "channel module contains executable statements outside its closed adapter schema"))
+    if len(imports) != len(_CHANNEL_ADAPTER_IMPORTS) or set(imports) != _CHANNEL_ADAPTER_IMPORTS:
+        findings.append((0, "channel_schema", "channel adapter imports are not the exact standard-library allowlist"))
+    seen_assignments: set[str] = set()
+    for node in assignments:
+        line = int(getattr(node, "lineno", 0))
+        if len(node.targets) != 1 or not isinstance(node.targets[0], ast.Name):
+            findings.append((line, "channel_schema", "channel assignments may target one constant name only"))
+            continue
+        name = node.targets[0].id
+        if not name.isupper() or name in seen_assignments or name in _CHANNEL_ADAPTER_IMPORTS:
+            findings.append((line, "channel_schema", "channel adapter assignment target is not an immutable unique constant"))
+            continue
+        seen_assignments.add(name)
+        if name == "VAULT":
+            if ast.dump(node.value, include_attributes=False) != ast.dump(
+                _CHANNEL_VAULT_VALUE_TEMPLATE, include_attributes=False
+            ):
+                findings.append((line, "channel_schema", "VAULT must come from the pinned FGV_VAULT_ROOT environment value"))
+            continue
+        try:
+            ast.literal_eval(node.value)
+        except (ValueError, TypeError):
+            findings.append((line, "channel_schema", "channel constants must be closed literal values"))
+    if "VAULT" not in seen_assignments:
+        findings.append((0, "channel_schema", "channel adapter is missing its pinned VAULT binding"))
+    if len(functions) != 1 or ast.dump(functions[0], include_attributes=False) != ast.dump(
+        _CHANNEL_MAIN_TEMPLATE, include_attributes=False
+    ):
+        findings.append((0, "channel_schema", "channel main function does not match the authenticated bounded-query template"))
+    if len(guards) != 1 or ast.dump(guards[0], include_attributes=False) != ast.dump(
+        _CHANNEL_GUARD_TEMPLATE, include_attributes=False
+    ):
+        findings.append((0, "channel_schema", "channel main guard does not match the authenticated template"))
+    return findings
+
+
+def _python_has_bounded_catalog_query_call(text: str) -> bool:
+    return not python_channel_entrypoint_findings(text)
 
 
 def _cron_command_findings(text: str) -> list[tuple[int, str, str]]:

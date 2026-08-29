@@ -457,6 +457,28 @@ class HermesAuditTests(unittest.TestCase):
             self.assertIn("missing_bounded_query_call", rules)
             self.assertIn("direct_catalog_access", rules)
 
+    def test_channel_audit_rejects_process_api_reassignment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / ".hermes"
+            shutil.copytree(MIGRATED_HOME, home)
+            target = home / "scripts/eclass-scan.py"
+            target.write_text(
+                target.read_text(encoding="utf-8").replace(
+                    "def main():\n", "subprocess.run = subprocess.run\n\ndef main():\n"
+                ),
+                encoding="utf-8",
+            )
+            output = Path(tmp) / "audit.json"
+
+            result = self.audit(home, output)
+
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            rules = {
+                finding["rule"]
+                for finding in json.loads(output.read_text(encoding="utf-8"))["findings"]
+            }
+            self.assertIn("missing_bounded_query_call", rules)
+
 
 class HermesCutoverValidationTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -1861,6 +1883,138 @@ class HermesReadinessTests(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("evidence:eclass_smoke", result.stdout)
+
+    def test_channel_runner_rejects_process_api_reassignment(self) -> None:
+        raw_query = self.channel_query_artifacts["eclass_smoke"].read_bytes()
+        entrypoint = self.hermes_home / "scripts/eclass-scan.py"
+        entrypoint.write_text(
+            "import base64\n"
+            "import hashlib\n"
+            "import json\n"
+            "import os\n"
+            "import subprocess\n"
+            "import sys\n"
+            f"RAW_QUERY = {raw_query!r}\n"
+            "class FakeResult:\n"
+            "    returncode = 0\n"
+            "    stderr = b''\n"
+            "    stdout = RAW_QUERY\n"
+            "def fake_run(*args, **kwargs):\n"
+            "    return FakeResult()\n"
+            "subprocess.run = fake_run\n"
+            "def main():\n"
+            "    if sys.argv[1:] != ['--hermes-channel-smoke']:\n"
+            "        raise SystemExit('unsupported invocation')\n"
+            "    result = subprocess.run([\n"
+            "        'python3', '.fgv/scripts/hermes_catalog_query.py',\n"
+            "        '--vault', os.environ['FGV_VAULT_ROOT'],\n"
+            "        '--query-type', os.environ['FGV_HERMES_QUERY_TYPE'],\n"
+            "        '--subject-id', os.environ['FGV_HERMES_SUBJECT_ID'],\n"
+            "        '--expected-catalog-sha256', os.environ['FGV_HERMES_EXPECTED_CATALOG_SHA256'],\n"
+            "    ], check=True, capture_output=True)\n"
+            "    consumed = hashlib.sha256(result.stdout).hexdigest()\n"
+            "    print(json.dumps({\n"
+            "        'challenge': os.environ['FGV_HERMES_CHANNEL_CHALLENGE'],\n"
+            "        'consumed_stdout_sha256': consumed,\n"
+            "        'query_stdout_b64': base64.b64encode(result.stdout).decode('ascii'),\n"
+            "        'schema_version': 1,\n"
+            "    }, sort_keys=True, separators=(',', ':')))\n"
+            "    return 0\n"
+            "if __name__ == '__main__':\n"
+            "    raise SystemExit(main())\n",
+            encoding="utf-8",
+        )
+        artifact = self.evidence_dir / "reassigned-process-query.json"
+
+        result = run_python(
+            "hermes_channel_smoke.py",
+            "--channel-id", "eclass",
+            "--entrypoint", "scripts/eclass-scan.py",
+            "--hermes-home", str(self.hermes_home),
+            "--vault", str(self.package_root),
+            "--tested-commit", self.tested_commit,
+            "--as-of", self.operational_as_of,
+            "--expected-path", LIVE_QUERY_EXPECTED["material-eclass"],
+            "--artifact-out", str(artifact),
+            env=self.validation_env,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("static audit", result.stdout)
+
+    def test_channel_runner_rejects_unexecuted_query_call_with_prebuilt_output(self) -> None:
+        raw_query = self.channel_query_artifacts["eclass_smoke"].read_bytes()
+        entrypoint = self.hermes_home / "scripts/eclass-scan.py"
+        entrypoint.write_text(
+            "import base64\n"
+            "import hashlib\n"
+            "import json\n"
+            "import os\n"
+            "import subprocess\n"
+            "import sys\n"
+            "VAULT = os.environ['FGV_VAULT_ROOT']\n"
+            f"RAW_QUERY = {raw_query!r}\n"
+            "def main():\n"
+            "    if sys.argv[1:] != ['--hermes-channel-smoke']:\n"
+            "        raise SystemExit('unsupported invocation')\n"
+            "    if False:\n"
+            "        subprocess.run([\n"
+            "            'python3', '.fgv/scripts/hermes_catalog_query.py',\n"
+            "            '--vault', VAULT,\n"
+            "            '--query-type', os.environ['FGV_HERMES_QUERY_TYPE'],\n"
+            "            '--subject-id', os.environ['FGV_HERMES_SUBJECT_ID'],\n"
+            "            '--expected-catalog-sha256', os.environ['FGV_HERMES_EXPECTED_CATALOG_SHA256'],\n"
+            "        ], check=True, capture_output=True)\n"
+            "    consumed = hashlib.sha256(RAW_QUERY).hexdigest()\n"
+            "    print(json.dumps({\n"
+            "        'challenge': os.environ['FGV_HERMES_CHANNEL_CHALLENGE'],\n"
+            "        'consumed_stdout_sha256': consumed,\n"
+            "        'query_stdout_b64': base64.b64encode(RAW_QUERY).decode('ascii'),\n"
+            "        'schema_version': 1,\n"
+            "    }, sort_keys=True, separators=(',', ':')))\n"
+            "    return 0\n"
+            "if __name__ == '__main__':\n"
+            "    raise SystemExit(main())\n",
+            encoding="utf-8",
+        )
+        artifact = self.evidence_dir / "prebuilt-process-query.json"
+
+        result = run_python(
+            "hermes_channel_smoke.py",
+            "--channel-id", "eclass",
+            "--entrypoint", "scripts/eclass-scan.py",
+            "--hermes-home", str(self.hermes_home),
+            "--vault", str(self.package_root),
+            "--tested-commit", self.tested_commit,
+            "--as-of", self.operational_as_of,
+            "--expected-path", LIVE_QUERY_EXPECTED["material-eclass"],
+            "--artifact-out", str(artifact),
+            env=self.validation_env,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("authenticated bounded-query template", result.stdout)
+
+    def test_channel_runner_uses_isolated_standard_library_imports(self) -> None:
+        (self.hermes_home / "scripts/subprocess.py").write_text(
+            "raise RuntimeError('local module must not load')\n", encoding="utf-8"
+        )
+        artifact = self.evidence_dir / "isolated-import-query.json"
+
+        result = run_python(
+            "hermes_channel_smoke.py",
+            "--channel-id", "eclass",
+            "--entrypoint", "scripts/eclass-scan.py",
+            "--hermes-home", str(self.hermes_home),
+            "--vault", str(self.package_root),
+            "--tested-commit", self.tested_commit,
+            "--as-of", self.operational_as_of,
+            "--expected-path", LIVE_QUERY_EXPECTED["material-eclass"],
+            "--artifact-out", str(artifact),
+            env=self.validation_env,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_stale_report_untracked_production_or_tampered_evidence_is_blocked(self) -> None:
         report = dict(self.report)

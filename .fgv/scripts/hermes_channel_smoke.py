@@ -30,6 +30,7 @@ from hermes_common import (
     sha256_bytes,
     validate_repository_binding,
     _python_command_findings,
+    python_channel_entrypoint_findings,
 )
 
 
@@ -108,6 +109,9 @@ def audit_channel_entrypoint(payload: bytes) -> None:
     static_findings = _python_command_findings(text)
     if static_findings:
         raise HermesError(f"channel entrypoint static audit failed: {static_findings[0][1]}")
+    schema_findings = python_channel_entrypoint_findings(text)
+    if schema_findings:
+        raise HermesError(f"channel entrypoint static audit failed: {schema_findings[0][2]}")
     reachable, functions = _reachable_function_nodes(tree)
     reachable_nodes = [functions[name] for name in sorted(reachable)]
     all_process_calls = [
@@ -251,7 +255,7 @@ def execute_channel_flow(
         PYTHONDONTWRITEBYTECODE="1",
     )
     result = subprocess.run(
-        [sys.executable, str(hermes_home / entrypoint_relative), "--hermes-channel-smoke"],
+        [sys.executable, "-I", str(hermes_home / entrypoint_relative), "--hermes-channel-smoke"],
         cwd=vault,
         capture_output=True,
         check=False,
