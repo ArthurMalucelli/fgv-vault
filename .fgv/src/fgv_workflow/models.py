@@ -19,19 +19,6 @@ class DateResolution:
 
 
 @dataclass(frozen=True)
-class SourceManifest:
-    schema_version: int
-    transaction_id: str
-    subject_id: str
-    class_date: str
-    original_name: str
-    raw_relpath: str
-    source_sha256: str
-    size_bytes: int
-    ingested_at: str
-
-
-@dataclass(frozen=True)
 class CalendarIntent:
     schema_version: int
     action_id: str

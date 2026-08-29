@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FGV Plaud analysis v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "subject_id",
+    "topic",
+    "cleaned_transcript",
+    "summary",
+    "topics",
+    "review_questions",
+    "concept_candidates",
+    "task_mentions",
+    "calendar_mentions"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "subject_id": {"type": "string", "minLength": 1},
+    "topic": {"type": "string", "minLength": 3, "maxLength": 90},
+    "cleaned_transcript": {"type": "string", "minLength": 1},
+    "summary": {"type": "string", "minLength": 1},
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "review_questions": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 10,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "concept_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "centrality_explicit",
+          "used_in_assessment",
+          "occurrence_count",
+          "cross_subject",
+          "needs_own_explanation"
+        ],
+        "properties": {
+          "title": {"type": "string", "minLength": 1},
+          "centrality_explicit": {"type": "boolean"},
+          "used_in_assessment": {"type": "boolean"},
+          "occurrence_count": {"type": "integer", "minimum": 0},
+          "cross_subject": {"type": "boolean"},
+          "needs_own_explanation": {"type": "boolean"}
+        }
+      }
+    },
+    "task_mentions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description", "due", "priority"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\r\\n]+$",
+            "not": {"pattern": "<!-- [fF][gG][vV]-[tT][aA][sS][kK]:"},
+            "description": "Single-line task text; the reserved <!-- fgv-task: marker namespace is forbidden."
+          },
+          "due": {"type": "string", "format": "date"},
+          "priority": {"enum": ["", "🔺", "⏫", "🔽"]}
+        }
+      }
+    },
+    "calendar_mentions": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "calendar_alias", "payload"],
+            "properties": {
+              "action": {"const": "append_description"},
+              "calendar_alias": {"enum": ["classes", "assessments"]},
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["event_id", "text"],
+                "properties": {
+                  "event_id": {"type": "string", "minLength": 1},
+                  "text": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "calendar_alias", "payload"],
+            "properties": {
+              "action": {"const": "update_location"},
+              "calendar_alias": {"enum": ["classes", "assessments"]},
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["event_id", "location"],
+                "properties": {
+                  "event_id": {"type": "string", "minLength": 1},
+                  "location": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "calendar_alias", "payload"],
+            "properties": {
+              "action": {"const": "create_assessment"},
+              "calendar_alias": {"const": "assessments"},
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["title", "start"],
+                "properties": {
+                  "title": {"type": "string", "minLength": 1},
+                  "start": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "calendar_alias", "payload"],
+            "properties": {
+              "action": {"const": "mark_cancelled"},
+              "calendar_alias": {"const": "classes"},
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["event_id"],
+                "properties": {
+                  "event_id": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action", "calendar_alias", "payload"],
+            "properties": {
+              "action": {"const": "reschedule"},
+              "calendar_alias": {"const": "classes"},
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["event_id", "start"],
+                "properties": {
+                  "event_id": {"type": "string", "minLength": 1},
+                  "start": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -21,6 +21,31 @@
       "id": "rerun",
       "prompt": "Processe novamente o mesmo arquivo.",
       "assertions": ["same-transaction-id", "no-duplicate-raw", "no-duplicate-task"]
+    },
+    {
+      "id": "state-pending-roll-forward",
+      "prompt": "O refresh do dashboard falhou após publicar os arquivos. Tente concluir.",
+      "assertions": ["same-receipt", "authenticate-existing-effects", "refresh-only", "complete"]
+    },
+    {
+      "id": "concurrent-runtime",
+      "prompt": "Codex e Claude tentam aplicar no mesmo vault ao mesmo tempo.",
+      "assertions": ["single-vault-lock", "second-runtime-blocked", "no-overwrite"]
+    },
+    {
+      "id": "closed-analysis",
+      "prompt": "O analysis contém tag de task fornecida pelo modelo e boolean 1.",
+      "assertions": ["schema-rejected", "tag-derived-from-registry", "no-write"]
+    },
+    {
+      "id": "operational-as-of",
+      "prompt": "Ingira hoje uma aula antiga e atualize o dashboard.",
+      "assertions": ["explicit-operational-as-of", "class-date-not-used-as-clock", "receipt-persists-as-of"]
+    },
+    {
+      "id": "damaged-shared-store",
+      "prompt": "A fila de Calendar existente contém JSONL inválido antes do apply.",
+      "assertions": ["preflight-fails", "no-receipt", "no-raw-write", "no-artifact-write"]
     }
   ]
 }

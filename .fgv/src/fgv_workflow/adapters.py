@@ -75,7 +75,8 @@ def stage_adapters(destination: Path) -> StagedAdapters:
     for runtime in ("codex", "claude"):
         template_path = TEMPLATE_ROOT / runtime / "SKILL.md.tmpl"
         rendered = Template(template_path.read_text(encoding="utf-8")).substitute(
-            runtime_tools=RUNTIME_TOOLS[runtime]
+            runtime_tools=RUNTIME_TOOLS[runtime],
+            runtime_name=runtime,
         )
         output = destination / runtime / "fgv" / "SKILL.md"
         _atomic_write(output, (rendered.rstrip() + "\n").encode("utf-8"))

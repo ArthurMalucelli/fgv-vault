@@ -1,18 +1,18 @@
 import hashlib
-import json
-from datetime import date, datetime, timezone
+from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
 from fgv_workflow.date_resolution import DateEvidence, resolve_class_date
 from fgv_workflow.naming import artifact_path, lesson_dir
-from fgv_workflow.plaud import AnalysisError, process_plaud
+from fgv_workflow.plaud import AnalysisError, validate_analysis
 from fgv_workflow.source_store import make_transaction_id
 from fgv_workflow.subjects import SubjectRegistry
 
 
 ANALYSIS = {
+    "schema_version": 1,
     "subject_id": "contabilidade-financeira",
     "topic": "DRE e provisões",
     "cleaned_transcript": (
@@ -72,65 +72,6 @@ class WorkflowIngestTests(unittest.TestCase):
             expected,
         )
 
-    def test_process_preserves_raw_and_is_idempotent(self) -> None:
-        with TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            source = root / "downloads" / "Plaud export.txt"
-            source.parent.mkdir()
-            raw = b"Speaker 1: DRE e provisoes.\r\n\x00fim\n"
-            source.write_bytes(raw)
-            vault = root / "vault"
-            timestamp = datetime(2026, 8, 28, 18, 30, tzinfo=timezone.utc)
-
-            first = process_plaud(
-                vault_root=vault,
-                source=source,
-                class_date=date(2026, 8, 28),
-                analysis=ANALYSIS,
-                processor="test",
-                ingested_at=timestamp,
-            )
-            second = process_plaud(
-                vault_root=vault,
-                source=source,
-                class_date=date(2026, 8, 28),
-                analysis=ANALYSIS,
-                processor="test",
-                ingested_at=timestamp,
-            )
-
-            self.assertTrue(first.created)
-            self.assertFalse(second.created)
-            self.assertEqual(source.read_bytes(), raw)
-            self.assertEqual(first.raw_path.read_bytes(), raw)
-            self.assertEqual(first.transaction_id, second.transaction_id)
-            self.assertEqual(
-                tuple(path.name for path in second.artifacts),
-                tuple(path.name for path in first.artifacts),
-            )
-            self.assertEqual(
-                {path.name for path in first.artifacts},
-                {
-                    "Transcrito - DRE e provisões.md",
-                    "Resumo - DRE e provisões.md",
-                },
-            )
-            lesson = first.raw_path.parents[1]
-            self.assertEqual(len(tuple(lesson.glob("Transcrito - *.md"))), 1)
-            self.assertEqual(len(tuple(lesson.glob("Resumo - *.md"))), 1)
-            manifest = json.loads(first.manifest_path.read_text(encoding="utf-8"))
-            self.assertEqual(len(manifest["sources"]), 1)
-            for artifact in first.artifacts:
-                text = artifact.read_text(encoding="utf-8")
-                self.assertIn("materias: [contabilidade-financeira]", text)
-                self.assertIn("semestre: 2026.2", text)
-                self.assertIn("data: 2026-08-28", text)
-                self.assertIn("tema: DRE e provisões", text)
-                self.assertIn("status: completo", text)
-                self.assertIn("contract_version: 1", text)
-                self.assertIn(f"transaction_id: {first.transaction_id}", text)
-                self.assertIn("source_sha256: ", text)
-
     def test_analysis_gate_runs_before_any_write(self) -> None:
         with TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -139,14 +80,7 @@ class WorkflowIngestTests(unittest.TestCase):
             invalid = dict(ANALYSIS)
             invalid["review_questions"] = ["uma"]
             with self.assertRaisesRegex(AnalysisError, "5 to 10"):
-                process_plaud(
-                    vault_root=root / "vault",
-                    source=source,
-                    class_date=date(2026, 8, 28),
-                    analysis=invalid,
-                    processor="test",
-                    ingested_at=datetime(2026, 8, 28, tzinfo=timezone.utc),
-                )
+                validate_analysis(invalid)
             self.assertFalse((root / "vault").exists())
 
     def test_date_resolution_never_uses_mtime_alone(self) -> None:

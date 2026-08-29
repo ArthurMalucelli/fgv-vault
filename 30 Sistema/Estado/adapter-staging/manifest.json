@@ -2,20 +2,20 @@
   "adapters": {
     "claude": {
       "path": "claude/fgv/SKILL.md",
-      "sha256": "3e74263d699f83f541f392c8e3a5a1bc3bc9969f0214ffd33ba537630a0e6b1a",
-      "template_sha256": "f0dbfa189d875932a3c9de118c64a4718d1ffdf3708c6f40e0087a3ef2afbc10"
+      "sha256": "52197d5dc932cd55f1d676efa6efae1fbbe20a29b30837e95164073b38ad299d",
+      "template_sha256": "15b7d4aadca0bf8229c027d91fe27afe2a1a397ed76b5d20e430a756fca40f6b"
     },
     "codex": {
       "path": "codex/fgv/SKILL.md",
-      "sha256": "77634712cf1717c8241fa20fe81f140eac0239176558cae11b8f68f8fbbaa6dd",
-      "template_sha256": "f0dbfa189d875932a3c9de118c64a4718d1ffdf3708c6f40e0087a3ef2afbc10"
+      "sha256": "1e92af86f18b9af5acf31e8066fabd9ed03c0a1f49062f11226d3ccae9c15bfe",
+      "template_sha256": "15b7d4aadca0bf8229c027d91fe27afe2a1a397ed76b5d20e430a756fca40f6b"
     }
   },
   "contract_version": 1,
   "install_performed": false,
   "parity": {
     "normative_contract_identical": true,
-    "semantic_sha256": "a99f7af856fb1234db06b5fb024b40a4339b1a06a40a86b7d36ef0c3caa8f024"
+    "semantic_sha256": "9855cec39c5decd47c8882d907d6b77d7afd61df720afe428c6afcf4618172b8"
   },
   "schema_version": 1
 }

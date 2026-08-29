@@ -1,8 +1,9 @@
 ---
-tipo: conceito
-materias: [$subject_id]
-status: inicial
+tipo: "conceito"
+materias: ["$subject_id"]
+status: "inicial"
 contract_version: 1
+transaction_id: "$transaction_id"
 ---
 
 # $title

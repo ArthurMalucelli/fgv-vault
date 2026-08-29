@@ -1,13 +1,13 @@
 ---
 id: $artifact_id
-tipo: transcrito
+tipo: "transcrito"
 materias: [$subject_id]
 semestre: $semester
 data: $class_date
 tema: $topic
 topicos: $topics
-status: completo
-origens: [plaud]
+status: "completo"
+origens: ["plaud"]
 atualizado_por: $processor
 atualizado_em: $updated_at
 contract_version: $contract_version
