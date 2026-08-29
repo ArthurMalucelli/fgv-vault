@@ -2,8 +2,8 @@
 tipo: dashboard_snapshot
 schema_version: 1
 as_of: 2026-08-28
-build_fingerprint: "sha256:7c8f587eb97791540eb437c6c6456d72c335da99ff2be36a7f7ad522932cfb24"
-catalog_sha256: "sha256:44ea75f6376e9a336cb5963a8b1c8de837062067743d2cefbbaefd7a3c66edea"
+build_fingerprint: "sha256:88d6d678e3b535a694551571823bce727058638d2cb2ce4b8a26273d180809dc"
+catalog_sha256: "sha256:463682601905e6cdd9e31175ee890b4bfe36da62595e9bb2a8bf561d74be6822"
 ---
 
 <!-- GENERATED FILE. Edite as fontes e regenere. -->
@@ -29,6 +29,7 @@ Nenhuma.
 
 ### Aulas de hoje, processamento pendente
 
+- [[10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Revisao - Revisão de erros dos quizzes (Delícia Gelada, Sing's, Nosso Doce Amor, Lojas Paulistas)|Contabilidade Financeira 08.28]]: sem transcrito
 - `Tecnologia, Dados e Negócios 08.28`: sem transcrito; com material e sem resumo
 
 ### Aulas sem transcrito
@@ -87,7 +88,7 @@ Nenhuma.
 
 | Matéria | Pendentes | Atrasadas | Última aula | Gaps |
 |---|---:|---:|---|---:|
-| Contabilidade Financeira | 3 | 2 | [[10 Matérias/ContabilidadeFinanceira/Aulas/08.26/ResolucaoQuizDreLojasAlagoanas|Contabilidade Financeira 08.26]] | 0 |
+| Contabilidade Financeira | 3 | 2 | [[10 Matérias/ContabilidadeFinanceira/Aulas/08.28/Revisao - Revisão de erros dos quizzes (Delícia Gelada, Sing's, Nosso Doce Amor, Lojas Paulistas)|Contabilidade Financeira 08.28]] | 0 |
 | Direito Empresarial | 0 | 0 | [[10 Matérias/DireitoEmpresarial/Aulas/08.12/Resumo - Empreendedorismo, legalização de empresas, impostos e lavagem de dinheiro|Direito Empresarial 08.12]] | 0 |
 | Estatística II | 1 | 1 | [[10 Matérias/Estatistica2/Aulas/08.21/Resumo - Fechamento de qui-quadrado - exercício em Excel e R, anúncio do quiz|Estatística II 08.21]] | 0 |
 | Estudos Organizacionais | 0 | 0 | `Estudos Organizacionais 08.26` | 0 |
