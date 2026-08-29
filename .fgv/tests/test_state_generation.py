@@ -146,6 +146,20 @@ class StateGenerationTests(unittest.TestCase):
                 self.assertEqual(completed.returncode, 2, (value, completed.stderr))
                 self.assertIn("canonical YYYY-MM-DD", completed.stderr)
 
+    def test_check_does_not_create_a_missing_lock_or_any_other_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = CatalogTests().make_vault(Path(tmp))
+            lock = vault / "30 Sistema/Estado/.generation.lock"
+            self.assertTrue(lock.is_file())
+            lock.unlink()
+            before_paths = {path.relative_to(vault).as_posix() for path in vault.rglob("*")}
+            completed = self.run_cli(vault, "--check")
+            after_paths = {path.relative_to(vault).as_posix() for path in vault.rglob("*")}
+            self.assertEqual(completed.returncode, 2)
+            self.assertIn("generation.lock", completed.stderr)
+            self.assertEqual(before_paths, after_paths)
+            self.assertFalse(lock.exists())
+
     def test_interprocess_lock_serializes_build_revalidation_and_pair_publication(self):
         if "fork" not in multiprocessing.get_all_start_methods():
             self.skipTest("requires POSIX fork")

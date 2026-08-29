@@ -10,6 +10,8 @@ PYTHONPATH=.fgv/scripts python3 .fgv/scripts/generate_state.py --vault . --as-of
 
 Não edite os arquivos gerados manualmente. Em conflito Git, preserve as fontes e regenere o estado.
 
+`.generation.lock` é um arquivo vazio e versionado usado para serializar geradores concorrentes. Não o remova. O modo `--check` apenas abre esse arquivo existente e não cria nem altera arquivos.
+
 Hermes deve validar `schema_version` e o `catalog_sha256` incorporado ao snapshot. Se o catálogo estiver ausente, incompatível ou inconsistente, o fallback é a leitura direta do filesystem.
 
 ## Proveniência

@@ -109,7 +109,12 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, object], str, list[str]]:
             if list_key and stripped.startswith("- "):
                 existing = metadata.setdefault(list_key, [])
                 if isinstance(existing, list):
-                    existing.append(_nfc(str(_parse_value(stripped[2:], warnings, list_key))))
+                    item = stripped[2:]
+                    unsupported = _unsupported_value(item)
+                    if unsupported:
+                        warnings.append(f"{unsupported} for {list_key} list item")
+                        continue
+                    existing.append(_nfc(str(_parse_value(item, warnings, list_key))))
                     continue
             warnings.append(f"unsupported nested frontmatter at line {line_number}")
             continue

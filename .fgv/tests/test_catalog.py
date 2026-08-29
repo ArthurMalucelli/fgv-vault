@@ -27,6 +27,7 @@ class CatalogTests(unittest.TestCase):
             "30 Sistema/Tutor/concepts-history.json": json.dumps({"DRE": {"subject": "ContabilidadeFinanceira", "times_probed": 1, "last_status": "parcial"}}),
             "30 Sistema/Plans/secret.md": "never index",
             "30 Sistema/Estado/old.md": "never index",
+            "30 Sistema/Estado/.generation.lock": "",
             "90 Arquivo/2026.1/ProdutosFinanceiros/Aulas/05.20/Resumo.md": "---\nmateria: ProdutosFinanceiros\n---\n# RF\n",
         }
         for relative, content in files.items():

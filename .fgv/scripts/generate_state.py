@@ -68,6 +68,7 @@ def validate_preconditions(vault: Path, settings: Settings) -> None:
     for subject in settings.subjects:
         _require_directory(vault / subject.path, subject.path)
     _require_directory(vault / "30 Sistema/Estado", "30 Sistema/Estado")
+    _require_file(vault / "30 Sistema/Estado/.generation.lock", "30 Sistema/Estado/.generation.lock")
 
 
 def build_outputs(vault: Path, as_of: str) -> tuple[bytes, bytes]:

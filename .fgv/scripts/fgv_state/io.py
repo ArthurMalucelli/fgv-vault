@@ -23,13 +23,13 @@ def generation_lock(vault: Path):
     if hasattr(os, "O_NOFOLLOW"):
         directory_flags |= os.O_NOFOLLOW
     directory_descriptor = os.open(state_directory, directory_flags)
-    flags = os.O_RDWR | os.O_CREAT | os.O_NONBLOCK
+    flags = os.O_RDWR | os.O_NONBLOCK
     if hasattr(os, "O_CLOEXEC"):
         flags |= os.O_CLOEXEC
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
     try:
-        descriptor = os.open(LOCK_NAME, flags, 0o600, dir_fd=directory_descriptor)
+        descriptor = os.open(LOCK_NAME, flags, dir_fd=directory_descriptor)
     except Exception:
         os.close(directory_descriptor)
         raise

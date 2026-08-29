@@ -74,6 +74,27 @@ title: "Hash # literal"
         self.assertIn("anchor or alias", warnings)
         self.assertIn("block scalar", warnings)
 
+    def test_ambiguous_yaml_constructs_in_block_lists_are_ignored(self):
+        metadata = parse_markdown_metadata(
+            """---
+tags:
+  - segura
+  - ambígua # comentário
+  - &grupo ancora
+  - *grupo
+  - >-
+---
+# Lista
+""",
+            "20 Conhecimento/Conceitos/Lista.md",
+            "2026.2",
+        )
+        self.assertEqual(metadata.tags, ("segura",))
+        warnings = "\n".join(metadata.warnings)
+        self.assertIn("inline comment", warnings)
+        self.assertIn("anchor or alias", warnings)
+        self.assertIn("block scalar", warnings)
+
 
 if __name__ == "__main__":
     unittest.main()
