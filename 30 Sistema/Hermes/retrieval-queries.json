@@ -24,7 +24,7 @@
     "question": "Qual é o material canônico mais recente de Estatística 2?",
     "query_type": "eclass_material",
     "subject_id": "estatistica-2",
-    "expected_path": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx"
+    "expected_path": "10 Matérias/Estatistica2/Aulas/08.18/Material/Script_Aula05.R"
   },
   {
     "id": "conceito-gap",

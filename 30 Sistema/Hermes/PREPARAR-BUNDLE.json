@@ -29,7 +29,7 @@
     },
     {
       "path": ".fgv/scripts/validate_hermes_readiness.py",
-      "sha256": "400aa8406a9bca3143cf8cfe89c40a6eba75116fff4270b6ad4b85bb6f8cdabd"
+      "sha256": "e9dc20d6776f1f90a022beb6fdef8e1f599973130a785e86525335658ee1af1f"
     },
     {
       "path": ".fgv/scripts/verify_hermes_bundle.py",
@@ -61,7 +61,7 @@
     },
     {
       "path": "30 Sistema/Hermes/retrieval-queries.json",
-      "sha256": "236069af8f8509323a9308893b754511babb8713eeb82ba99c146f0a483e4849"
+      "sha256": "df5b0f5d6ccd47720461923854bcefa4aff9f69237132286db651eec05d77cc1"
     }
   ]
 }

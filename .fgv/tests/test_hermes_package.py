@@ -17,6 +17,7 @@ from unittest import mock
 from zoneinfo import ZoneInfo
 
 import hermes_channel_smoke
+from hermes_catalog_query import query_catalog
 from hermes_channel_smoke import audit_channel_entrypoint
 from hermes_common import HermesError
 
@@ -38,7 +39,7 @@ LIVE_QUERY_EXPECTED = {
     "ultima-aula-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
     "transcrito-matematica": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Transcrito - Introdução a derivadas.md",
     "proxima-avaliacao": "00 Home/Tasks.md",
-    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Exercicios_Aula05.docx",
+    "material-eclass": "10 Matérias/Estatistica2/Aulas/08.18/Material/Script_Aula05.R",
     "conceito-gap": "20 Conhecimento/Conceitos/Dividend Yield.md",
     "compat-resumo": "10 Matérias/MatemáticaAplicada/Aulas/08.20/Resumo - Introdução a derivadas.md",
 }
@@ -235,6 +236,28 @@ class HermesPackageContractTests(unittest.TestCase):
             self.assertNotIn("carregue o catálogo completo", payload.lower())
             query_marked += 1
         self.assertEqual(query_marked, 7)
+
+    def test_live_query_expectations_match_current_catalog(self) -> None:
+        queries = json.loads(
+            (HERMES_DIR / "retrieval-queries.json").read_text(encoding="utf-8")
+        )
+        catalog_sha256 = hashlib.sha256(
+            (ROOT / "30 Sistema/Estado/catalog.jsonl").read_bytes()
+        ).hexdigest()
+        for query in queries:
+            with self.subTest(query=query["id"]):
+                result, _ = query_catalog(
+                    ROOT,
+                    query["query_type"],
+                    query.get("subject_id"),
+                    MAX_CATALOG_CANDIDATES,
+                    catalog_sha256,
+                )
+                self.assertTrue(result["candidates"])
+                self.assertEqual(
+                    result["candidates"][0]["path"],
+                    query["expected_path"],
+                )
 
 
 class HermesAuditTests(unittest.TestCase):
