@@ -12,15 +12,18 @@ import stat
 import subprocess
 import sys
 
+from hermes_catalog_query import query_catalog
 from hermes_common import (
     COMMIT_RE,
     HermesError,
     SHA256_RE,
     canonical_json,
     load_manifest,
+    normalize_remote_url,
     read_relative_file,
     safe_relative,
     sha256_bytes,
+    require_current_operational_as_of,
 )
 
 
@@ -33,6 +36,9 @@ REPORT_KEYS = {
     "recommendation",
     "production_commit",
     "tested_commit",
+    "operational_as_of",
+    "expected_upstream",
+    "expected_remote_url",
     "package_manifest_sha256",
     "prepare_bundle_sha256",
     "backup",
@@ -75,14 +81,20 @@ LIVE_QUERY_PATHS = {
 RETRIEVAL_EVIDENCE_KEYS = {
     "as_of_commit",
     "fixture_mode",
+    "operational_as_of",
+    "origin_url",
     "queries",
     "stale",
     "state_check",
     "sync_state",
     "status",
+    "upstream",
 }
 RETRIEVAL_QUERY_KEYS = {
     "bytes_opened",
+    "candidate_count",
+    "catalog_query_bytes",
+    "catalog_query_lines",
     "duration_ms",
     "id",
     "matched",
@@ -91,19 +103,56 @@ RETRIEVAL_QUERY_KEYS = {
     "steps",
 }
 RETRIEVAL_STEPS = [
-    "catalog",
+    "catalog_query",
     "dashboard_snapshot",
     "checkout_status",
     "select_exact_path",
     "verify_sha256",
     "open_exact_file",
 ]
+MAX_CATALOG_QUERY_BYTES = 16_384
+MAX_CATALOG_QUERY_LINES = 1
+MAX_CATALOG_CANDIDATES = 5
+CUTOVER_EVIDENCE_KEYS = {
+    "failures",
+    "manifest_sha256",
+    "operational_as_of",
+    "origin_url",
+    "schema_version",
+    "status",
+    "upstream",
+    "vault_commit",
+}
+CHANNEL_SMOKE_KEYS = {
+    "candidate_count",
+    "catalog_query_artifact",
+    "catalog_query_bytes",
+    "catalog_query_lines",
+    "catalog_query_sha256",
+    "filesystem_scan",
+    "full_catalog_in_context",
+    "matched",
+    "opened_files",
+    "operational_as_of",
+    "origin_url",
+    "query_id",
+    "selected_path",
+    "status",
+    "steps",
+    "tested_commit",
+    "upstream",
+}
+CHANNEL_QUERY_SPECS = {
+    "eclass_smoke": ("material-eclass", "eclass_material", "estatistica-2"),
+    "whatsapp_smoke": ("ultima-aula-matematica", "latest_class", "matematica-aplicada"),
+}
 
 
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(description=__doc__)
     value.add_argument("--report", required=True, type=Path)
     value.add_argument("--tested-commit", required=True)
+    value.add_argument("--as-of", required=True)
     value.add_argument("--manifest", required=True, type=Path)
     value.add_argument("--production-vault", required=True, type=Path)
     value.add_argument("--hermes-home", required=True, type=Path)
@@ -227,6 +276,7 @@ def validate_report_shape(
     manifest: dict[str, object],
     manifest_sha256: str,
     live_query_paths: dict[str, str],
+    operational_as_of: str,
 ) -> list[str]:
     failures: list[str] = []
     if set(report) != REPORT_KEYS:
@@ -242,6 +292,16 @@ def validate_report_shape(
         failures.append("production_commit")
     if report["tested_commit"] != expected_commit:
         failures.append("tested_commit")
+    if report["operational_as_of"] != operational_as_of:
+        failures.append("operational_as_of")
+    if report["expected_upstream"] != manifest["expected_upstream"]:
+        failures.append("expected_upstream")
+    try:
+        report_remote = normalize_remote_url(report["expected_remote_url"])
+    except HermesError:
+        report_remote = ""
+    if report_remote != manifest["expected_remote_url"]:
+        failures.append("expected_remote_url")
     if report["package_manifest_sha256"] != manifest_sha256:
         failures.append("package_manifest_sha256")
     if SHA256_RE.fullmatch(str(report["prepare_bundle_sha256"])) is None:
@@ -418,7 +478,12 @@ def validate_production_and_backup(report: dict[str, object], vault: Path, herme
 
 
 def validate_evidence(
-    report: dict[str, object], tested_commit: str, live_query_paths: dict[str, str]
+    report: dict[str, object],
+    tested_commit: str,
+    live_query_paths: dict[str, str],
+    operational_as_of: str,
+    manifest: dict[str, object],
+    package_root: Path,
 ) -> list[str]:
     evidence = report["evidence"]
     if not isinstance(evidence, dict) or set(evidence) != EVIDENCE_IDS:
@@ -448,7 +513,16 @@ def validate_evidence(
     if audit.get("status") != "pass" or audit.get("findings") != []:
         failures.append("evidence:audit_after")
     cutover = payloads["cutover_validation"]
-    if cutover.get("status") != "ready" or cutover.get("vault_commit") != tested_commit:
+    if set(cutover) != CUTOVER_EVIDENCE_KEYS or not (
+        cutover.get("schema_version") == 1
+        and cutover.get("status") == "ready"
+        and cutover.get("failures") == []
+        and cutover.get("vault_commit") == tested_commit
+        and cutover.get("operational_as_of") == operational_as_of
+        and cutover.get("upstream") == manifest["expected_upstream"]
+        and cutover.get("origin_url") == manifest["expected_remote_url"]
+        and cutover.get("manifest_sha256") == report["package_manifest_sha256"]
+    ):
         failures.append("evidence:cutover_validation")
     retrieval = payloads["retrieval_smoke"]
     if set(retrieval) != RETRIEVAL_EVIDENCE_KEYS or not (
@@ -458,6 +532,9 @@ def validate_evidence(
         and retrieval.get("stale") is False
         and retrieval.get("fixture_mode") is False
         and retrieval.get("state_check") == "pass"
+        and retrieval.get("operational_as_of") == operational_as_of
+        and retrieval.get("upstream") == manifest["expected_upstream"]
+        and retrieval.get("origin_url") == manifest["expected_remote_url"]
     ):
         failures.append("evidence:retrieval_smoke")
     else:
@@ -481,6 +558,12 @@ def validate_evidence(
                     and int(query["duration_ms"]) >= 0
                     and type(query.get("bytes_opened")) is int
                     and int(query["bytes_opened"]) > 0
+                    and type(query.get("catalog_query_bytes")) is int
+                    and 0 < int(query["catalog_query_bytes"]) <= MAX_CATALOG_QUERY_BYTES
+                    and type(query.get("catalog_query_lines")) is int
+                    and int(query["catalog_query_lines"]) == MAX_CATALOG_QUERY_LINES
+                    and type(query.get("candidate_count")) is int
+                    and 0 < int(query["candidate_count"]) <= MAX_CATALOG_CANDIDATES
                 ):
                     failures.append("evidence:retrieval_smoke")
                     break
@@ -497,7 +580,70 @@ def validate_evidence(
         failures.append("evidence:test_suite")
     for evidence_id in ("eclass_smoke", "whatsapp_smoke"):
         value = payloads[evidence_id]
-        if value.get("status") != "pass" or value.get("tested_commit") != tested_commit:
+        expected_query_id, query_type, subject_id = CHANNEL_QUERY_SPECS[evidence_id]
+        expected_path = live_query_paths[expected_query_id]
+        artifact_valid = False
+        actual_query_bytes = 0
+        actual_query_lines = 0
+        actual_candidate_count = 0
+        try:
+            artifact_path = Path(str(value.get("catalog_query_artifact", "")))
+            artifact_payload = stable_payload(
+                artifact_path, f"evidence {evidence_id} catalog query artifact"
+            )
+            expected_query, expected_payload = query_catalog(
+                package_root, query_type, subject_id, MAX_CATALOG_CANDIDATES
+            )
+            artifact_query = json_object(
+                artifact_payload, f"evidence {evidence_id} catalog query artifact"
+            )
+            candidates = artifact_query.get("candidates")
+            selected_path = (
+                candidates[0].get("path")
+                if isinstance(candidates, list)
+                and candidates
+                and isinstance(candidates[0], dict)
+                else None
+            )
+            manifest_record = artifact_query.get("manifest")
+            actual_query_bytes = len(artifact_payload)
+            actual_query_lines = len(artifact_payload.splitlines())
+            actual_candidate_count = len(candidates) if isinstance(candidates, list) else 0
+            artifact_valid = (
+                artifact_payload == expected_payload
+                and artifact_query == expected_query
+                and SHA256_RE.fullmatch(str(value.get("catalog_query_sha256"))) is not None
+                and sha256_bytes(artifact_payload) == value.get("catalog_query_sha256")
+                and isinstance(manifest_record, dict)
+                and manifest_record.get("as_of") == operational_as_of
+                and selected_path == expected_path
+                and 0 < actual_query_bytes <= MAX_CATALOG_QUERY_BYTES
+                and actual_query_lines == MAX_CATALOG_QUERY_LINES
+                and 0 < actual_candidate_count <= MAX_CATALOG_CANDIDATES
+            )
+        except (HermesError, OSError, KeyError, TypeError, AttributeError):
+            artifact_valid = False
+        if set(value) != CHANNEL_SMOKE_KEYS or not (
+            value.get("status") == "pass"
+            and value.get("tested_commit") == tested_commit
+            and value.get("operational_as_of") == operational_as_of
+            and value.get("upstream") == manifest["expected_upstream"]
+            and value.get("origin_url") == manifest["expected_remote_url"]
+            and value.get("query_id") == expected_query_id
+            and value.get("selected_path") == expected_path
+            and value.get("opened_files") == [expected_path]
+            and value.get("matched") is True
+            and value.get("steps") == RETRIEVAL_STEPS
+            and artifact_valid
+            and type(value.get("catalog_query_bytes")) is int
+            and int(value["catalog_query_bytes"]) == actual_query_bytes
+            and type(value.get("catalog_query_lines")) is int
+            and int(value["catalog_query_lines"]) == actual_query_lines
+            and type(value.get("candidate_count")) is int
+            and int(value["candidate_count"]) == actual_candidate_count
+            and value.get("full_catalog_in_context") is False
+            and value.get("filesystem_scan") is False
+        ):
             failures.append(f"evidence:{evidence_id}")
     return failures
 
@@ -513,6 +659,9 @@ def main() -> int:
         if SHA256_RE.fullmatch(args.expected_report_sha256) is None:
             raise HermesError("expected-report-sha256 must be lowercase SHA-256")
         manifest, manifest_sha256 = load_manifest(args.manifest)
+        operational_as_of = require_current_operational_as_of(
+            args.as_of, manifest["operational_timezone"]
+        )
         live_query_paths = load_live_query_paths(args.manifest)
         report_payload = stable_payload(args.report, "report")
         report_sha256 = sha256_bytes(report_payload)
@@ -526,6 +675,7 @@ def main() -> int:
                 manifest,
                 manifest_sha256,
                 live_query_paths,
+                operational_as_of,
             )
         )
         bundle_sha256 = validate_bundle(args.bundle, args.manifest, manifest_sha256)
@@ -533,13 +683,23 @@ def main() -> int:
             failures.append("prepare_bundle_sha256")
         if not failures:
             failures.extend(validate_production_and_backup(report, args.production_vault, args.hermes_home))
-            failures.extend(validate_evidence(report, args.tested_commit, live_query_paths))
+            failures.extend(
+                validate_evidence(
+                    report,
+                    args.tested_commit,
+                    live_query_paths,
+                    operational_as_of,
+                    manifest,
+                    args.manifest.parent.parent.parent.absolute(),
+                )
+            )
     except (HermesError, KeyError, TypeError, OSError) as error:
         failures.append(f"invalid_input:{error}")
     failures = sorted(set(failures))
     output = {
         "bundle_sha256": bundle_sha256,
         "failures": failures,
+        "operational_as_of": args.as_of,
         "report_sha256": report_sha256,
         "status": "ready" if not failures else "blocked",
     }

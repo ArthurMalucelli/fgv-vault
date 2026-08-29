@@ -6,13 +6,24 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import re
 import subprocess
 import sys
 import time
 
-from hermes_common import COMMIT_RE, HermesError, read_relative_file, sha256_bytes
+from hermes_catalog_query import MAX_CANDIDATES, MAX_OUTPUT_BYTES, query_catalog
+from hermes_common import (
+    CANONICAL_OPERATIONAL_TIMEZONE,
+    CANONICAL_REMOTE_URL,
+    CANONICAL_UPSTREAM,
+    COMMIT_RE,
+    HermesError,
+    read_relative_file,
+    require_current_operational_as_of,
+    sha256_bytes,
+    validate_repository_binding,
+)
 
 
 QUERY_TYPES = {
@@ -23,6 +34,7 @@ QUERY_TYPES = {
     "low_mastery_concept",
     "legacy_summary_name",
 }
+MAX_OUTPUT_LINES = 1
 
 
 def parser() -> argparse.ArgumentParser:
@@ -30,6 +42,7 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--vault", required=True, type=Path)
     value.add_argument("--queries", required=True, type=Path)
     value.add_argument("--expected-commit", required=True)
+    value.add_argument("--as-of", required=True)
     value.add_argument("--fixture-mode", action="store_true")
     return value
 
@@ -41,89 +54,48 @@ def required_payload(root: Path, relative: str) -> bytes:
     return payload
 
 
-def load_catalog(payload: bytes) -> tuple[bytes, list[dict[str, object]]]:
-    records: list[dict[str, object]] = []
-    for number, line in enumerate(payload.decode("utf-8").splitlines(), 1):
-        try:
-            value = json.loads(line)
-        except json.JSONDecodeError as error:
-            raise HermesError(f"catalog line {number} is invalid JSON") from error
-        if not isinstance(value, dict):
-            raise HermesError(f"catalog line {number} is not an object")
-        records.append(value)
-    if not records or records[0].get("record_type") != "manifest" or records[0].get("schema_version") != 1:
+def load_catalog_manifest(payload: bytes) -> dict[str, object]:
+    lines = payload.decode("utf-8").splitlines()
+    if not lines:
         raise HermesError("catalog manifest is missing or unsupported")
-    if sum(record.get("record_type") == "manifest" for record in records) != 1:
-        raise HermesError("catalog must contain exactly one manifest")
-    paths: set[str] = set()
-    for record in records[1:]:
-        if record.get("schema_version") != 1 or record.get("record_type") not in {"file", "task", "learning_state"}:
-            raise HermesError("catalog contains unsupported record")
-        if record.get("record_type") == "file":
-            value = record.get("path")
-            if not isinstance(value, str):
-                raise HermesError("file record path is missing")
-            pure = PurePosixPath(value)
-            if pure.is_absolute() or ".." in pure.parts or pure.as_posix() != value or value in paths:
-                raise HermesError("file record path is unsafe or duplicated")
-            paths.add(value)
-    return payload, records
+    first_line = lines[0]
+    try:
+        manifest = json.loads(first_line)
+    except json.JSONDecodeError as error:
+        raise HermesError("catalog manifest is invalid JSON") from error
+    if (
+        not isinstance(manifest, dict)
+        or manifest.get("record_type") != "manifest"
+        or manifest.get("schema_version") != 1
+    ):
+        raise HermesError("catalog manifest is missing or unsupported")
+    return manifest
 
 
-def select_path(query: dict[str, object], records: list[dict[str, object]]) -> str | None:
-    query_type = query["query_type"]
-    subject_id = query.get("subject_id")
-    files = [record for record in records if record.get("record_type") == "file"]
-    if subject_id:
-        files = [record for record in files if subject_id in record.get("subject_ids", [])]
-
-    if query_type in {"latest_class", "legacy_summary_name"}:
-        candidates = [record for record in files if PurePosixPath(str(record["path"])).name.startswith("Resumo")]
-        candidates.sort(key=lambda item: (str(item.get("date") or ""), str(item["path"])), reverse=True)
-        return str(candidates[0]["path"]) if candidates else None
-    if query_type == "latest_transcript":
-        candidates = [record for record in files if PurePosixPath(str(record["path"])).name.startswith("Transcrito")]
-        candidates.sort(key=lambda item: (str(item.get("date") or ""), str(item["path"])), reverse=True)
-        return str(candidates[0]["path"]) if candidates else None
-    if query_type == "eclass_material":
-        candidates = [record for record in files if "/Material/" in str(record["path"])]
-        candidates.sort(key=lambda item: str(item["path"]))
-        candidates.sort(key=lambda item: str(item.get("date") or ""), reverse=True)
-        return str(candidates[0]["path"]) if candidates else None
-    if query_type == "next_assessment":
-        tasks = [
-            record for record in records
-            if record.get("record_type") == "task"
-            and record.get("status") in {"todo", "in_progress"}
-            and (not subject_id or subject_id in record.get("subject_ids", []))
-            and record.get("due")
-        ]
-        tasks.sort(key=lambda item: (str(item["due"]), str(item.get("description", ""))))
-        return str(tasks[0]["source_path"]) if tasks else None
-    if query_type == "low_mastery_concept":
-        learning = [
-            record for record in records
-            if record.get("record_type") == "learning_state"
-            and record.get("last_status") in {"gap", "nao_sabe", "parcial"}
-            and record.get("concept_path")
-        ]
-        learning.sort(key=lambda item: (str(item.get("last_status")), str(item.get("concept"))))
-        return str(learning[0]["concept_path"]) if learning else None
-    return None
-
-
-def run_query(vault: Path, query: dict[str, object], records: list[dict[str, object]]) -> dict[str, object]:
+def run_query(vault: Path, query: dict[str, object]) -> dict[str, object]:
     started = time.perf_counter_ns()
-    steps = ["catalog", "dashboard_snapshot", "checkout_status", "select_exact_path"]
-    selected = select_path(query, records)
+    _, query_payload = query_catalog(
+        vault,
+        str(query["query_type"]),
+        str(query["subject_id"]) if query.get("subject_id") else None,
+        MAX_CANDIDATES,
+    )
+    query_output = json.loads(query_payload.decode("utf-8"))
+    candidates = query_output["candidates"]
+    if not isinstance(candidates, list) or len(candidates) > MAX_CANDIDATES:
+        raise HermesError("catalog query candidate budget failed")
+    query_bytes = len(query_payload)
+    query_lines = len(query_payload.splitlines())
+    if query_bytes > MAX_OUTPUT_BYTES or query_lines > MAX_OUTPUT_LINES:
+        raise HermesError("catalog query output budget failed")
+    steps = ["catalog_query", "dashboard_snapshot", "checkout_status", "select_exact_path"]
+    selected_candidate = candidates[0] if candidates else None
+    selected = selected_candidate.get("path") if isinstance(selected_candidate, dict) else None
     opened: list[str] = []
     integrity = False
     bytes_opened = 0
     if selected is not None:
-        file_records = [item for item in records if item.get("record_type") == "file" and item.get("path") == selected]
-        if len(file_records) != 1:
-            raise HermesError(f"catalog does not have one file record for {selected}")
-        expected_hash = str(file_records[0].get("sha256", "")).removeprefix("sha256:")
+        expected_hash = str(selected_candidate.get("sha256", "")).removeprefix("sha256:")
         payload = required_payload(vault, selected)
         integrity = len(expected_hash) == 64 and sha256_bytes(payload) == expected_hash
         steps.extend(("verify_sha256", "open_exact_file"))
@@ -133,6 +105,9 @@ def run_query(vault: Path, query: dict[str, object], records: list[dict[str, obj
     elapsed_ms = max(0, (time.perf_counter_ns() - started) // 1_000_000)
     return {
         "bytes_opened": bytes_opened,
+        "candidate_count": len(candidates),
+        "catalog_query_bytes": query_bytes,
+        "catalog_query_lines": query_lines,
         "duration_ms": elapsed_ms,
         "id": query["id"],
         "matched": selected == expected and integrity,
@@ -142,7 +117,7 @@ def run_query(vault: Path, query: dict[str, object], records: list[dict[str, obj
     }
 
 
-def checkout_status(vault: Path) -> tuple[str, bool]:
+def checkout_status(vault: Path) -> tuple[str, bool, str, str]:
     root = subprocess.run(
         ["git", "-C", str(vault), "rev-parse", "--show-toplevel"],
         text=True,
@@ -167,7 +142,18 @@ def checkout_status(vault: Path) -> tuple[str, bool]:
     )
     if status.returncode != 0:
         raise HermesError("cannot inspect checkout state")
-    return head.stdout.strip(), bool(status.stdout)
+    _, upstream, origin_url = validate_repository_binding(
+        vault, CANONICAL_UPSTREAM, CANONICAL_REMOTE_URL
+    )
+    upstream_commit = subprocess.run(
+        ["git", "-C", str(vault), "rev-parse", CANONICAL_UPSTREAM],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if upstream_commit.returncode != 0 or upstream_commit.stdout.strip() != head.stdout.strip():
+        raise HermesError("checkout HEAD does not match the canonical upstream commit")
+    return head.stdout.strip(), bool(status.stdout), upstream, origin_url
 
 
 def run_state_checks(vault: Path, as_of: str) -> str:
@@ -190,6 +176,10 @@ def run_state_checks(vault: Path, as_of: str) -> str:
         )
         if result.returncode != 0:
             raise HermesError(f"{name} failed")
+        try:
+            validate_repository_binding(vault, CANONICAL_UPSTREAM, CANONICAL_REMOTE_URL)
+        except HermesError as error:
+            raise HermesError(f"{name} changed repository binding: {error}") from error
     return "pass"
 
 
@@ -213,16 +203,31 @@ def main() -> int:
     try:
         if not args.vault.is_absolute() or COMMIT_RE.fullmatch(args.expected_commit) is None:
             raise HermesError("vault must be absolute and expected-commit must be a lowercase full SHA")
-        catalog_payload, records = load_catalog(required_payload(args.vault, "30 Sistema/Estado/catalog.jsonl"))
+        operational_as_of = require_current_operational_as_of(
+            args.as_of, CANONICAL_OPERATIONAL_TIMEZONE
+        )
+        catalog_payload = required_payload(args.vault, "30 Sistema/Estado/catalog.jsonl")
+        catalog_manifest = load_catalog_manifest(catalog_payload)
+        if catalog_manifest.get("as_of") != operational_as_of:
+            raise HermesError("catalog as_of does not match operational as_of")
         snapshot = required_payload(args.vault, "30 Sistema/Estado/dashboard-snapshot.md").decode("utf-8")
         match = re.search(r'^catalog_sha256:\s*["\']?sha256:([0-9a-f]{64})["\']?\s*$', snapshot, re.MULTILINE)
         if match is None or match.group(1) != sha256_bytes(catalog_payload):
             raise HermesError("dashboard snapshot does not authenticate the catalog")
-        actual_commit, dirty = checkout_status(args.vault)
-        state_check = run_state_checks(args.vault, str(records[0].get("as_of", "")))
-        commit_after_checks, dirty_after_checks = checkout_status(args.vault)
+        snapshot_as_of = re.search(
+            r"^as_of:\s*['\"]?([0-9]{4}-[0-9]{2}-[0-9]{2})['\"]?\s*$",
+            snapshot,
+            re.MULTILINE,
+        )
+        if snapshot_as_of is None or snapshot_as_of.group(1) != operational_as_of:
+            raise HermesError("dashboard snapshot as_of does not match operational as_of")
+        actual_commit, dirty, upstream, origin_url = checkout_status(args.vault)
+        state_check = run_state_checks(args.vault, operational_as_of)
+        commit_after_checks, dirty_after_checks, upstream_after, origin_after = checkout_status(args.vault)
         if commit_after_checks != actual_commit:
             raise HermesError("state checks changed checkout HEAD")
+        if upstream_after != upstream or origin_after != origin_url:
+            raise HermesError("state checks changed checkout Git binding")
         dirty = dirty or dirty_after_checks
         query_payload = load_queries(args)
         queries = json.loads(query_payload.decode("utf-8"))
@@ -236,20 +241,23 @@ def main() -> int:
             if query["query_type"] not in QUERY_TYPES or not isinstance(query["id"], str) or query["id"] in seen_ids:
                 raise HermesError("query id or type is invalid")
             seen_ids.add(query["id"])
-            results.append(run_query(args.vault, query, records))
+            results.append(run_query(args.vault, query))
         stale = dirty or actual_commit != args.expected_commit
         passed = all(item["matched"] for item in results) and (args.fixture_mode or not stale)
         report = {
             "as_of_commit": actual_commit,
             "fixture_mode": args.fixture_mode,
+            "operational_as_of": operational_as_of,
+            "origin_url": origin_url,
             "queries": results,
             "stale": stale,
             "state_check": state_check,
             "sync_state": "stale" if stale else "clean",
             "status": "pass" if passed else "blocked",
+            "upstream": upstream,
         }
     except (HermesError, OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
-        report = {"as_of_commit": None, "fixture_mode": args.fixture_mode, "queries": [], "stale": True, "state_check": "blocked", "sync_state": "unknown", "status": "blocked", "reason": str(error)}
+        report = {"as_of_commit": None, "fixture_mode": args.fixture_mode, "operational_as_of": args.as_of, "origin_url": None, "queries": [], "stale": True, "state_check": "blocked", "sync_state": "unknown", "status": "blocked", "upstream": None, "reason": str(error)}
     print(json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
     return 0 if report["status"] == "pass" else 2
 

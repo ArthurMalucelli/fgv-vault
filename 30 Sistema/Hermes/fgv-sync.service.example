@@ -8,6 +8,7 @@ Type=oneshot
 User=root
 Environment=FGV_VAULT_ROOT=/root/vault
 Environment=FGV_SYNC_LOCK=/run/lock/fgv-sync.lock
+Environment=TZ=America/Sao_Paulo
 ExecStart=/usr/local/lib/fgv/fgv-sync refresh
 StandardOutput=append:/var/log/fgv-sync.log
 StandardError=append:/var/log/fgv-sync.log

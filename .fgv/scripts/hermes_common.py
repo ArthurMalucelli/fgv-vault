@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import ast
+from datetime import date, datetime
 import hashlib
 import json
 import os
@@ -11,7 +12,10 @@ from pathlib import Path, PurePosixPath
 import re
 import shlex
 import stat
+import subprocess
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 class HermesError(ValueError):
@@ -23,6 +27,9 @@ MANIFEST_KEYS = {
     "package_id",
     "contract_version",
     "vps_git_owner",
+    "operational_timezone",
+    "expected_upstream",
+    "expected_remote_url",
     "canonical_paths",
     "retrieval_order",
     "required_response_fields",
@@ -33,6 +40,9 @@ MANIFEST_KEYS = {
 COMPONENT_KEYS = {"id", "path", "classification", "format", "required_markers"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+CANONICAL_OPERATIONAL_TIMEZONE = "America/Sao_Paulo"
+CANONICAL_UPSTREAM = "origin/codex/vault-plan-b"
+CANONICAL_REMOTE_URL = "https://github.com/ArthurMalucelli/fgv-vault.git"
 
 
 def canonical_json(value: object) -> str:
@@ -41,6 +51,128 @@ def canonical_json(value: object) -> str:
 
 def sha256_bytes(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def current_operational_as_of(timezone_name: str = CANONICAL_OPERATIONAL_TIMEZONE) -> str:
+    try:
+        zone = ZoneInfo(timezone_name)
+    except ZoneInfoNotFoundError as error:
+        raise HermesError("operational timezone is unavailable") from error
+    return datetime.now(zone).date().isoformat()
+
+
+def require_current_operational_as_of(value: object, timezone_name: str) -> str:
+    if not isinstance(value, str):
+        raise HermesError("operational as_of must be an ISO date")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as error:
+        raise HermesError("operational as_of must be an ISO date") from error
+    normalized = parsed.isoformat()
+    if normalized != current_operational_as_of(timezone_name):
+        raise HermesError("operational as_of is stale for America/Sao_Paulo")
+    return normalized
+
+
+def normalize_remote_url(value: object) -> str:
+    if not isinstance(value, str) or not value or any(character in value for character in "\r\n\x00"):
+        raise HermesError("origin remote URL is invalid")
+    try:
+        parsed = urlsplit(value)
+        parsed_port = parsed.port
+    except ValueError as error:
+        raise HermesError("origin remote URL is invalid") from error
+    if (
+        parsed.scheme.lower() != "https"
+        or (parsed.hostname or "").lower() != "github.com"
+        or parsed_port is not None
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise HermesError("origin remote URL is not a sanitized GitHub HTTPS URL")
+    path = parsed.path.rstrip("/")
+    if not path.endswith(".git"):
+        path += ".git"
+    return urlunsplit(("https", "github.com", path, "", ""))
+
+
+def _git(vault: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(vault), *arguments],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def _git_config_values(vault: Path, key: str) -> list[str]:
+    result = _git(vault, "config", "--null", "--get-all", key)
+    if result.returncode == 1:
+        return []
+    if result.returncode != 0:
+        raise HermesError(f"Git config {key} is unavailable")
+    values = result.stdout.split("\0")
+    if values and values[-1] == "":
+        values.pop()
+    if not values or any(not value for value in values):
+        raise HermesError(f"Git config {key} is invalid")
+    return values
+
+
+def validate_repository_binding(
+    vault: Path, expected_upstream: str, expected_remote_url: str
+) -> tuple[str, str, str]:
+    branch_result = _git(vault, "symbolic-ref", "--quiet", "--short", "HEAD")
+    branch = branch_result.stdout.strip()
+    expected_branch = expected_upstream.removeprefix("origin/")
+    if branch_result.returncode != 0 or branch != expected_branch:
+        raise HermesError("checkout branch does not match the canonical branch")
+    upstream_result = _git(
+        vault, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"
+    )
+    upstream = upstream_result.stdout.strip()
+    if upstream_result.returncode != 0 or upstream != expected_upstream:
+        raise HermesError("checkout upstream does not match the canonical upstream")
+
+    origin_urls = _git_config_values(vault, "remote.origin.url")
+    if len(origin_urls) != 1:
+        raise HermesError("origin must have exactly one fetch URL")
+    origin_url = normalize_remote_url(origin_urls[0])
+    if origin_url != expected_remote_url:
+        raise HermesError("origin remote URL does not match the canonical remote")
+    push_urls = _git_config_values(vault, "remote.origin.pushurl")
+    if len(push_urls) > 1:
+        raise HermesError("origin must have at most one push URL")
+    if push_urls and normalize_remote_url(push_urls[0]) != expected_remote_url:
+        raise HermesError("origin push URL does not match the canonical remote")
+
+    rewrites = _git(vault, "config", "--null", "--get-regexp", r"^url\.")
+    if rewrites.returncode not in {0, 1}:
+        raise HermesError("Git URL rewrite configuration is unavailable")
+    for record in rewrites.stdout.split("\0"):
+        key = record.partition("\n")[0].casefold()
+        if key.endswith(".insteadof") or key.endswith(".pushinsteadof"):
+            raise HermesError("Git URL rewrites are forbidden")
+
+    for key in (f"branch.{branch}.pushRemote", "remote.pushDefault"):
+        if _git_config_values(vault, key):
+            raise HermesError("Git push routing overrides are forbidden")
+
+    for arguments, label in (
+        (("remote", "get-url", "--all", "origin"), "fetch"),
+        (("remote", "get-url", "--push", "--all", "origin"), "push"),
+    ):
+        result = _git(vault, *arguments)
+        urls = result.stdout.splitlines()
+        if (
+            result.returncode != 0
+            or len(urls) != 1
+            or normalize_remote_url(urls[0]) != expected_remote_url
+        ):
+            raise HermesError(f"origin effective {label} URL is not canonical")
+    return branch, upstream, origin_url
 
 
 def safe_relative(value: object, label: str) -> str:
@@ -68,6 +200,15 @@ def load_manifest(path: Path) -> tuple[dict[str, Any], str]:
         raise HermesError("manifest contract_version must be 1")
     if value["vps_git_owner"] != "fgv-sync":
         raise HermesError("manifest vps_git_owner must be fgv-sync")
+    if value["operational_timezone"] != CANONICAL_OPERATIONAL_TIMEZONE:
+        raise HermesError("manifest operational_timezone is not canonical")
+    if value["expected_upstream"] != CANONICAL_UPSTREAM:
+        raise HermesError("manifest expected_upstream is not canonical")
+    if (
+        value["expected_remote_url"] != CANONICAL_REMOTE_URL
+        or normalize_remote_url(value["expected_remote_url"]) != CANONICAL_REMOTE_URL
+    ):
+        raise HermesError("manifest expected_remote_url is not canonical")
     components = value["components"]
     if not isinstance(components, list) or not components:
         raise HermesError("manifest components must be a non-empty list")
@@ -550,6 +691,27 @@ def _markdown_command_findings(text: str) -> list[tuple[int, str, str]]:
     return findings
 
 
+def _python_has_bounded_catalog_query_call(text: str) -> bool:
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or _call_name(node.func) != "subprocess.run":
+            continue
+        argument = node.args[0] if node.args else None
+        if not isinstance(argument, (ast.List, ast.Tuple)):
+            continue
+        tokens = [_literal_string(item) for item in argument.elts]
+        if (
+            ".fgv/scripts/hermes_catalog_query.py" in tokens
+            and "--vault" in tokens
+            and "--query-type" in tokens
+        ):
+            return True
+    return False
+
+
 def _cron_command_findings(text: str) -> list[tuple[int, str, str]]:
     try:
         payload = json.loads(text)
@@ -597,6 +759,10 @@ def audit_components(home: Path, manifest: dict[str, Any]) -> dict[str, object]:
             "fixed legacy lesson filename",
         ),
     )
+    direct_catalog_access = re.compile(
+        r"\b(?:consulte|leia|carregue|abra|read|load|open|cat|head|tail|less)\b[^\n]{0,100}\bcatalog\.jsonl\b",
+        re.IGNORECASE,
+    )
     component_states: list[dict[str, object]] = []
     for component in manifest["components"]:
         relative = component["path"]
@@ -629,7 +795,31 @@ def audit_components(home: Path, manifest: dict[str, Any]) -> dict[str, object]:
             component_states.append({"id": component["id"], "path": relative, "state": "unreadable"})
             continue
         component_states.append({"id": component["id"], "path": relative, "state": "found"})
+        if (
+            component["format"] == "python"
+            and "catalog.jsonl" in text
+            and re.search(r"\b(?:open|read_text|read_bytes)\b", text)
+        ):
+            findings.append(
+                {
+                    "detail": "Python component reads catalog.jsonl directly",
+                    "file": relative,
+                    "line": 0,
+                    "rule": "direct_catalog_access",
+                    "severity": "error",
+                }
+            )
         for number, line in enumerate(text.splitlines(), 1):
+            if direct_catalog_access.search(line):
+                findings.append(
+                    {
+                        "detail": "component accesses catalog.jsonl directly instead of the bounded query",
+                        "file": relative,
+                        "line": number,
+                        "rule": "direct_catalog_access",
+                        "severity": "error",
+                    }
+                )
             for rule, pattern, detail in rules:
                 if pattern.search(line):
                     findings.append(
@@ -664,6 +854,20 @@ def audit_components(home: Path, manifest: dict[str, Any]) -> dict[str, object]:
                     "file": relative,
                     "line": number,
                     "rule": rule,
+                    "severity": "error",
+                }
+            )
+        if (
+            component["format"] == "python"
+            and "hermes_catalog_query.py" in component["required_markers"]
+            and not _python_has_bounded_catalog_query_call(text)
+        ):
+            findings.append(
+                {
+                    "detail": "Python component does not invoke the bounded catalog query",
+                    "file": relative,
+                    "line": 0,
+                    "rule": "missing_bounded_query_call",
                     "severity": "error",
                 }
             )

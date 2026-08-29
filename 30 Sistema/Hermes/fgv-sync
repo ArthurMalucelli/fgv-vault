@@ -3,13 +3,17 @@ set -eu
 
 VAULT_INPUT=${FGV_VAULT_ROOT:-/root/vault}
 LOCK_PATH=${FGV_SYNC_LOCK:-/run/lock/fgv-sync.lock}
-AS_OF_DATE=${FGV_AS_OF_DATE:-$(date -u +%F)}
+OPERATIONAL_TIMEZONE=America/Sao_Paulo
+EXPECTED_UPSTREAM=origin/codex/vault-plan-b
+EXPECTED_BRANCH=codex/vault-plan-b
+EXPECTED_REMOTE_URL=https://github.com/ArthurMalucelli/fgv-vault.git
+AS_OF_DATE=${FGV_AS_OF_DATE:-$(TZ=$OPERATIONAL_TIMEZONE date +%F)}
 LOCK_ACQUIRED=0
 VALIDATION_WORKTREE=
 VALIDATION_PARENT=
 
 emit_blocked() {
-  printf '{"reason":"%s","status":"blocked"}\n' "$1"
+  printf '{"operational_as_of":"%s","reason":"%s","status":"blocked"}\n' "$AS_OF_DATE" "$1"
 }
 
 emit_sync() {
@@ -19,8 +23,8 @@ emit_sync() {
   dirty=$4
   ahead=$5
   behind=$6
-  printf '{"ahead":%s,"as_of_commit":"%s","behind":%s,"dirty":%s,"reason":"%s","sync_state":"%s"}\n' \
-    "$ahead" "$commit" "$behind" "$dirty" "$reason" "$state"
+  printf '{"ahead":%s,"as_of_commit":"%s","behind":%s,"dirty":%s,"operational_as_of":"%s","reason":"%s","sync_state":"%s"}\n' \
+    "$ahead" "$commit" "$behind" "$dirty" "$AS_OF_DATE" "$reason" "$state"
 }
 
 die() {
@@ -87,8 +91,10 @@ run_check_gates() {
   require_gate_files "$gate_root" || return 10
   PYTHONDONTWRITEBYTECODE=1 python3 "$gate_root/.fgv/scripts/generate_state.py" \
     --vault "$gate_root" --as-of "$AS_OF_DATE" --check 1>&2 || return 11
+  repository_binding_is_canonical || return 14
   PYTHONDONTWRITEBYTECODE=1 python3 "$gate_root/.fgv/scripts/validate_vault.py" \
     --vault "$gate_root" --as-of "$AS_OF_DATE" 1>&2 || return 12
+  repository_binding_is_canonical || return 14
 }
 
 gate_reason() {
@@ -97,6 +103,7 @@ gate_reason() {
     11) printf state_check_failed ;;
     12) printf vault_validation_failed ;;
     13) printf gate_modified_worktree ;;
+    14) printf repository_binding_changed ;;
     *) printf gate_failed ;;
   esac
 }
@@ -109,6 +116,96 @@ upstream_name() {
   git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null
 }
 
+branch_name() {
+  git symbolic-ref --quiet --short HEAD 2>/dev/null
+}
+
+normalize_origin_url() {
+  case "$1" in
+    "$EXPECTED_REMOTE_URL"|https://github.com/ArthurMalucelli/fgv-vault|https://github.com/ArthurMalucelli/fgv-vault/)
+      printf '%s' "$EXPECTED_REMOTE_URL"
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+remote_binding_is_canonical() {
+  origin_config_status=0
+  configured_origin_urls=$(git config --get-all remote.origin.url 2>/dev/null) || origin_config_status=$?
+  [ "$origin_config_status" -eq 0 ] || return 1
+  [ -n "$configured_origin_urls" ] || return 1
+  case "$configured_origin_urls" in *$'\n'*) return 1 ;; esac
+  normalized_origin=$(normalize_origin_url "$configured_origin_urls" || true)
+  [ "$normalized_origin" = "$EXPECTED_REMOTE_URL" ] || return 1
+
+  push_config_status=0
+  configured_push_urls=$(git config --get-all remote.origin.pushurl 2>/dev/null) || push_config_status=$?
+  case "$push_config_status" in
+    0)
+      [ -n "$configured_push_urls" ] || return 1
+      case "$configured_push_urls" in *$'\n'*) return 1 ;; esac
+      normalized_push=$(normalize_origin_url "$configured_push_urls" || true)
+      [ "$normalized_push" = "$EXPECTED_REMOTE_URL" ] || return 1
+      ;;
+    1) ;;
+    *) return 1 ;;
+  esac
+
+  rewrite_config_status=0
+  rewrite_config=$(git config --get-regexp '^url\.' 2>/dev/null) || rewrite_config_status=$?
+  case "$rewrite_config_status" in 0|1) ;; *) return 1 ;; esac
+  if [ "$rewrite_config_status" -eq 0 ]; then
+    while IFS=' ' read -r rewrite_key rewrite_value; do
+      case "$rewrite_key" in
+        *.insteadof|*.pushinsteadof|*.insteadOf|*.pushInsteadOf) return 1 ;;
+      esac
+    done <<< "$rewrite_config"
+  fi
+
+  push_route_status=0
+  git config --get "branch.$EXPECTED_BRANCH.pushRemote" >/dev/null 2>&1 || push_route_status=$?
+  case "$push_route_status" in 1) ;; *) return 1 ;; esac
+  push_route_status=0
+  git config --get remote.pushDefault >/dev/null 2>&1 || push_route_status=$?
+  case "$push_route_status" in 1) ;; *) return 1 ;; esac
+
+  effective_fetch_status=0
+  effective_fetch_urls=$(git remote get-url --all origin 2>/dev/null) || effective_fetch_status=$?
+  [ "$effective_fetch_status" -eq 0 ] || return 1
+  [ -n "$effective_fetch_urls" ] || return 1
+  case "$effective_fetch_urls" in *$'\n'*) return 1 ;; esac
+  normalized_fetch=$(normalize_origin_url "$effective_fetch_urls" || true)
+  [ "$normalized_fetch" = "$EXPECTED_REMOTE_URL" ] || return 1
+
+  effective_push_status=0
+  effective_push_urls=$(git remote get-url --push --all origin 2>/dev/null) || effective_push_status=$?
+  [ "$effective_push_status" -eq 0 ] || return 1
+  [ -n "$effective_push_urls" ] || return 1
+  case "$effective_push_urls" in *$'\n'*) return 1 ;; esac
+  normalized_effective_push=$(normalize_origin_url "$effective_push_urls" || true)
+  [ "$normalized_effective_push" = "$EXPECTED_REMOTE_URL" ] || return 1
+}
+
+repository_binding_is_canonical() {
+  branch=$(branch_name || true)
+  [ "$branch" = "$EXPECTED_BRANCH" ] || return 1
+  upstream=$(upstream_name || true)
+  [ "$upstream" = "$EXPECTED_UPSTREAM" ] || return 1
+  remote_binding_is_canonical
+}
+
+require_repository_binding() {
+  branch=$(branch_name || true)
+  [ "$branch" = "$EXPECTED_BRANCH" ] || die "upstream_mismatch" 2
+  upstream=$(upstream_name || true)
+  [ "$upstream" = "$EXPECTED_UPSTREAM" ] || die "upstream_mismatch" 2
+  remote_binding_is_canonical || die "origin_remote_mismatch" 2
+}
+
+require_repository_binding_unchanged() {
+  repository_binding_is_canonical || die "repository_binding_changed" 2
+}
+
 relation_counts() {
   git rev-list --left-right --count "HEAD...$1" 2>/dev/null
 }
@@ -119,13 +216,18 @@ status_command() {
   head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
   status_before=$(git status --porcelain=v1 --untracked-files=all)
   if [ -n "$status_before" ]; then dirty=true; else dirty=false; fi
-  if ! fetch_origin; then
-    emit_sync unknown fetch_failed "$head" "$dirty" 0 0
+  branch=$(branch_name || true)
+  upstream=$(upstream_name || true)
+  if [ "$branch" != "$EXPECTED_BRANCH" ] || [ "$upstream" != "$EXPECTED_UPSTREAM" ]; then
+    emit_sync unknown upstream_mismatch "$head" "$dirty" 0 0
     exit 2
   fi
-  upstream=$(upstream_name || true)
-  if [ -z "$upstream" ]; then
-    emit_sync unknown upstream_missing "$head" "$dirty" 0 0
+  if ! remote_binding_is_canonical; then
+    emit_sync unknown origin_remote_mismatch "$head" "$dirty" 0 0
+    exit 2
+  fi
+  if ! fetch_origin; then
+    emit_sync unknown fetch_failed "$head" "$dirty" 0 0
     exit 2
   fi
   counts=$(relation_counts "$upstream" || true)
@@ -135,20 +237,21 @@ status_command() {
   fi
   ahead=${counts%%[[:space:]]*}
   behind=${counts##*[[:space:]]}
+  if [ "$dirty" = true ]; then
+    emit_sync dirty working_tree_not_clean "$head" true "$ahead" "$behind"
+    exit 2
+  fi
   gate_code=0
   run_check_gates "$VAULT_ROOT" || gate_code=$?
   if [ "$gate_code" -ne 0 ]; then
-    emit_sync stale "$(gate_reason "$gate_code")" "$head" "$dirty" "$ahead" "$behind"
+    if [ "$gate_code" -eq 14 ]; then gate_state=unknown; else gate_state=stale; fi
+    emit_sync "$gate_state" "$(gate_reason "$gate_code")" "$head" "$dirty" "$ahead" "$behind"
     exit 2
   fi
   [ "$(git status --porcelain=v1 --untracked-files=all)" = "$status_before" ] || {
     emit_sync stale gate_modified_worktree "$head" true "$ahead" "$behind"
     exit 2
   }
-  if [ "$dirty" = true ]; then
-    emit_sync dirty working_tree_not_clean "$head" true "$ahead" "$behind"
-    exit 2
-  fi
   if [ "$ahead" -gt 0 ]; then
     emit_sync unknown branch_diverged_or_ahead "$head" false "$ahead" "$behind"
     exit 2
@@ -184,10 +287,9 @@ validate_target_commit() {
 refresh() {
   acquire_lock
   enter_repo
+  require_repository_binding
   require_clean
   original_head=$(git rev-parse HEAD 2>/dev/null) || die "head_missing" 65
-  upstream=$(upstream_name || true)
-  [ -n "$upstream" ] || die "upstream_missing" 2
   fetch_origin || die "fetch_failed" 2
   counts=$(relation_counts "$upstream" || true)
   [ -n "$counts" ] || die "divergence_check_failed" 2
@@ -196,11 +298,13 @@ refresh() {
   [ "$ahead" -eq 0 ] || die "branch_diverged_or_ahead" 2
   target=$(git rev-parse "$upstream" 2>/dev/null) || die "upstream_commit_missing" 2
   validate_target_commit "$target"
+  require_repository_binding_unchanged
   [ "$(git rev-parse HEAD)" = "$original_head" ] || die "production_head_changed_during_validation" 2
   require_clean
   if [ "$behind" -gt 0 ]; then
     git merge --ff-only "$target" 1>&2 || die "fast_forward_failed" 2
   fi
+  require_repository_binding_unchanged
   [ "$(git rev-parse HEAD)" = "$target" ] || die "fast_forward_target_mismatch" 2
   require_clean
   emit_sync clean synchronized "$target" false 0 0
@@ -259,14 +363,13 @@ publish() {
 
   acquire_lock
   enter_repo
+  require_repository_binding
   for candidate in "${PUBLISH_PATHS[@]}"; do
     valid_publish_path "$candidate" || die "unsafe_publish_path" 64
   done
   [ -z "$(git diff --cached --name-only)" ] || die "preexisting_staged_changes" 2
   scope_is_closed || die "changes_outside_scope" 2
 
-  upstream=$(upstream_name || true)
-  [ -n "$upstream" ] || die "upstream_missing" 2
   fetch_origin || die "fetch_failed" 2
   counts=$(relation_counts "$upstream" || true)
   [ -n "$counts" ] || die "divergence_check_failed" 2
@@ -277,10 +380,13 @@ publish() {
   require_gate_files "$VAULT_ROOT" || die "required_gate_missing" 2
   PYTHONDONTWRITEBYTECODE=1 python3 "$VAULT_ROOT/.fgv/scripts/generate_state.py" \
     --vault "$VAULT_ROOT" --as-of "$AS_OF_DATE" 1>&2 || die "state_rebuild_failed" 2
+  require_repository_binding_unchanged
   PYTHONDONTWRITEBYTECODE=1 python3 "$VAULT_ROOT/.fgv/scripts/generate_state.py" \
     --vault "$VAULT_ROOT" --as-of "$AS_OF_DATE" --check 1>&2 || die "state_check_failed" 2
+  require_repository_binding_unchanged
   PYTHONDONTWRITEBYTECODE=1 python3 "$VAULT_ROOT/.fgv/scripts/validate_vault.py" \
     --vault "$VAULT_ROOT" --as-of "$AS_OF_DATE" 1>&2 || die "vault_validation_failed" 2
+  require_repository_binding_unchanged
   scope_is_closed || die "changes_outside_scope" 2
 
   git add -- "${PUBLISH_PATHS[@]}" || die "stage_failed" 2
@@ -289,12 +395,20 @@ publish() {
     [ -n "$candidate" ] || continue
     path_in_scope "$candidate" "${PUBLISH_PATHS[@]}" || die "staged_path_outside_scope" 2
   done < <(git diff --cached --name-only -z)
+  require_repository_binding_unchanged
   git commit -m "$message" 1>&2 || die "commit_failed" 2
-  git push 1>&2 || die "push_failed" 2
+  require_repository_binding_unchanged
+  git push origin HEAD:refs/heads/codex/vault-plan-b 1>&2 || die "push_failed" 2
   require_clean
   head=$(git rev-parse HEAD)
   emit_sync clean synchronized "$head" false 0 0
 }
+
+CURRENT_OPERATIONAL_AS_OF=$(TZ=$OPERATIONAL_TIMEZONE date +%F)
+if [ "$AS_OF_DATE" != "$CURRENT_OPERATIONAL_AS_OF" ]; then
+  emit_blocked operational_as_of_stale
+  exit 2
+fi
 
 [ "$#" -ge 1 ] || die "subcommand_missing" 64
 case "$1" in

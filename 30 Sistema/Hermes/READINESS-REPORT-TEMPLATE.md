@@ -10,6 +10,9 @@ O gate recebe JSON UTF-8 sem comentários e com exatamente as chaves abaixo. `ti
   "recommendation": "READY",
   "production_commit": "0000000000000000000000000000000000000000",
   "tested_commit": "1111111111111111111111111111111111111111",
+  "operational_as_of": "2026-08-29",
+  "expected_upstream": "origin/codex/vault-plan-b",
+  "expected_remote_url": "https://github.com/ArthurMalucelli/fgv-vault.git",
   "package_manifest_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
   "prepare_bundle_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
   "backup": {
@@ -70,6 +73,8 @@ O inventário produtivo esperado é vazio. Qualquer arquivo untracked ou mudanç
 
 O backup manifest é JSON fechado com `schema_version`, `production_commit`, `inventory_sha256` e `files`. Cada item de `files` tem `source_path`, `backup_path` e `sha256`. Ele precisa listar exatamente todos os arquivos regulares da configuração Hermes ativa, sem symlinks, em ordem de `source_path`. O validador compara origem, cópia e hashes byte a byte.
 
-As seis evidências são arquivos JSON reais e pinados. O smoke acadêmico usa schema fechado e precisa declarar `fixture_mode: false`, `stale: false`, `sync_state: clean`, `state_check: pass` e `as_of_commit` igual a `tested_commit`.
+As seis evidências são arquivos JSON reais e pinados. O smoke acadêmico usa schema fechado e precisa declarar `fixture_mode: false`, `stale: false`, `sync_state: clean`, `state_check: pass`, `as_of_commit` igual a `tested_commit`, `operational_as_of` igual à data atual de `America/Sao_Paulo`, `upstream` igual a `expected_upstream` e `origin_url` igual a `expected_remote_url`.
 
-O smoke contém exatamente estes seis resultados, nesta ordem: `ultima-aula-matematica`, `transcrito-matematica`, `proxima-avaliacao`, `material-eclass`, `conceito-gap` e `compat-resumo`. Cada resultado precisa ter `matched: true`, abrir apenas o path esperado em `retrieval-queries.json` e registrar os seis passos catalog-first. `query_timings` repete exatamente os seis IDs e as durações presentes nessa evidência, sem duplicatas. O resultado de cutover precisa declarar `vault_commit` igual a `tested_commit`. Um relatório preenchido sem esses arquivos não autoriza CUTOVER.
+O smoke contém exatamente estes seis resultados, nesta ordem: `ultima-aula-matematica`, `transcrito-matematica`, `proxima-avaliacao`, `material-eclass`, `conceito-gap` e `compat-resumo`. Cada resultado precisa ter `matched: true`, abrir apenas o path esperado em `retrieval-queries.json` e registrar os seis passos que começam por `catalog_query`. Cada resultado também registra `catalog_query_bytes` entre 1 e 16384, `catalog_query_lines` igual a 1 e `candidate_count` entre 1 e 5. O catálogo completo nunca entra no contexto. `query_timings` repete exatamente os seis IDs e as durações presentes nessa evidência, sem duplicatas. O resultado de cutover usa schema fechado e precisa declarar `vault_commit`, `operational_as_of`, `upstream`, `origin_url`, `manifest_sha256`, `failures: []` e `status: ready`. Um relatório preenchido sem esses arquivos não autoriza CUTOVER.
+
+As evidências `eclass_smoke` e `whatsapp_smoke` também usam schema fechado. Cada uma declara `query_id`, `selected_path`, `opened_files`, `matched`, `steps`, `tested_commit`, `operational_as_of`, `upstream`, `origin_url`, `catalog_query_artifact`, `catalog_query_sha256`, `catalog_query_bytes`, `catalog_query_lines`, `candidate_count`, `full_catalog_in_context: false`, `filesystem_scan: false` e `status: pass`, com os mesmos orçamentos do smoke acadêmico. Eclass prova exatamente `material-eclass`; WhatsApp prova exatamente `ultima-aula-matematica`. O artefato é o stdout bruto, não reformatado, de `hermes_catalog_query.py`. O validador confere seu SHA-256, repete a query no staging e exige igualdade byte a byte, inclusive manifesto e candidatos. O path selecionado e o único arquivo aberto precisam coincidir com `retrieval-queries.json`.
