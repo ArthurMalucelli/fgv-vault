@@ -5,11 +5,13 @@
 Status: `PASS`.
 
 - Data operacional: `2026-08-29`, fuso `America/Sao_Paulo`.
-- Commit de conteúdo certificado: `5b40839c46c842ecad5c1d6be21343ae431dc58c`.
-- Tree certificada: `3b0a00d0f2278133503eaee041c195150c75f2f0`.
+- Commit de conteúdo certificado: `b47338e18bf3c68fdf55bc1fd8420e168ef625cf`.
+- Tree certificada: `2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56`.
+- Commit da implementação de runtime: `5b40839c46c842ecad5c1d6be21343ae431dc58c`.
+- Tree da implementação de runtime: `3b0a00d0f2278133503eaee041c195150c75f2f0`.
 - Commit da suíte final: `b47338e18bf3c68fdf55bc1fd8420e168ef625cf`.
 - Tree da suíte final: `2bc26f4bf81eb3ecced06089bb6ee4f442ce4e56`.
-- SHA-256 agregado: `398d81c278338cc263be8c5939eb2930648b4468f9f6d42863aa3de5145fcd81`.
+- SHA-256 agregado do conteúdo certificado: `c74c9c4805ebdc137c26963b504ea0a7fdacc937b14accf7432e0c583d4983c3`.
 - Base preservada do vault vivo: `cf8fe8c440a4dd442490afee62c0119a7db5ef9c`.
 - Branch de entrega: `codex/vault-plan-b`.
 
@@ -27,7 +29,7 @@ Status: `PASS`.
 | Medida | Resultado |
 |---|---:|
 | Arquivos acadêmicos no catálogo | 1.036 |
-| Entradas verificadas no filesystem | 1.605 |
+| Entradas verificadas no filesystem | 1.547 |
 | Arquivos byte a byte idênticos | 1.008 |
 | Transformações de corpo autorizadas | 11 |
 | Aulas com mudança apenas de metadados | 40 |
