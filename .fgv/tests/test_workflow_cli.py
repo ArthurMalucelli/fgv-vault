@@ -1,7 +1,10 @@
 from contextlib import redirect_stderr
 from io import StringIO
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -10,6 +13,27 @@ from fgv_workflow.locking import VaultLocked, vault_lock
 
 
 class WorkflowCliTests(unittest.TestCase):
+    def test_scripts_path_cannot_shadow_the_workflow_package(self) -> None:
+        fgv_root = Path(__file__).resolve().parents[1]
+        environment = dict(os.environ)
+        environment["PYTHONPATH"] = os.pathsep.join(
+            ((fgv_root / "scripts").as_posix(), (fgv_root / "src").as_posix())
+        )
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import fgv_workflow; import fgv_workflow.cli; print(fgv_workflow.__file__)",
+            ],
+            cwd=fgv_root.parent,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("/.fgv/src/fgv_workflow/__init__.py", result.stdout)
+
     def test_apply_cli_requires_explicit_operational_as_of(self) -> None:
         with redirect_stderr(StringIO()), self.assertRaises(SystemExit):
             _parser().parse_args(

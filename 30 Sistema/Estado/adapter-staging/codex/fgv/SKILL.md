@@ -7,7 +7,7 @@ description: Processa transcrições Plaud e pedidos acadêmicos no vault FGV pe
 
 CONTRACT: 1
 CORE: `<vault>/.fgv/CORE.md`
-CLI: `python3 <vault>/.fgv/scripts/fgv_workflow.py`
+CLI: `python3 <vault>/.fgv/scripts/fgv_cli.py`
 GIT_ROLE: `mac-agent`
 
 1. Carregue `.fgv/VERSION`, `.fgv/CORE.md` e `.fgv/config/subjects.json`.
@@ -46,7 +46,7 @@ GIT_ROLE: `mac-agent`
 Use ferramentas locais do Codex e solicite aprovação no momento exato de qualquer efeito externo autorizado.
 
 ```sh
-python3 <vault>/.fgv/scripts/fgv_workflow.py plan-plaud --vault <vault> --source <transcript> --analysis <analysis.json> --class-date YYYY-MM-DD --runtime codex --output <plan.json>
-python3 <vault>/.fgv/scripts/fgv_workflow.py apply-plaud --plan <plan.json> --vault <vault> --source <transcript> --analysis <analysis.json> --processor codex --as-of YYYY-MM-DD
-python3 <vault>/.fgv/scripts/fgv_workflow.py build-state --vault <vault> --as-of YYYY-MM-DD
+python3 <vault>/.fgv/scripts/fgv_cli.py plan-plaud --vault <vault> --source <transcript> --analysis <analysis.json> --class-date YYYY-MM-DD --runtime codex --output <plan.json>
+python3 <vault>/.fgv/scripts/fgv_cli.py apply-plaud --plan <plan.json> --vault <vault> --source <transcript> --analysis <analysis.json> --processor codex --as-of YYYY-MM-DD
+python3 <vault>/.fgv/scripts/fgv_cli.py build-state --vault <vault> --as-of YYYY-MM-DD
 ```
