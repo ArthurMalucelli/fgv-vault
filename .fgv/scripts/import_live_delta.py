@@ -344,9 +344,21 @@ class ImportError(RuntimeError):
     pass
 
 
+def _git_environment() -> dict[str, str]:
+    environment = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    return environment
+
+
 def _git(root: Path, *args: str, binary: bool = False) -> bytes | str:
     result = subprocess.run(
-        ["git", *args], cwd=root, check=True, capture_output=True
+        ["git", *args],
+        cwd=root,
+        env=_git_environment(),
+        check=True,
+        capture_output=True,
     )
     return result.stdout if binary else result.stdout.decode("utf-8").strip()
 
@@ -364,10 +376,20 @@ def _body(payload: bytes) -> bytes:
     return payload[closing + len(b"\n---\n") :]
 
 
+def _assert_source_at_tip(root: Path, source: str, blob_oid: str) -> None:
+    observed = bytes(
+        _git(root, "ls-tree", "-z", SOURCE_TIP, "--", source, binary=True)
+    )
+    expected = f"100644 blob {blob_oid}\t{source}\0".encode("utf-8")
+    if observed != expected:
+        raise ImportError(f"source tip entry diverged: {source}")
+
+
 def build_outputs(root: Path) -> tuple[dict[PurePosixPath, bytes], bytes]:
     ancestry = subprocess.run(
         ["git", "merge-base", "--is-ancestor", DESTINATION_AUTHORITY, "HEAD"],
         cwd=root,
+        env=_git_environment(),
         check=False,
         capture_output=True,
     )
@@ -382,6 +404,7 @@ def build_outputs(root: Path) -> tuple[dict[PurePosixPath, bytes], bytes]:
         reachable = subprocess.run(
             ["git", "merge-base", "--is-ancestor", commit, SOURCE_TIP],
             cwd=root,
+            env=_git_environment(),
             check=False,
             capture_output=True,
         )
@@ -422,6 +445,7 @@ def build_outputs(root: Path) -> tuple[dict[PurePosixPath, bytes], bytes]:
         if PurePosixPath(destination).is_absolute() or ".." in PurePosixPath(destination).parts:
             raise ImportError(f"unsafe destination: {destination}")
         blob_oid = str(spec["source_blob_oid"])
+        _assert_source_at_tip(root, source, blob_oid)
         observed_oid = str(
             _git(root, "rev-parse", f"{spec['content_commit']}:{source}")
         )

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
@@ -18,6 +19,33 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class LiveDeltaImportTests(unittest.TestCase):
+    def test_tip_tree_entry_must_match_mode_type_and_blob(self) -> None:
+        record = live_delta.RECORDS[0]
+        live_delta._assert_source_at_tip(
+            ROOT,
+            str(record["source"]),
+            str(record["source_blob_oid"]),
+        )
+        with self.assertRaises(live_delta.ImportError):
+            live_delta._assert_source_at_tip(
+                ROOT,
+                str(record["source"]),
+                "0" * 40,
+            )
+
+    def test_hostile_git_environment_is_ignored(self) -> None:
+        with patch.dict(
+            live_delta.os.environ,
+            {
+                "GIT_DIR": "/definitely/not/the/fgv/repository",
+                "GIT_WORK_TREE": "/definitely/not/the/fgv/worktree",
+                "GIT_REPLACE_OBJECTS": "1",
+            },
+            clear=False,
+        ):
+            outputs, _ = live_delta.build_outputs(ROOT)
+        self.assertEqual(len(outputs), 13)
+
     def test_pinned_blobs_build_exact_outputs(self) -> None:
         outputs, manifest_bytes = live_delta.build_outputs(ROOT)
         self.assertEqual(len(outputs), 13)

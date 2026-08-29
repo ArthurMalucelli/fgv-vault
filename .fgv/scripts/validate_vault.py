@@ -308,7 +308,7 @@ def validate(root: Path, as_of: str, *, require_packages: bool = True) -> dict[s
         "packages": packages,
         "known_limitations": [
             "Migration applicators are integrity tools for a quiescent trusted-user vault, not an OS security boundary.",
-            "Hermes and VPS production remain unchanged until the separately authorized cutover.",
+            "Production cutover is outside the scope of this validator.",
         ],
     }
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
