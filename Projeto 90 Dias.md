@@ -87,11 +87,6 @@ Responder no formato:
 - Solicitados dados separados dos dois dias sobre sono, proteína, treino previsto (quarta: cardio leve ou descanso; quinta: tênis), estudo profundo, recuperação ativa em até 24h das aulas, leitura de *Make It Stick* com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
 - Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido.
 
-### 29/08/2026 às 20h — cobrança enviada
-- Janela avaliada: 28–29/08/2026.
-- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (sexta: musculação de superiores; sábado: musculação de inferiores), estudo profundo, recuperação ativa em até 24h das aulas, leitura de *Make It Stick* com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
-- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido.
-
 ## Início
 - 23/08/2026: iniciou *Make It Stick* e terminou o capítulo 1.
 - Primeiro check-in automático: 25/08/2026 às 20h.
