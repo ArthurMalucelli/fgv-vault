@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estudo Interativo Prova Parcial</title>
+<style>
+  :root{
+    --navy:#1b2a4a;
+    --navy-2:#233a63;
+    --gold:#b98a2b;
+    --bg:#f6f4ef;
+    --card:#ffffff;
+    --text:#2a2a28;
+    --muted:#6b6a63;
+    --ok:#2e7d32;
+    --ok-bg:#eaf5ea;
+    --bad:#a4321f;
+    --bad-bg:#fbeae6;
+    --border:#e2ddd0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  header.topbar{
+    width:100%;
+    background:var(--navy);
+    color:#fff;
+    padding:18px 24px;
+    text-align:center;
+  }
+  header.topbar h1{
+    margin:0;
+    font-size:1.3rem;
+    font-weight:600;
+    letter-spacing:.3px;
+  }
+  header.topbar p{
+    margin:4px 0 0;
+    font-size:.85rem;
+    color:#cdd6e6;
+  }
+  main{
+    width:100%;
+    max-width:760px;
+    padding:24px 18px 60px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{display:none;}
+  .screen.active{display:flex; flex-direction:column; gap:18px;}
+
+  /* Intro */
+  #intro .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:32px 28px;
+    box-shadow:0 2px 10px rgba(27,42,74,.06);
+  }
+  #intro h2{
+    margin-top:0;
+    color:var(--navy);
+    font-size:1.35rem;
+  }
+  #intro .recorte{
+    display:inline-block;
+    background:var(--navy);
+    color:#fff;
+    font-size:.78rem;
+    font-weight:600;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    padding:5px 12px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+  #intro ul{
+    margin:14px 0;
+    padding-left:20px;
+  }
+  #intro li{margin-bottom:4px;}
+  #intro .aviso{
+    background:#fbf6e9;
+    border:1px solid #ecdca4;
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:.88rem;
+    color:#5c4a12;
+    margin-top:18px;
+  }
+  .btn{
+    appearance:none;
+    border:none;
+    background:var(--navy);
+    color:#fff;
+    padding:12px 22px;
+    border-radius:9px;
+    font-size:.95rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .btn:hover{background:var(--navy-2);}
+  .btn:disabled{background:#b9b6ac; cursor:not-allowed;}
+  .btn.secondary{
+    background:transparent;
+    color:var(--navy);
+    border:1px solid var(--navy);
+  }
+  .btn.secondary:hover{background:#eef0f5;}
+  .btn-row{display:flex; justify-content:flex-end; gap:10px;}
+
+  /* Progress */
+  .progress-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:.82rem;
+    color:var(--muted);
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:#e6e2d6;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--gold);
+    width:0%;
+    transition:width .25s ease;
+  }
+
+  /* Question card */
+  .qcard{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:26px 24px;
+    box-shadow:0 2px 10px rgba(27,42,74,.06);
+  }
+  .qmeta{
+    font-size:.75rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--gold);
+    margin-bottom:8px;
+  }
+  .qtext{
+    font-size:1.08rem;
+    color:var(--navy);
+    font-weight:600;
+    margin:0 0 18px;
+  }
+  .opt{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:10px;
+    cursor:pointer;
+    background:#fdfcfa;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .opt:hover:not(.locked){
+    border-color:var(--navy);
+    background:#f2f4f8;
+  }
+  .opt .letra{
+    flex:0 0 auto;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:1px solid var(--navy);
+    color:var(--navy);
+    font-size:.82rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .opt .texto{flex:1; font-size:.95rem;}
+  .opt.locked{cursor:default;}
+  .opt.selected-correct{
+    border-color:var(--ok);
+    background:var(--ok-bg);
+  }
+  .opt.selected-correct .letra{background:var(--ok); color:#fff; border-color:var(--ok);}
+  .opt.selected-wrong{
+    border-color:var(--bad);
+    background:var(--bad-bg);
+  }
+  .opt.selected-wrong .letra{background:var(--bad); color:#fff; border-color:var(--bad);}
+  .opt.dim{opacity:.55;}
+
+  .feedback{
+    margin-top:10px;
+    padding:14px 16px;
+    border-radius:10px;
+    font-size:.92rem;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.ok{background:var(--ok-bg); border:1px solid #bfe0bf; color:#204d23;}
+  .feedback.bad{background:var(--bad-bg); border:1px solid #edc3b7; color:#6e2013;}
+  .feedback .tag{
+    display:block;
+    font-weight:700;
+    margin-bottom:4px;
+    font-size:.82rem;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+  }
+
+  /* Final map */
+  #final .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:28px 24px;
+    box-shadow:0 2px 10px rgba(27,42,74,.06);
+  }
+  #final h2{color:var(--navy); margin-top:0;}
+  #final .intro-txt{color:var(--muted); font-size:.92rem; margin-bottom:18px;}
+  .grupo-aula{margin-bottom:22px;}
+  .grupo-aula h3{
+    font-size:.95rem;
+    color:var(--navy);
+    border-bottom:2px solid var(--gold);
+    padding-bottom:6px;
+    margin-bottom:12px;
+  }
+  .item-premissa{
+    border-left:3px solid var(--bad);
+    background:var(--bad-bg);
+    border-radius:0 8px 8px 0;
+    padding:10px 14px;
+    margin-bottom:10px;
+    font-size:.9rem;
+  }
+  .item-premissa .qtag{
+    font-weight:700;
+    color:#6e2013;
+    display:block;
+    margin-bottom:2px;
+    font-size:.8rem;
+    text-transform:uppercase;
+  }
+  .item-premissa .releitura{
+    display:block;
+    margin-top:4px;
+    font-style:italic;
+    color:#6e2013;
+    font-size:.85rem;
+  }
+  .sem-quebra{
+    border-left:3px solid var(--ok);
+    background:var(--ok-bg);
+    border-radius:0 8px 8px 0;
+    padding:14px 16px;
+    color:#204d23;
+    font-size:.92rem;
+  }
+  footer.rodape{
+    color:var(--muted);
+    font-size:.75rem;
+    text-align:center;
+    padding:18px;
+  }
+</style>
+<script>document.addEventListener('DOMContentLoaded', function() {
+						if (document.documentElement.hasAttribute('lang')) {
+							document.documentElement.dataset.customLang = '';
+						}
+					});</script><script>window.addEventListener('message', function(event) { 
+					if( !event.data ) {
+						return;
+					}
+
+					let params;
+					try {
+						params = JSON.parse( event.data );
+					}
+					catch {
+						return;
+					}
+					if( !params.subject || params.subject !== 'lti.frameResize' ) {
+						return;
+					}
+
+					const MAX_FRAME_HEIGHT = 10000;
+					if( !params.height || params.height < 1 || params.height > MAX_FRAME_HEIGHT ) {
+						console.warn( 'Invalid height value received, aborting' );
+						return;
+					}
+					const el = document.getElementsByTagName( 'iframe' );
+					for ( let i=0; i < el.length; i++ ) {
+						if( el[i].contentWindow === event.source ) {
+							el[i].style.height = params.height + 'px';
+
+							console.info( 'Setting iFrame height to ' + params.height );
+
+							if( el[i].getAttribute('lockwidth') !== 'true'){
+								el[i].style.width = '100%';
+								console.info( 'Setting iFrame width to 100%' );
+							}
+						}
+					}
+				});</script><script src="https://s.brightspace.com/lib/bsi/2026.8.278/unbundled/embeds.js" type="module"></script><script>document.addEventListener('DOMContentLoaded', function() {
+					window.D2L.EmbedRenderer.renderEmbeds(document.body);
+				});</script><script src="https://s.brightspace.com/lib/bsi/2026.8.278/unbundled/mathjax.js" type="module"></script><script>document.addEventListener('DOMContentLoaded', function() {
+			if (document.querySelector('math, .d2l-element, .d2l-cplus-layout') || /\$\$|\\\(|\\\[|\\begin{|\\ref{|\\eqref{/.test(document.body.innerHTML)) {
+				document.querySelectorAll('mspace[linebreak="newline"]').forEach(elm => {
+					elm.setAttribute('style', 'display: block; height: 0.5rem;');
+				});
+
+				document.querySelectorAll('math mmultiscripts > none').forEach(elm => {
+					const mrow = document.createElementNS('http://www.w3.org/1998/Math/MathML', 'mrow');
+					elm.replaceWith(mrow);
+				});
+
+				window.D2L.MathJax.loadMathJax({"renderLatex":false,"outputScale":1.5,"enableMML3Support":false});
+			}
+		});</script><script src="https://s.brightspace.com/lib/bsi/2026.8.278/unbundled/prism.js" type="module"></script><script>document.addEventListener('DOMContentLoaded', function() {
+					document.querySelectorAll('.d2l-code').forEach(code => {
+						window.D2L.Prism.formatCodeElement(code);
+					});
+				});</script><script>document.addEventListener('DOMContentLoaded', async () => {
+			document.querySelectorAll('iframe[src*="quickLink.d2l"][src*="type=lti"]').forEach(iframe => {
+				iframe.style.borderStyle = 'none';
+			});
+		});</script><script src="https://s.brightspace.com/lib/bsi/2026.8.278/unbundled/context-provider-host-factory.js" type="module"></script><script>document.addEventListener('DOMContentLoaded', async () => {
+			document.documentElement.setAttribute('data-mathjax-context', '{"renderLatex":false,"outputScale":1.5,"enableMML3Support":false}');
+			window.D2L.ContextProvider.createContextProviderHost();
+		});</script><script>
+					if (window.frameElement !== null && !document.documentElement.hasAttribute('data-oslo')) {
+						const osloSettings = {"batch":"/d2l/api/oslo/batch?languageId=1006","collection":"/d2l/api/oslo/collection?languageId=1006","version":"W/\"20.26.8.28153.639229389259922925\""};
+						document.documentElement.setAttribute('data-oslo', JSON.stringify(osloSettings));
+					}
+				</script><script src="https://s.brightspace.com/lib/bsi/2026.8.278/unbundled/creator.js" type="module"></script><script>document.addEventListener('DOMContentLoaded', async () => {
+			const activities = [];
+			const practices = [];
+			const allPractices = document.querySelectorAll('.d2l-practice');
+			const elements = document.querySelectorAll('.d2l-element');
+			let layouts = [...document.querySelectorAll('.d2l-cplus-layout')];
+			const tables = document.querySelectorAll('table');
+			const contentStylerStyleLinks = document.querySelectorAll('head > link[href="https://templates.lcs.brightspace.com/lib/assets/css/styles.min.css"]');
+			const contentStylerOverides = document.querySelectorAll('head > link[href^="/d2l/le/contentstyler/"][data-override="override"]');
+
+			layouts = layouts.filter((layout) => layout.closest('.d2l-element.mceNonEditable') === null);
+
+			for (const practice of allPractices) {
+				const activityContainer = practice.hasAttribute('data-d2l-activity-href');
+				if (activityContainer) {
+					activities.push(practice);
+				}
+				else {
+					practices.push(practice);
+				}
+			}
+
+			if (layouts.length > 0) {
+				window.D2L.Creator.convertLayouts(layouts);
+			}
+			if (elements.length > 0) {
+				window.D2L.Creator.convertElements(elements, 6606, '/content/', true);
+			}
+			if (activities.length > 0) {
+				window.D2L.Creator.convertPracticeActivities(activities, 6606, '/content/');
+			}
+			if (practices.length > 0) {
+				window.D2L.Creator.convertPractices(practices, 6606, '/content/');
+			}
+			if (contentStylerStyleLinks.length > 0 && contentStylerOverides.length > 0 && tables.length > 0) {
+				window.D2L.Creator.wrapTables(tables);
+			}
+		});</script><script>function lti_launch( vars, target ) {
+					var query = '';
+					var new_tab = false;
+
+					for(var key in vars) {
+						if(query.length == 0) {
+							query += '?' + key + '=' + encodeURIComponent(vars[key]);
+						}
+						else {
+							query += '&' + key + '=' + encodeURIComponent(vars[key]);
+						}
+					}
+
+					var url = '/d2l/customization/pearsonlti/6606/Launch' + query;(target == '_blank') ? window.open( url, '_blank' ) : location.replace( url );}</script></head>
+<body>
+
+<header class="topbar">
+  <h1>Estudo Interativo Prova Parcial</h1>
+  <p>Tecnologia, Dados e Negócios &mdash; Recorte: Aulas 01, 02, 04, 05 e 06</p>
+</header>
+
+<main>
+
+  <section id="intro" class="screen active">
+    <div class="card">
+      <span class="recorte">Aulas 01 · 02 · 04 · 05 · 06</span>
+      <h2>Estudo Interativo Prova Parcial</h2>
+      <p>Este exercício reúne 30 perguntas baseadas apenas no material das aulas:</p>
+      <ul>
+        <li><strong>Aula 01</strong> &mdash; Introdução à TIC e SI</li>
+        <li><strong>Aula 02</strong> &mdash; SI e Sistemas Integrados (ERP, SCM, CRM, BI, SGC)</li>
+        <li><strong>Aula 04</strong> &mdash; 4ª Revolução Industrial e Tecnologias Digitais Emergentes</li>
+        <li><strong>Aula 05</strong> &mdash; Transformação Digital e Modelos de Negócios Digitais</li>
+        <li><strong>Aula 06</strong> &mdash; Economia da Informação (Efeito de Rede, Lock-in, Padronização, Switching Costs)</li>
+      </ul>
+      <p>Cada pergunta traz cinco possíveis justificativas (a, b, c, d, e). Escolha uma alternativa para ver o feedback específico sobre ela &mdash; a resposta correta só aparece depois da sua escolha. Ao final, você verá um mapa das premissas quebradas ao longo do exercício, sem nota, sem ranking e sem cronômetro.</p>
+      <div class="aviso">Este é um material de autoestudo, baseado exclusivamente nos slides das aulas indicadas. Ele não gera nota e não deve ser confundido com a avaliação oficial da disciplina.</div>
+      <div class="btn-row" style="margin-top:22px;">
+        <button class="btn" id="btn-start">Começar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz" class="screen">
+    <div class="progress-wrap">
+      <span id="progress-label">Pergunta 1 de 20</span>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="qcard">
+      <div class="qmeta" id="q-meta"></div>
+      <p class="qtext" id="q-text"></p>
+      <div id="q-options"></div>
+      <div class="feedback" id="q-feedback"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btn-next" disabled>Avançar</button>
+    </div>
+  </section>
+
+  <section id="final" class="screen">
+    <div class="card">
+      <h2>Mapa das Premissas Quebradas</h2>
+      <p class="intro-txt">Este mapa reúne, por aula, os pontos em que a justificativa escolhida rompeu com alguma premissa do material &mdash; sem nota, sem ranking. Use-o como roteiro de releitura.</p>
+      <div id="final-content"></div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn secondary" id="btn-restart">Refazer o exercício</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="rodape">Disciplina: Tecnologia, Dados e Negócios &mdash; Material de autoestudo baseado nos slides das Aulas 01, 02, 04, 05 e 06.</footer>
+
+<script>
+const perguntas = [
+
+// ===================== AULA 01 =====================
+{
+  aula: "Aula 01",
+  tema: "Comparativo TI, TICs e SI",
+  pergunta: "Segundo o quadro comparativo do material, qual é o objetivo principal dos Sistemas de Informação (SI), em contraste com o objetivo da TI e das TICs?",
+  alternativas: [
+    {letra:"a", texto:"Processar e comunicar informações, garantindo a conectividade entre pessoas e dispositivos.", correta:false,
+      feedback:"Incorreto: esse é o objetivo principal das TICs no quadro comparativo, não do SI.",
+      premissa:"Confundir o objetivo do SI com o objetivo das TICs (processar e comunicar)."},
+    {letra:"b", texto:"Processar e gerenciar informações por meio de recursos tecnológicos como hardware e software.", correta:false,
+      feedback:"Incorreto: esse é o objetivo principal da TI (infraestrutura tecnológica), não do SI.",
+      premissa:"Confundir o objetivo do SI com o objetivo da TI (processar e gerenciar)."},
+    {letra:"c", texto:"Transformar dados em informações úteis para apoiar operações, decisões e estratégias organizacionais.", correta:true,
+      feedback:"Correto: o quadro comparativo do material indica exatamente esse objetivo para o SI, com foco em \"apoio à gestão e à tomada de decisão\"."},
+    {letra:"d", texto:"Ampliar a infraestrutura tecnológica incorporando comunicação e conectividade entre dispositivos.", correta:false,
+      feedback:"Incorreto: essa é a forma como as TICs ampliam a infraestrutura de TI, e não o objetivo do SI.",
+      premissa:"Atribuir ao SI a função de ampliação de infraestrutura que o material atribui às TICs."},
+    {letra:"e", texto:"Fornecer exclusivamente a infraestrutura tecnológica de hardware, software, redes e bancos de dados.", correta:false,
+      feedback:"Incorreto: essa é a definição de TI (\"recursos tecnológicos: hardware, software, redes, bancos de dados\"), e o SI depende da TI, mas vai além dela.",
+      premissa:"Reduzir o SI à infraestrutura tecnológica que o material define como TI."}
+  ]
+},
+{
+  aula: "Aula 01",
+  tema: "Dados, Informação e Conhecimento",
+  pergunta: "O material apresenta a cadeia: \"Produto A, 120 unidades, R$ 89\" → \"O Produto A vendeu 120 unidades esta semana\" → \"O Produto A vende mais aos finais de semana\". O que caracteriza, segundo o material, a passagem de Dados para Informação?",
+  alternativas: [
+    {letra:"a", texto:"Os dados brutos passam a ser organizados com contexto e significado, exigindo análise e mediação humana.", correta:true,
+      feedback:"Correto: o material define Informação como \"dados organizados com contexto e significado (requer análise, exige consenso em relação ao significado, exige a mediação humana)\"."},
+    {letra:"b", texto:"Os dados passam a ser aplicados na prática, combinados com a experiência acumulada pelas pessoas ao longo do tempo.", correta:false,
+      feedback:"Incorreto: essa é a definição de Conhecimento no material, não a de Informação.",
+      premissa:"Confundir a definição de Informação com a de Conhecimento."},
+    {letra:"c", texto:"Os dados se tornam mais fáceis de estruturar e de obter diretamente por máquinas, sem qualquer intervenção humana.", correta:false,
+      feedback:"Incorreto: essas características (\"facilmente estruturados, facilmente obtidos por máquinas\") descrevem os próprios Dados, não a transição para Informação.",
+      premissa:"Atribuir à Informação características que o material usa para descrever os Dados."},
+    {letra:"d", texto:"Os dados passam a gerar diretamente uma decisão organizacional, como aumentar o estoque antes do fim de semana.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde à etapa de Decisão na cadeia do material (\"Aumentar o estoque antes do sábado\"), posterior ao Conhecimento, não à transição de Dados para Informação.",
+      premissa:"Pular etapas da cadeia Dados → Informação → Conhecimento → Decisão apresentada no material."},
+    {letra:"e", texto:"Os dados se tornam de difícil estruturação, de difícil captura e de difícil transferência entre pessoas.", correta:false,
+      feedback:"Incorreto: essas características (\"de difícil estruturação, de difícil captura e de difícil transferência\") são atribuídas ao Conhecimento no material, não à Informação.",
+      premissa:"Atribuir à Informação características que o material usa para descrever o Conhecimento."}
+  ]
+},
+{
+  aula: "Aula 01",
+  tema: "Elementos que um SI Integra",
+  pergunta: "Segundo o material, quais elementos um Sistema de Informação (SI) integra para gerar informação útil à tomada de decisão?",
+  alternativas: [
+    {letra:"a", texto:"Apenas hardware e software, sem qualquer participação de pessoas ou de processos organizacionais.", correta:false,
+      feedback:"Incorreto: hardware e software, sem pessoas e processos, descrevem a TI isoladamente, não o SI, que é mais amplo.",
+      premissa:"Reduzir o SI aos componentes de hardware e software que o material atribui à TI."},
+    {letra:"b", texto:"Apenas dados e tecnologia, dispensando completamente os processos e as pessoas envolvidas.", correta:false,
+      feedback:"Incorreto: o material inclui pessoas e processos como elementos do SI, ao lado de dados e tecnologia.",
+      premissa:"Excluir pessoas e processos da definição de SI apresentada no material."},
+    {letra:"c", texto:"Apenas processos e pessoas, sem depender de nenhum componente tecnológico de apoio.", correta:false,
+      feedback:"Incorreto: o material afirma que o SI depende de tecnologia (TI/TIC) para funcionar; não é apenas processos e pessoas.",
+      premissa:"Excluir a tecnologia da definição de SI, contrariando o material."},
+    {letra:"d", texto:"Hardware, software, redes e bancos de dados, exclusivamente, sem qualquer outro elemento.", correta:false,
+      feedback:"Incorreto: essa lista corresponde aos principais componentes da TI no quadro comparativo da Aula 01, não à definição mais ampla de SI.",
+      premissa:"Confundir os elementos do SI com os componentes da TI apresentados no quadro comparativo."},
+    {letra:"e", texto:"Pessoas, processos, dados e tecnologia, trabalhando juntos para apoiar a tomada de decisão na organização.", correta:true,
+      feedback:"Correto: o material define o SI como o conjunto de pessoas, processos, dados e tecnologia trabalhando juntos para gerar informação útil à tomada de decisão."}
+  ]
+},
+{
+  aula: "Aula 02",
+  tema: "Integração de Sistemas",
+  pergunta: "Segundo o material, como os sistemas de gestão (ERP, SCM, CRM, BI, SGC) se integram na prática dentro de uma empresa?",
+  alternativas: [
+    {letra:"a", texto:"Cada sistema opera de forma isolada, sem qualquer troca de dados entre ERP, SCM, CRM, BI e SGC.", correta:false,
+      feedback:"Incorreto: o material afirma o oposto — os sistemas trocam dados constantemente, e não funcionam isolados.",
+      premissa:"Negar a integração entre sistemas descrita no material."},
+    {letra:"b", texto:"Eles trocam dados constantemente, com o ERP como núcleo central, conectando-se aos demais por APIs ou data warehouses.", correta:true,
+      feedback:"Correto: o material afirma que os sistemas \"trocam dados constantemente\", com o ERP como núcleo central conectado aos demais por APIs, middlewares ou data warehouses."},
+    {letra:"c", texto:"O BI funciona como núcleo central, registrando as operações que os demais sistemas apenas consultam.", correta:false,
+      feedback:"Incorreto: é o ERP, e não o BI, quem funciona como núcleo central que registra a operação (venda, produção, estoque, financeiro).",
+      premissa:"Atribuir ao BI o papel de núcleo central que o material atribui ao ERP."},
+    {letra:"d", texto:"O SGC substitui o ERP como fonte de dados, coordenando sozinho toda a operação da empresa.", correta:false,
+      feedback:"Incorreto: no fluxo típico do material, é o SGC quem captura o aprendizado gerado ao final do processo, e não quem substitui o ERP como núcleo central.",
+      premissa:"Inverter os papéis de ERP (núcleo central) e SGC (captura de aprendizado) no fluxo de integração descrito no material."},
+    {letra:"e", texto:"A integração ocorre apenas por meio de planilhas exportadas manualmente entre os departamentos.", correta:false,
+      feedback:"Incorreto: o material descreve a integração por meio de APIs, middlewares ou data warehouses, não por planilhas exportadas manualmente.",
+      premissa:"Substituir a integração via APIs/middlewares/data warehouses descrita no material por um processo manual não mencionado."}
+  ]
+},
+
+// ===================== AULA 02 =====================
+{
+  aula: "Aula 02",
+  tema: "Sistemas Integrados de Gestão (SIG)",
+  pergunta: "Segundo o material, o que caracteriza os Sistemas Integrados de Gestão (SIG)?",
+  alternativas: [
+    {letra:"a", texto:"São plataformas que conectam as áreas e os dados da empresa para agilizar e otimizar a gestão da organização.", correta:true,
+      feedback:"Correto: essa é exatamente a definição de Sistemas Integrados de Gestão apresentada no material."},
+    {letra:"b", texto:"São sistemas que substituem toda a comunicação entre as áreas da empresa, eliminando a interação humana.", correta:false,
+      feedback:"Incorreto: o material descreve os SIG como plataformas que conectam áreas e dados, não como substitutos da comunicação humana entre as áreas.",
+      premissa:"Atribuir aos SIG a eliminação da interação humana, algo não afirmado no material."},
+    {letra:"c", texto:"São exclusivamente softwares de contabilidade, usados apenas para o fechamento do balanço financeiro da empresa.", correta:false,
+      feedback:"Incorreto: o material apresenta os SIG de forma mais ampla, incluindo ERP, SCM, CRM, BI e SGC, e não apenas softwares contábeis.",
+      premissa:"Reduzir os SIG a softwares de contabilidade, quando o material os define de forma mais ampla."},
+    {letra:"d", texto:"São sistemas que funcionam de forma isolada em cada departamento, sem qualquer integração de dados entre as áreas.", correta:false,
+      feedback:"Incorreto: o material contrapõe justamente essa situação de silos (dados isolados por área) ao papel dos SIG, que conectam as áreas e os dados da empresa.",
+      premissa:"Descrever os SIG como o problema de silos que, segundo o material, eles resolvem."},
+    {letra:"e", texto:"São sistemas usados apenas para automatizar tarefas repetitivas de escritório, como agenda e e-mail corporativo.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao OAS (Office Automation Systems), citado na pirâmide de tipos de SI da Aula 01, e não à definição de SIG apresentada na Aula 02.",
+      premissa:"Confundir os SIG com o OAS (Office Automation Systems)."}
+  ]
+},
+{
+  aula: "Aula 02",
+  tema: "ERP – Enterprise Resource Planning",
+  pergunta: "Segundo o material, quais são os desafios reais da implementação de um ERP?",
+  alternativas: [
+    {letra:"a", texto:"Excesso de padronização de processos internos, resultando na ausência de relatórios em tempo real para os gestores.", correta:false,
+      feedback:"Incorreto: o material aponta que um dos objetivos do ERP é justamente \"padronizar processos e dar visibilidade em tempo real da operação (relatórios)\" — o oposto do que essa alternativa afirma.",
+      premissa:"Transformar um objetivo do ERP (padronizar e dar visibilidade em tempo real) em um desafio."},
+    {letra:"b", texto:"Baixo custo de implementação do sistema e total independência em relação aos fornecedores contratados.", correta:false,
+      feedback:"Incorreto: o material cita exatamente o oposto entre os desafios reais: \"custo e tempo de implementação\" e \"dependência de fornecedor\".",
+      premissa:"Inverter os desafios de custo e dependência de fornecedor citados no material."},
+    {letra:"c", texto:"Excesso de dados duplicados e desatualizados, causados exclusivamente por falhas internas do próprio software ERP.", correta:false,
+      feedback:"Incorreto: \"dados inconsistentes\" é listada no material como dificuldade da integração de sistemas em geral, mas não consta entre os desafios reais de implementação do ERP citados na seção específica sobre ERP.",
+      premissa:"Atribuir à seção sobre ERP um desafio que o material lista na seção 'Dificuldades na Integração de Sistemas'."},
+    {letra:"d", texto:"Custo e tempo de implementação, resistência dos funcionários, reengenharia de processos e dependência de fornecedor.", correta:true,
+      feedback:"Correto: esses são exatamente os desafios reais listados no material para o ERP."},
+    {letra:"e", texto:"Impossibilidade de operar em nuvem ou em modelo híbrido, restringindo o ERP apenas ao modelo on-premises.", correta:false,
+      feedback:"Incorreto: o material apresenta o ERP em nuvem e o híbrido como tipos válidos de ERP, ao lado do modelo em pacote/on-premises.",
+      premissa:"Negar a existência dos tipos de ERP em nuvem e híbrido descritos no material."}
+  ]
+},
+{
+  aula: "Aula 02",
+  tema: "SCM – Supply Chain Management",
+  pergunta: "Qual é o foco do SCM (Supply Chain Management), segundo o material?",
+  alternativas: [
+    {letra:"a", texto:"A gestão de toda a cadeia de suprimentos — do fornecedor do fornecedor até o cliente do cliente.", correta:true,
+      feedback:"Correto: essa é a definição literal de foco do SCM apresentada no material."},
+    {letra:"b", texto:"A captura e integração de dados do cliente para fidelização e conversão de leads.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao CRM, não ao SCM.",
+      premissa:"Atribuir ao SCM o foco no cliente que o material atribui ao CRM."},
+    {letra:"c", texto:"A transformação de dados brutos em relatórios e dashboards para apoiar decisões.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao BI, não ao SCM.",
+      premissa:"Atribuir ao SCM a função analítica que o material atribui ao BI."},
+    {letra:"d", texto:"A integração, em uma única plataforma, dos processos centrais como finanças, RH e vendas.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao ERP, não ao SCM.",
+      premissa:"Atribuir ao SCM a integração de processos centrais que o material atribui ao ERP."},
+    {letra:"e", texto:"A captura, organização e reutilização do conhecimento tácito e explícito da organização.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao SGC/KMS, não ao SCM.",
+      premissa:"Atribuir ao SCM a função de gestão do conhecimento que o material atribui ao SGC/KMS."}
+  ]
+},
+{
+  aula: "Aula 02",
+  tema: "CRM – Objetivos",
+  pergunta: "Segundo o material, qual é o objetivo do CRM (Customer Relationship Management)?",
+  alternativas: [
+    {letra:"a", texto:"Reduzir o custo operacional e o tempo de resposta da cadeia de suprimentos, evitando rupturas de estoque.", correta:false,
+      feedback:"Incorreto: esse é o objetivo do SCM, não do CRM.",
+      premissa:"Confundir o objetivo do CRM com o objetivo do SCM."},
+    {letra:"b", texto:"Integrar, em uma única plataforma, os processos centrais de finanças, estoque, produção e recursos humanos.", correta:false,
+      feedback:"Incorreto: esse é o objetivo do ERP, não do CRM.",
+      premissa:"Confundir o objetivo do CRM com o objetivo do ERP."},
+    {letra:"c", texto:"Apoiar decisões gerenciais com dados históricos e indicadores, permitindo análises como drill-down e OLAP.", correta:false,
+      feedback:"Incorreto: esse é o objetivo do BI, não do CRM.",
+      premissa:"Confundir o objetivo do CRM com o objetivo do BI."},
+    {letra:"d", texto:"Buscar a satisfação e a fidelização de clientes, além da conversão de clientes potenciais (leads) em clientes efetivos.", correta:true,
+      feedback:"Correto: o material define exatamente esses como os objetivos do CRM: satisfação e fidelização de clientes, e conversão de leads."},
+    {letra:"e", texto:"Evitar a perda de know-how quando funcionários saem, promovendo aprendizado organizacional e inovação.", correta:false,
+      feedback:"Incorreto: esse é o objetivo do SGC, não do CRM.",
+      premissa:"Confundir o objetivo do CRM com o objetivo do SGC."}
+  ]
+},
+{
+  aula: "Aula 02",
+  tema: "BI e Integração de Sistemas",
+  pergunta: "Sobre a relação entre ERP e BI na integração de sistemas, qual afirmação está correta segundo o material?",
+  alternativas: [
+    {letra:"a", texto:"O BI substitui o ERP, pois é o BI quem registra as operações de venda, produção e estoque.", correta:false,
+      feedback:"Incorreto: é o ERP quem \"registra a operação (venda, produção, estoque, financeiro)\"; o BI extrai dados desses sistemas para gerar relatórios, não substitui o ERP.",
+      premissa:"Inverter os papéis de ERP (registro da operação) e BI (análise) descritos no material."},
+    {letra:"b", texto:"ERP e BI não trocam dados entre si, funcionando de forma isolada.", correta:false,
+      feedback:"Incorreto: o material afirma que os sistemas \"trocam dados constantemente\", com o ERP como núcleo central conectado aos demais por APIs, middlewares ou data warehouses.",
+      premissa:"Negar a integração entre sistemas descrita no material (ecossistema de informação único)."},
+    {letra:"c", texto:"O ERP é a fonte dos dados; o BI é a análise desses dados, que servem de insumo, e não substituto, para a decisão.", correta:true,
+      feedback:"Correto: o material afirma literalmente: \"Dado não é decisão, é insumo para decisão. O ERP é a fonte; o BI é a análise.\""},
+    {letra:"d", texto:"O BI é responsável por coordenar o abastecimento e a logística da cadeia de suprimentos.", correta:false,
+      feedback:"Incorreto: essa função é atribuída ao SCM no fluxo típico descrito no material, não ao BI.",
+      premissa:"Atribuir ao BI a coordenação de abastecimento e logística que o material atribui ao SCM."},
+    {letra:"e", texto:"O maior desafio do BI, segundo o material, é a falta de tecnologias de armazenamento em nuvem para os dados.", correta:false,
+      feedback:"Incorreto: os desafios do BI citados no material são \"estabelecer os KPIs corretos, governança de dados (qualidade e integração)\" e a interpretação dos dados (confundir correlação com causalidade), não a falta de armazenamento em nuvem.",
+      premissa:"Substituir os desafios reais do BI (KPIs, governança, interpretação) por um desafio não mencionado no material."}
+  ]
+},
+
+{
+  aula: "Aula 02",
+  tema: "SGC – Sistemas de Gestão do Conhecimento",
+  pergunta: "Segundo o material, qual é a diferença entre conhecimento explícito e conhecimento tácito, no contexto dos Sistemas de Gestão do Conhecimento (SGC/KMS)?",
+  alternativas: [
+    {letra:"a", texto:"O conhecimento explícito é o mais difícil de formalizar, pois depende exclusivamente da experiência das pessoas.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao conhecimento tácito, não ao explícito, que pode ser documentado e codificado.",
+      premissa:"Inverter as definições de conhecimento explícito e conhecimento tácito apresentadas no material."},
+    {letra:"b", texto:"O explícito pode ser documentado e armazenado; o tácito está na experiência e na intuição das pessoas, sendo mais difícil de formalizar.", correta:true,
+      feedback:"Correto: essa é exatamente a distinção apresentada no material entre conhecimento explícito e conhecimento tácito."},
+    {letra:"c", texto:"Conhecimento explícito e conhecimento tácito são sinônimos no material, usados para descrever a mesma coisa.", correta:false,
+      feedback:"Incorreto: o material distingue claramente os dois tipos de conhecimento, com definições e exemplos distintos.",
+      premissa:"Negar a distinção entre conhecimento explícito e tácito feita explicitamente no material."},
+    {letra:"d", texto:"O conhecimento tácito é aquele documentado formalmente em wikis internos e em repositórios de melhores práticas.", correta:false,
+      feedback:"Incorreto: wikis internos e repositórios de melhores práticas são exemplos de sistemas que armazenam conhecimento explícito, não tácito.",
+      premissa:"Atribuir ao conhecimento tácito exemplos que o material associa ao conhecimento explícito."},
+    {letra:"e", texto:"A diferença entre eles está apenas no tipo de software utilizado para armazená-los, e não na natureza do conhecimento em si.", correta:false,
+      feedback:"Incorreto: o material distingue os dois tipos de conhecimento pela sua natureza (documentável vs. baseado em experiência humana), não pelo software utilizado.",
+      premissa:"Reduzir a distinção entre conhecimento explícito e tácito a uma questão de software, quando o material a define pela natureza do conhecimento."}
+  ]
+},
+{
+  aula: "Aula 02",
+  tema: "Dificuldades na Integração de Sistemas",
+  pergunta: "Segundo o material, a expressão \"lixo entra, lixo sai\" é usada para ilustrar qual dificuldade na implementação de sistemas integrados?",
+  alternativas: [
+    {letra:"a", texto:"Resistência cultural — apego a processos antigos e medo de perder controle por parte dos funcionários da empresa.", correta:false,
+      feedback:"Incorreto: resistência cultural é outra dificuldade listada no material, relacionada a pessoas, não à qualidade dos dados.",
+      premissa:"Confundir a dificuldade de dados inconsistentes com a de resistência cultural."},
+    {letra:"b", texto:"Falta de planejamento estratégico — um escopo mal definido que acaba estourando o prazo e o orçamento do projeto.", correta:false,
+      feedback:"Incorreto: falta de planejamento estratégico é outra dificuldade listada no material, relacionada a escopo e prazo, não à qualidade dos dados.",
+      premissa:"Confundir a dificuldade de dados inconsistentes com a de falta de planejamento estratégico."},
+    {letra:"c", texto:"Dados inconsistentes — dados duplicados ou desatualizados comprometem o sistema e exigem infraestrutura de TI.", correta:true,
+      feedback:"Correto: o material usa literalmente a expressão \"lixo entra, lixo sai\" para ilustrar o problema de dados inconsistentes (duplicados/desatualizados)."},
+    {letra:"d", texto:"Gestão e manutenção — dificuldade de adequação a normas como ISO, com custo alto principalmente para PMEs.", correta:false,
+      feedback:"Incorreto: gestão e manutenção é outra dificuldade listada no material, relacionada a normas e custos, não à qualidade dos dados.",
+      premissa:"Confundir a dificuldade de dados inconsistentes com a de gestão e manutenção."},
+    {letra:"e", texto:"Excesso de investimento em segurança da informação, muito além do necessário para a operação do negócio.", correta:false,
+      feedback:"Incorreto: essa dificuldade não é mencionada no material entre os principais desafios da integração de sistemas.",
+      premissa:"Inventar uma dificuldade (excesso de investimento em segurança) não mencionada no material."}
+  ]
+},
+
+// ===================== AULA 04 =====================
+{
+  aula: "Aula 04",
+  tema: "Características da Indústria 4.0",
+  pergunta: "Qual característica da Indústria 4.0, segundo o material, está associada à Blockchain e à Cibersegurança?",
+  alternativas: [
+    {letra:"a", texto:"Conectividade, associada ao IoT, ao 5G e à computação em nuvem.", correta:false,
+      feedback:"Incorreto: a Conectividade é associada a IoT/5G/nuvem no material, não à Blockchain e à Cibersegurança.",
+      premissa:"Confundir a característica de Confiança digital com a de Conectividade."},
+    {letra:"b", texto:"Automação inteligente, associada à combinação de IA, Robótica e IoT.", correta:false,
+      feedback:"Incorreto: a Automação Inteligente é associada a IA + Robótica + IoT no material, não à Blockchain e à Cibersegurança.",
+      premissa:"Confundir a característica de Confiança digital com a de Automação inteligente."},
+    {letra:"c", texto:"Decisões baseadas em dados, associada a Big Data, Analytics e IA.", correta:false,
+      feedback:"Incorreto: essa característica envolve Big Data, Analytics e IA no material, não Blockchain e Cibersegurança.",
+      premissa:"Confundir a característica de Confiança digital com a de Decisões baseadas em dados."},
+    {letra:"d", texto:"Personalização em larga escala, associada à IA, Analytics e impressão 3D.", correta:false,
+      feedback:"Incorreto: essa característica trata de customização em escala no material, não da segurança e rastreabilidade da informação.",
+      premissa:"Confundir a característica de Confiança digital com a de Personalização em larga escala."},
+    {letra:"e", texto:"Confiança digital, pois a informação precisa ser segura e rastreável.", correta:true,
+      feedback:"Correto: o material associa a Confiança Digital diretamente à Blockchain e à Cibersegurança, com o resultado de \"maior transparência e confiança entre organizações\"."}
+  ]
+},
+{
+  aula: "Aula 04",
+  tema: "Inteligência Artificial: Conceitos",
+  pergunta: "Segundo o material, qual é o objetivo da IA Generativa, em contraste com o objetivo da IA tradicional/preditiva/analítica?",
+  alternativas: [
+    {letra:"a", texto:"Analisar dados históricos para prever, classificar ou recomendar decisões de negócio.", correta:false,
+      feedback:"Incorreto: esse é o objetivo da IA Tradicional, Preditiva ou Analítica no material, não da IA Generativa.",
+      premissa:"Inverter os objetivos da IA tradicional e da IA generativa apresentados na tabela do material."},
+    {letra:"b", texto:"Criar novos conteúdos originais a partir de comandos, ou prompts, fornecidos pelo usuário.", correta:true,
+      feedback:"Correto: o material define exatamente esse como o objetivo da IA Generativa."},
+    {letra:"c", texto:"Melhorar a tomada de decisão por meio de detecção de fraude e manutenção preditiva.", correta:false,
+      feedback:"Incorreto: essa descrição combina o principal benefício e exemplos de aplicação da IA Tradicional, não da IA Generativa.",
+      premissa:"Atribuir à IA Generativa o benefício e as aplicações que o material atribui à IA tradicional."},
+    {letra:"d", texto:"Aprovar crédito e prever o churn (cancelamento) de clientes de forma automatizada.", correta:false,
+      feedback:"Incorreto: esses são exemplos de aplicações da IA Tradicional/Preditiva no material, não o objetivo da IA Generativa.",
+      premissa:"Atribuir à IA Generativa aplicações que o material lista para a IA tradicional."},
+    {letra:"e", texto:"Realizar tarefas físicas de forma autônoma, substituindo pessoas em linhas de robótica industrial.", correta:false,
+      feedback:"Incorreto: o material define a IA Generativa como geradora de conteúdo (textos, imagens, vídeos, áudios e códigos), não como execução física autônoma.",
+      premissa:"Atribuir à IA Generativa uma função de execução física não descrita no material."}
+  ]
+},
+{
+  aula: "Aula 04",
+  tema: "AI Agent vs. Agentic AI",
+  pergunta: "Segundo a analogia apresentada no material (termostato vs. automação residencial completa), o que diferencia um AI Agent de uma Agentic AI?",
+  alternativas: [
+    {letra:"a", texto:"Não há diferença real entre os dois: ambos os termos descrevem exatamente o mesmo conceito no material.", correta:false,
+      feedback:"Incorreto: o material apresenta uma tabela e uma analogia específicas que distinguem claramente os dois conceitos.",
+      premissa:"Negar a distinção entre AI Agent e Agentic AI feita explicitamente no material."},
+    {letra:"b", texto:"A Agentic AI apenas gera conteúdos, como textos e imagens, a partir de comandos ou prompts.", correta:false,
+      feedback:"Incorreto: gerar conteúdo a partir de prompts é a definição de Generative AI (Gen AI) no material, não de Agentic AI, que \"coordena objetivos complexos com mais autonomia\".",
+      premissa:"Confundir a Agentic AI com a Generative AI (Gen AI)."},
+    {letra:"c", texto:"O AI Agent é, segundo essa alternativa, quem coordena múltiplos agentes de automação residencial completa.", correta:false,
+      feedback:"Incorreto: essa é a definição de Agentic AI no material, não a de AI Agent, que trata da gestão de uma única tarefa.",
+      premissa:"Inverter as definições de AI Agent e Agentic AI apresentadas na analogia do material."},
+    {letra:"d", texto:"A Agentic AI é usada apenas para agendar reuniões, consultar a agenda e enviar e-mails no dia a dia.", correta:false,
+      feedback:"Incorreto: esses exemplos são atribuídos ao AI Agent no material, não à Agentic AI, que envolve coordenação de múltiplos agentes em objetivos mais complexos.",
+      premissa:"Atribuir à Agentic AI exemplos que o material atribui ao AI Agent."},
+    {letra:"e", texto:"O AI Agent gerencia uma tarefa única, como um termostato; a Agentic AI coordena vários agentes, como na automação residencial.", correta:true,
+      feedback:"Correto: essa é exatamente a analogia apresentada no material."}
+  ]
+},
+{
+  aula: "Aula 04",
+  tema: "IoT (Internet of Things)",
+  pergunta: "Segundo o material, qual é a definição de IoT e o papel que ela desempenha na integração das tecnologias emergentes?",
+  alternativas: [
+    {letra:"a", texto:"IoT conecta objetos físicos à internet, trocando dados em tempo real; é o \"sistema nervoso\" que alimenta a IA e o Digital Twin.", correta:true,
+      feedback:"Correto: essa é exatamente a definição e o papel de IoT apresentados no material."},
+    {letra:"b", texto:"IoT é uma réplica virtual de um objeto ou processo, atualizada continuamente com dados reais para simular o mundo físico.", correta:false,
+      feedback:"Incorreto: essa é a definição de Digital Twin no material, não de IoT — o Digital Twin é, na verdade, alimentado pelos dados que a IoT coleta.",
+      premissa:"Confundir a definição de IoT com a de Digital Twin."},
+    {letra:"c", texto:"IoT é uma tecnologia de registro distribuída e imutável que conecta blocos de transações por meio de criptografia.", correta:false,
+      feedback:"Incorreto: essa é a definição de Blockchain no material, não de IoT.",
+      premissa:"Confundir a definição de IoT com a de Blockchain."},
+    {letra:"d", texto:"IoT é uma capacidade tecnológica habilitadora que usa qubits para resolver problemas complexos em minutos.", correta:false,
+      feedback:"Incorreto: essa é a definição de Computação Quântica no material, não de IoT.",
+      premissa:"Confundir a definição de IoT com a de Computação Quântica."},
+    {letra:"e", texto:"IoT é o conjunto de algoritmos que aprende padrões a partir de dados para tomar decisões sem programação explícita.", correta:false,
+      feedback:"Incorreto: essa é a definição de Machine Learning (ML) no material, não de IoT.",
+      premissa:"Confundir a definição de IoT com a de Machine Learning."}
+  ]
+},
+{
+  aula: "Aula 04",
+  tema: "Digital Twin",
+  pergunta: "Segundo o material, como funciona um Digital Twin (gêmeo digital)?",
+  alternativas: [
+    {letra:"a", texto:"Um algoritmo de IA analisa grandes volumes de dados históricos para prever fraudes financeiras em tempo real.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde a uma aplicação de IA/BI (detecção de fraude), não ao funcionamento do Digital Twin.",
+      premissa:"Confundir o funcionamento do Digital Twin com uma aplicação de IA/BI (detecção de fraude)."},
+    {letra:"b", texto:"Sensores IoT no ativo físico coletam dados continuamente, alimentando um modelo virtual que se atualiza e simula decisões.", correta:true,
+      feedback:"Correto: essa é exatamente a descrição de como funciona o Digital Twin no material."},
+    {letra:"c", texto:"Blocos de transações são interligados por hash criptográfico, formando um registro imutável do histórico de um ativo.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao funcionamento da Blockchain no material, não do Digital Twin.",
+      premissa:"Confundir o funcionamento do Digital Twin com o da Blockchain."},
+    {letra:"d", texto:"Qubits representam simultaneamente 0 e 1 para testar várias rotas ao mesmo tempo em um problema de otimização.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao funcionamento da Computação Quântica no material, não do Digital Twin.",
+      premissa:"Confundir o funcionamento do Digital Twin com o da Computação Quântica."},
+    {letra:"e", texto:"Um agente autônomo executa tarefas físicas sozinho, sem depender de nenhum dado vindo de sensores.", correta:false,
+      feedback:"Incorreto: o material descreve o Digital Twin como dependente dos dados coletados por sensores IoT, e não como um agente que age sem essa dependência.",
+      premissa:"Descrever o Digital Twin como independente de dados de sensores, contrariando o material."}
+  ]
+},
+{
+  aula: "Aula 04",
+  tema: "Indústria 4.0: Automação Inteligente",
+  pergunta: "Segundo o material, qual característica da Indústria 4.0 está associada à combinação de IA, Robótica e IoT, permitindo que as máquinas aprendam e adaptem seu comportamento?",
+  alternativas: [
+    {letra:"a", texto:"Conectividade — pessoas, máquinas, sensores e sistemas trocam informações continuamente, com dados disponíveis em tempo real.", correta:false,
+      feedback:"Incorreto: essa é a característica de Conectividade (IoT, 5G, nuvem), não a Automação Inteligente associada a IA + Robótica + IoT.",
+      premissa:"Confundir Automação Inteligente com Conectividade."},
+    {letra:"b", texto:"Confiança digital — a informação precisa ser segura e rastreável, aumentando a transparência entre organizações.", correta:false,
+      feedback:"Incorreto: essa é a característica de Confiança Digital (Blockchain e Cibersegurança), não a Automação Inteligente.",
+      premissa:"Confundir Automação Inteligente com Confiança Digital."},
+    {letra:"c", texto:"Automação inteligente — as máquinas deixam de apenas executar comandos e passam a aprender e adaptar seu comportamento.", correta:true,
+      feedback:"Correto: o material descreve exatamente essa característica como Automação Inteligente, resultado da combinação de IA + Robótica + IoT, gerando fábricas inteligentes e processos autônomos."},
+    {letra:"d", texto:"Personalização em larga escala — produtos e serviços deixam de ser padronizados, permitindo customização em massa.", correta:false,
+      feedback:"Incorreto: essa é a característica de Personalização em Larga Escala (IA, Analytics e impressão 3D), não a Automação Inteligente.",
+      premissa:"Confundir Automação Inteligente com Personalização em Larga Escala."},
+    {letra:"e", texto:"Ecossistemas digitais — empresas deixam de operar isoladamente e passam a compartilhar dados com clientes e parceiros.", correta:false,
+      feedback:"Incorreto: essa é a característica de Ecossistemas Digitais, não a Automação Inteligente.",
+      premissa:"Confundir Automação Inteligente com Ecossistemas Digitais."}
+  ]
+},
+
+{
+  aula: "Aula 04",
+  tema: "Computação Quântica",
+  pergunta: "Segundo o material, o que diferencia a Computação Quântica da computação tradicional?",
+  alternativas: [
+    {letra:"a", texto:"A computação quântica substitui totalmente a necessidade de sensores físicos para a coleta de dados em tempo real.", correta:false,
+      feedback:"Incorreto: essa afirmação confunde a Computação Quântica com o papel da IoT, que é quem coleta dados em tempo real por meio de sensores.",
+      premissa:"Confundir a Computação Quântica com o papel de coleta de dados que o material atribui à IoT."},
+    {letra:"b", texto:"A computação quântica é, segundo essa alternativa, uma tecnologia de registro distribuído que garante a imutabilidade das transações.", correta:false,
+      feedback:"Incorreto: essa é a definição de Blockchain no material, não de Computação Quântica.",
+      premissa:"Confundir a Computação Quântica com a Blockchain."},
+    {letra:"c", texto:"Usa qubits, que representam 0 e 1 ao mesmo tempo, testando várias rotas simultaneamente e resolvendo problemas complexos em minutos.", correta:true,
+      feedback:"Correto: essa é exatamente a explicação apresentada no material sobre o diferencial da Computação Quântica."},
+    {letra:"d", texto:"A computação quântica testa um caminho de cada vez, de forma mais lenta que um computador tradicional, mas com maior precisão.", correta:false,
+      feedback:"Incorreto: o material descreve o oposto — é o computador tradicional que testa um caminho de cada vez, enquanto o quântico consegue \"testar várias rotas ao mesmo tempo\".",
+      premissa:"Inverter o mecanismo de processamento sequencial (computador tradicional) e paralelo (computador quântico) descrito no material."},
+    {letra:"e", texto:"A computação quântica é aplicada, segundo essa alternativa, exclusivamente à geração de conteúdo como textos e imagens.", correta:false,
+      feedback:"Incorreto: geração de conteúdo é uma aplicação da IA Generativa no material; as aplicações da Computação Quântica citadas são otimização complexa, simulação molecular e criptografia.",
+      premissa:"Atribuir à Computação Quântica as aplicações que o material atribui à IA Generativa."}
+  ]
+},
+
+// ===================== AULA 05 =====================
+{
+  aula: "Aula 05",
+  tema: "TD: Conceitos, Nível de Mudança e Exemplos",
+  pergunta: "Segundo o material, qual das alternativas descreve corretamente a Digitalização (Digitalization)?",
+  alternativas: [
+    {letra:"a", texto:"Codificação de informações analógicas em formato digital, com nível de mudança baixo, como escanear documentos em papel.", correta:false,
+      feedback:"Incorreto: essa é a definição de Digitização (Digitization), não de Digitalização.",
+      premissa:"Confundir a definição de Digitalização com a de Digitização."},
+    {letra:"b", texto:"Uso de tecnologias digitais para melhorar, automatizar ou reformular processos de negócio já existentes, com nível de mudança médio, como implantar um CRM.", correta:true,
+      feedback:"Correto: essa é exatamente a definição de Digitalização apresentada no material."},
+    {letra:"c", texto:"Mudança profunda na forma como a organização cria, entrega e captura valor, com nível de mudança alto, como uma locadora que se torna uma plataforma de streaming.", correta:false,
+      feedback:"Incorreto: essa é a definição de Transformação Digital, não de Digitalização.",
+      premissa:"Confundir a definição de Digitalização com a de Transformação Digital."},
+    {letra:"d", texto:"Conversão de fitas em arquivos digitais, sem qualquer melhoria dos processos de negócio envolvidos.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde ao exemplo de Digitização dado no material, e não à Digitalização, que envolve melhoria de processos.",
+      premissa:"Atribuir à Digitalização um exemplo que o material usa para ilustrar a Digitização."},
+    {letra:"e", texto:"Reinvenção do modelo de negócio, envolvendo nova estrutura organizacional e nova cultura.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde à Transformação Digital, não à Digitalização.",
+      premissa:"Confundir a definição de Digitalização com a de Transformação Digital."}
+  ]
+},
+{
+  aula: "Aula 05",
+  tema: "TD: Domínios Mobilizados",
+  pergunta: "Segundo o material, quais domínios a Transformação Digital mobiliza simultaneamente?",
+  alternativas: [
+    {letra:"a", texto:"Apenas tecnologia e processos, já que a Transformação Digital é, sobretudo, uma questão técnica.", correta:false,
+      feedback:"Incorreto: o material afirma que \"tecnologia é condição necessária, raramente suficiente\" e lista domínios além de tecnologia e processos.",
+      premissa:"Reduzir a Transformação Digital a uma questão apenas técnica, contrariando o material."},
+    {letra:"b", texto:"Apenas hardware, software e redes, os mesmos componentes que definem a TI.", correta:false,
+      feedback:"Incorreto: hardware, software e redes são os componentes da TI (Aula 01), não os domínios que a Transformação Digital mobiliza segundo o material.",
+      premissa:"Confundir os domínios da Transformação Digital com os componentes da TI apresentados na Aula 01."},
+    {letra:"c", texto:"Apenas marketing e vendas, pois são as áreas mais afetadas pela presença digital das empresas.", correta:false,
+      feedback:"Incorreto: o material não restringe a Transformação Digital a marketing e vendas; ela mobiliza um conjunto mais amplo de domínios.",
+      premissa:"Inventar uma restrição a marketing e vendas não mencionada no material."},
+    {letra:"d", texto:"Estratégia, tecnologia, processos, pessoas e cultura, modelo de negócio e experiência do cliente.", correta:true,
+      feedback:"Correto: o material afirma que \"o processo de TD mobiliza simultaneamente: estratégia • tecnologia • processos • pessoas e cultura • modelo de negócio • experiência do cliente\"."},
+    {letra:"e", texto:"Apenas dados e algoritmos, já que a Transformação Digital depende exclusivamente de Inteligência Artificial.", correta:false,
+      feedback:"Incorreto: o material não restringe a Transformação Digital à Inteligência Artificial; ela envolve estratégia, pessoas, cultura e modelo de negócio, entre outros domínios.",
+      premissa:"Reduzir a Transformação Digital à Inteligência Artificial, contrariando o material."}
+  ]
+},
+{
+  aula: "Aula 05",
+  tema: "Modelos de Negócios Digitais (lógica de monetização)",
+  pergunta: "Segundo a tabela de Modelos de Negócios Digitais do material, qual modelo tem como lógica central \"conectar dois ou mais grupos de usuários e capturar valor pela intermediação\"?",
+  alternativas: [
+    {letra:"a", texto:"SaaS (Software as a Service).", correta:false,
+      feedback:"Incorreto: a lógica central do SaaS no material é o \"acesso via assinatura a um software hospedado na nuvem\", não a conexão entre grupos de usuários.",
+      premissa:"Atribuir ao SaaS a lógica de intermediação entre grupos de usuários que o material atribui ao Marketplace."},
+    {letra:"b", texto:"Freemium.", correta:false,
+      feedback:"Incorreto: a lógica central do Freemium é \"camada gratuita atrai usuários; funcionalidades premium geram receita\", não a intermediação entre grupos de usuários.",
+      premissa:"Atribuir ao Freemium a lógica de intermediação que o material atribui ao Marketplace."},
+    {letra:"c", texto:"Economia compartilhada (sharing economy).", correta:false,
+      feedback:"Incorreto: a lógica central da economia compartilhada é \"monetizar ativos ociosos por meio de intermediação digital\" (ex.: Uber, Airbnb), diferente de conectar grupos de usuários distintos como em um marketplace.",
+      premissa:"Confundir a lógica da economia compartilhada (monetizar ativos ociosos) com a do Marketplace (conectar grupos de usuários)."},
+    {letra:"d", texto:"Marketplace / Plataforma multilateral.", correta:true,
+      feedback:"Correto: essa é exatamente a lógica central atribuída ao Marketplace/Plataforma multilateral no material (ex.: Mercado Livre, Amazon, iFood)."},
+    {letra:"e", texto:"Assinatura (subscription).", correta:false,
+      feedback:"Incorreto: a lógica central da assinatura é \"receita recorrente em troca de acesso contínuo a conteúdo/serviço\", não a intermediação entre grupos de usuários.",
+      premissa:"Atribuir à Assinatura a lógica de intermediação que o material atribui ao Marketplace."}
+  ]
+},
+{
+  aula: "Aula 05",
+  tema: "Modelos de Negócios Digitais (Weill & Woerner, 2019)",
+  pergunta: "Segundo o material, qual modelo de negócio digital busca se destacar simultaneamente nas três fontes de vantagem competitiva — conteúdo, experiência do cliente e plataforma?",
+  alternativas: [
+    {letra:"a", texto:"Ecosystem Driver (ex.: Mercado Livre).", correta:true,
+      feedback:"Correto: o material afirma que \"o Ecosystem Driver é o único modelo que busca se destacar nas três fontes simultaneamente\", o que explica por que costuma ser o mais difícil de alcançar, mas também o de maior potencial de captura de valor."},
+    {letra:"b", texto:"Supplier (ex.: Weg).", correta:false,
+      feedback:"Incorreto: o modelo Supplier está mais associado apenas à fonte \"Conteúdo\" no material, não às três fontes simultaneamente.",
+      premissa:"Atribuir ao Supplier a busca simultânea pelas três fontes de vantagem competitiva que o material atribui ao Ecosystem Driver."},
+    {letra:"c", texto:"Omnichannel (ex.: Magazine Luiza).", correta:false,
+      feedback:"Incorreto: o modelo Omnichannel está mais associado à fonte \"Experiência do cliente\" no material, não às três fontes simultaneamente.",
+      premissa:"Atribuir ao Omnichannel a busca simultânea pelas três fontes de vantagem competitiva que o material atribui ao Ecosystem Driver."},
+    {letra:"d", texto:"Modular Producer (ex.: AWS).", correta:false,
+      feedback:"Incorreto: o modelo Modular Producer está mais associado à fonte \"Plataforma\" no material, não às três fontes simultaneamente.",
+      premissa:"Atribuir ao Modular Producer a busca simultânea pelas três fontes de vantagem competitiva que o material atribui ao Ecosystem Driver."},
+    {letra:"e", texto:"Todos os quatro modelos (Omnichannel, Supplier, Ecosystem Driver e Modular Producer) buscam, igualmente, as três fontes ao mesmo tempo.", correta:false,
+      feedback:"Incorreto: o material afirma que cada modelo tende a se destacar em uma (ou mais) das três fontes, mas apenas o Ecosystem Driver busca as três simultaneamente.",
+      premissa:"Generalizar para os quatro modelos algo que o material atribui exclusivamente ao Ecosystem Driver."}
+  ]
+},
+{
+  aula: "Aula 05",
+  tema: "Reflexão e Discussão",
+  pergunta: "Segundo a reflexão apresentada no material, é correto afirmar que toda organização precisa necessariamente passar pelos três estágios — digitização, digitalização e transformação digital — nessa ordem?",
+  alternativas: [
+    {letra:"a", texto:"Sim, os três estágios são sempre sequenciais e obrigatórios para qualquer tipo de organização.", correta:false,
+      feedback:"Incorreto: o material responde diretamente \"Não\". Diferentes processos ou unidades de uma mesma empresa podem estar em estágios distintos simultaneamente.",
+      premissa:"Afirmar uma obrigatoriedade sequencial que o material nega explicitamente."},
+    {letra:"b", texto:"Sim, mas apenas para empresas nativas digitais, que sempre passam pelos três estágios em ordem.", correta:false,
+      feedback:"Incorreto: o material afirma o oposto: organizações nativas digitais \"nunca passam pelos estágios iniciais, pois já nascem transformadas\".",
+      premissa:"Inverter o que o material afirma sobre as empresas nativas digitais."},
+    {letra:"c", texto:"Não é possível determinar isso, pois o material não trata diretamente dessa questão específica.", correta:false,
+      feedback:"Incorreto: o material trata diretamente dessa pergunta na seção \"Reflexão e Discussão\", com uma resposta explícita.",
+      premissa:"Ignorar que o material responde explicitamente a essa pergunta."},
+    {letra:"d", texto:"Não. Processos de uma mesma empresa podem estar em estágios diferentes, e nativas digitais podem pular os estágios iniciais.", correta:true,
+      feedback:"Correto: essa é a resposta apresentada literalmente no material."},
+    {letra:"e", texto:"Não, porque a transformação digital é, na prática, apenas uma questão de tecnologia, e não de estratégia de negócio.", correta:false,
+      feedback:"Incorreto quanto à segunda parte: o material afirma que \"tecnologia é condição necessária, raramente suficiente\", sendo estratégia, liderança e cultura organizacional que determinam a mudança de modelo de negócio.",
+      premissa:"Reduzir a transformação digital a uma questão puramente tecnológica, contrariando o material."}
+  ]
+},
+
+// ===================== AULA 06 =====================
+{
+  aula: "Aula 06",
+  tema: "Lock-in: Conceito",
+  referencia: "Aula 06 (material atualizado) — Princípio 5 da Economia da Informação (Varian, 2003): \"Lock-in (aprisionamento)\".",
+  pergunta: "Segundo o material, o que é lock-in (aprisionamento)?",
+  alternativas: [
+    {letra:"a", texto:"O momento em que uma rede atinge um número suficiente de usuários para que seu crescimento se torne autossustentável.", correta:false,
+      feedback:"Incorreto: essa é a definição de massa crítica/tipping point, não de lock-in.",
+      premissa:"Confundir lock-in com massa crítica/tipping point."},
+    {letra:"b", texto:"O aumento do valor de um produto à medida que mais pessoas do mesmo tipo passam a utilizá-lo.", correta:false,
+      feedback:"Incorreto: essa é a definição de efeito de rede direto, não de lock-in.",
+      premissa:"Confundir lock-in com efeito de rede direto."},
+    {letra:"c", texto:"O processo pelo qual o mercado converge para uma tecnologia ou formato comum, por competição ou por acordo entre players.", correta:false,
+      feedback:"Incorreto: essa é a definição de padronização/guerra de padrões, não de lock-in.",
+      premissa:"Confundir lock-in com padronização/guerra de padrões."},
+    {letra:"d", texto:"Situação em que o custo de trocar de fornecedor é alto o bastante para reter o cliente, mesmo com alternativas melhores.", correta:true,
+      feedback:"Correto: essa é a definição de lock-in apresentada no material."},
+    {letra:"e", texto:"Os custos financeiros, técnicos ou psicológicos de migrar para outro produto, sejam deliberados ou surgidos organicamente.", correta:false,
+      feedback:"Incorreto: essa é a definição de switching costs (custos de troca) — um conceito relacionado, mas distinto: o switching cost é o custo em si, enquanto o lock-in é a situação de retenção do cliente que esse custo pode gerar.",
+      premissa:"Confundir lock-in com a definição de switching costs — conceitos relacionados, porém distintos no material."}
+  ]
+},
+{
+  aula: "Aula 06",
+  tema: "Efeitos de Rede",
+  referencia: "Aula 06 (material atualizado) — Princípio 7 da Economia da Informação (Varian, 2003): \"Economias de escala pelo lado da demanda\" / Efeitos de rede, subtópico \"Efeito Indireto\".",
+  pergunta: "O aumento do valor de um console de videogame (PlayStation, Xbox) conforme cresce a disponibilidade de jogos e acessórios complementares exemplifica qual tipo de efeito de rede, segundo o material?",
+  alternativas: [
+    {letra:"a", texto:"Efeito Direto — o valor aumenta diretamente à medida que mais pessoas do mesmo tipo utilizam o produto.", correta:false,
+      feedback:"Incorreto: o Efeito Direto é exemplificado no material por aplicativos de mensagens (WhatsApp), redes sociais (Instagram) e sistemas de pagamento (Pix), e não pelo exemplo do console.",
+      premissa:"Confundir o exemplo de Efeito Indireto (console) com o de Efeito Direto."},
+    {letra:"b", texto:"Efeito Indireto — o valor aumenta pela disponibilidade de produtos complementares, que crescem com a base de usuários.", correta:true,
+      feedback:"Correto: o material usa exatamente o exemplo do console de videogame para ilustrar o Efeito Indireto."},
+    {letra:"c", texto:"Massa crítica / tipping point — o momento em que a rede atinge um crescimento autossustentável.", correta:false,
+      feedback:"Incorreto: massa crítica/tipping point é um conceito relacionado, mas distinto — trata do momento em que o crescimento se torna autossustentável (exemplo do material: iFood), não do tipo de efeito de rede em si.",
+      premissa:"Confundir o conceito de efeito de rede com o de massa crítica/tipping point."},
+    {letra:"d", texto:"Path dependence — decisões passadas limitam e moldam as escolhas futuras sobre o console.", correta:false,
+      feedback:"Incorreto: path dependence é exemplificado no material pelo teclado QWERTY, e trata de como decisões do passado moldam o futuro, não do mecanismo pelo qual produtos complementares aumentam o valor do console.",
+      premissa:"Confundir o mecanismo de efeito de rede indireto com o conceito de path dependence."},
+    {letra:"e", texto:"Lock-in — o consumidor fica preso ao fabricante do console pelo alto custo de trocar.", correta:false,
+      feedback:"Incorreto: lock-in trata do custo de trocar de fornecedor/tecnologia (exemplo do material: SAP), um conceito diferente do mecanismo específico descrito na pergunta.",
+      premissa:"Confundir o mecanismo de efeito de rede indireto com o conceito de lock-in."}
+  ]
+},
+{
+  aula: "Aula 05",
+  tema: "TD: Os Cinco Domínios (Rogers, 2007)",
+  pergunta: "Segundo o Guia de Transformação Digital apresentado no material (Rogers, 2007), quais são os cinco domínios da transformação digital?",
+  alternativas: [
+    {letra:"a", texto:"Estratégia, tecnologia, processos, pessoas e cultura, modelo de negócio e experiência do cliente.", correta:false,
+      feedback:"Incorreto: essa é a lista dos elementos que a Transformação Digital mobiliza simultaneamente, segundo outro trecho do material — não os cinco domínios do guia de Rogers.",
+      premissa:"Confundir os cinco domínios de Rogers com os elementos que a TD mobiliza simultaneamente."},
+    {letra:"b", texto:"Hardware, software, dados/bancos de dados, redes e telecomunicações, e pessoas.", correta:false,
+      feedback:"Incorreto: essa é a lista de componentes de TI/TIC do quadro comparativo da Aula 01, não os domínios do guia de Rogers.",
+      premissa:"Confundir os cinco domínios de Rogers com os componentes de TI/TIC da Aula 01."},
+    {letra:"c", texto:"Conteúdo, experiência do cliente e plataforma — as três fontes de vantagem competitiva.", correta:false,
+      feedback:"Incorreto: essas são as três fontes de vantagem competitiva do modelo de Weill & Woerner (2019), não os domínios do guia de Rogers.",
+      premissa:"Confundir os cinco domínios de Rogers com as três fontes de vantagem competitiva de Weill & Woerner."},
+    {letra:"d", texto:"Marketing, vendas, operações, tecnologia da informação e recursos humanos.", correta:false,
+      feedback:"Incorreto: essa lista de áreas organizacionais não corresponde aos domínios do guia de Transformação Digital de Rogers apresentado no material.",
+      premissa:"Inventar uma lista de áreas organizacionais não mencionada no material como os domínios de Rogers."},
+    {letra:"e", texto:"Clientes, competição, dados, inovação e valor — cujo alinhamento promove a transformação.", correta:true,
+      feedback:"Correto: o Guia de Transformação Digital (Rogers, 2007) citado no material lista exatamente esses cinco domínios: clientes, competição, dados, inovação e valor."}
+  ]
+},
+{
+  aula: "Aula 06",
+  tema: "Switching Costs",
+  referencia: "Aula 06 (material atualizado) — Princípio 4 da Economia da Informação (Varian, 2003): \"Switching costs (custos de mudança)\", exemplo do banco.",
+  pergunta: "No exemplo do banco apresentado no material, o medo de esquecer algum débito automático e cair no vermelho, ou de perder o histórico de score de crédito construído com o banco atual, exemplifica qual tipo de custo de troca (switching cost)?",
+  alternativas: [
+    {letra:"a", texto:"Custo de risco.", correta:true,
+      feedback:"Correto: o material classifica exatamente esse medo (esquecer débito automático, perder histórico de score de crédito) como \"Custo de risco\"."},
+    {letra:"b", texto:"Custo financeiro.", correta:false,
+      feedback:"Incorreto: o custo financeiro no exemplo do material refere-se à possível tarifa de encerramento de conta e à perda de pontos/milhas acumulados no cartão atual, não ao medo de erros ou perda de histórico.",
+      premissa:"Confundir o custo de risco com o custo financeiro descrito no mesmo exemplo."},
+    {letra:"c", texto:"Custo de tempo/burocracia.", correta:false,
+      feedback:"Incorreto: o custo de tempo/burocracia no exemplo do material refere-se a atualizar dados bancários em diversos lugares (salário, débito automático, Pix cadastrado), não ao medo de riscos futuros.",
+      premissa:"Confundir o custo de risco com o custo de tempo/burocracia descrito no mesmo exemplo."},
+    {letra:"d", texto:"Custo psicológico/de hábito.", correta:false,
+      feedback:"Incorreto: o custo psicológico/de hábito no exemplo do material refere-se a já conhecer o aplicativo, saber onde clicar e confiar no atendimento, não ao medo de erros financeiros.",
+      premissa:"Confundir o custo de risco com o custo psicológico/de hábito descrito no mesmo exemplo."},
+    {letra:"e", texto:"Custo de integração.", correta:false,
+      feedback:"Incorreto: \"custo de integração\" é um tipo de custo listado no material na seção sobre Lock-in (exemplo do SAP), não um dos tipos de switching cost do exemplo do banco.",
+      premissa:"Trazer para o exemplo do banco (switching costs) um tipo de custo que o material usa apenas no exemplo do SAP (lock-in)."}
+  ]
+},
+{
+  aula: "Aula 06",
+  tema: "Padronização / Guerra de Padrões",
+  referencia: "Aula 06 (material atualizado) — Princípio 8 da Economia da Informação (Varian, 2003): \"Padrões (standards)\", exemplo USB-C (Android x Apple/UE).",
+  pergunta: "A convergência orgânica da maioria das marcas Android para o conector USB-C, em contraste com a exigência regulatória da União Europeia que forçou a Apple a adotar USB-C, exemplifica, segundo o material, respectivamente, quais tipos de padronização?",
+  alternativas: [
+    {letra:"a", texto:"Ambas são exemplos de padronização 'de comitê', pois envolveriam acordo entre fabricantes e reguladores.", correta:false,
+      feedback:"Incorreto: o material distingue os dois casos — a convergência do Android é descrita como orgânica (de mercado), enquanto a exigência da UE é regulatória (de comitê).",
+      premissa:"Tratar como idênticos dois casos que o material distingue como padronização de mercado e de comitê."},
+    {letra:"b", texto:"Ambas são exemplos de padronização 'de mercado', pois resultariam da concorrência entre os fabricantes.", correta:false,
+      feedback:"Incorreto: apenas a convergência orgânica das marcas Android corresponde à padronização 'de mercado'; a exigência da União Europeia é um exemplo de padronização regulatória ('de comitê').",
+      premissa:"Classificar como padronização de mercado um caso que o material trata como padronização de comitê (regulatória)."},
+    {letra:"c", texto:"Padronização 'de mercado' (Android, convergência orgânica) e 'de comitê' (União Europeia, imposição regulatória).", correta:true,
+      feedback:"Correto: o material distingue exatamente assim: padronização 'de mercado' (guerra) e padronização 'de comitê' (acordo entre players/reguladores), usando esses dois casos como exemplos."},
+    {letra:"d", texto:"Padronização 'de comitê' (Android) e padronização 'de mercado' (União Europeia), nessa ordem.", correta:false,
+      feedback:"Incorreto: essa alternativa inverte os tipos de padronização atribuídos pelo material a cada caso.",
+      premissa:"Inverter os tipos de padronização atribuídos pelo material aos casos do Android e da União Europeia."},
+    {letra:"e", texto:"Nenhuma das duas situações é classificada pelo material como padronização; trata-se apenas de lock-in.", correta:false,
+      feedback:"Incorreto: o material trata ambos os casos especificamente na seção sobre padronização/guerra de padrões, e não na seção sobre lock-in.",
+      premissa:"Deslocar exemplos da seção de padronização para o conceito de lock-in."}
+  ]
+},
+{
+  aula: "Aula 06",
+  tema: "Lock-in: Tipos de Custo (Exemplo SAP)",
+  referencia: "Aula 06 (material atualizado) — Princípio 5 da Economia da Informação (Varian, 2003): \"Lock-in (aprisionamento)\", tipos de custos de mudança no exemplo do ERP/SAP.",
+  pergunta: "No exemplo do SAP apresentado no material, o fato de o sistema estar conectado a outros sistemas como e-commerce, CRM e contabilidade, que precisariam ser reconectados em caso de troca de fornecedor, exemplifica qual tipo de custo do lock-in?",
+  alternativas: [
+    {letra:"a", texto:"Custo de aprendizado, pois a equipe já sabe operar o sistema atual.", correta:false,
+      feedback:"Incorreto: o custo de aprendizado no material refere-se ao fato de que \"todo o time já sabe operar o sistema atual; trocar significa retreinar\", não à conexão do SAP com outros sistemas.",
+      premissa:"Confundir o custo de integração com o custo de aprendizado descrito no mesmo exemplo."},
+    {letra:"b", texto:"Custo de dados, pois há anos de histórico armazenado no formato do SAP.", correta:false,
+      feedback:"Incorreto: o custo de dados no material refere-se aos \"anos de histórico armazenado no formato do SAP\" e ao risco da migração desses dados, não à conexão com outros sistemas.",
+      premissa:"Confundir o custo de integração com o custo de dados descrito no mesmo exemplo."},
+    {letra:"c", texto:"Custo operacional, pois parar a operação da empresa durante a migração é um custo elevado.", correta:false,
+      feedback:"Incorreto: o custo operacional no material refere-se ao risco de \"parar ou arriscar parar a operação da empresa durante a migração\", não especificamente à reconexão com outros sistemas.",
+      premissa:"Confundir o custo de integração com o custo operacional descrito no mesmo exemplo."},
+    {letra:"d", texto:"Custo financeiro direto, referente a uma nova licença e nova implementação.", correta:false,
+      feedback:"Incorreto: o custo financeiro direto no material refere-se a \"nova licença, nova implementação\", não à necessidade de reconectar sistemas como e-commerce, CRM e contabilidade.",
+      premissa:"Confundir o custo de integração com o custo financeiro direto descrito no mesmo exemplo."},
+    {letra:"e", texto:"Custo de integração, pois o SAP está conectado a outros sistemas que precisariam ser reconectados.", correta:true,
+      feedback:"Correto: o material atribui exatamente essa situação ao \"Custo de integração\": \"o SAP provavelmente está conectado a outros sistemas como e-commerce, CRM e contabilidade, que precisariam ser reconectados.\""}
+  ]
+},
+{
+  aula: "Aula 06",
+  tema: "Bundling (Venda em Pacotes)",
+  referencia: "Aula 06 (material atualizado) — Princípio 3 da Economia da Informação (Varian, 2003): \"Bundling (venda em pacotes)\".",
+  pergunta: "Segundo o material, qual é o objetivo do Bundling (venda em pacotes) de produtos digitais?",
+  alternativas: [
+    {letra:"a", texto:"Reduzir o custo marginal de produção de um bem de informação até um valor próximo de zero.", correta:false,
+      feedback:"Incorreto: custo marginal próximo de zero é uma característica dos bens de informação em geral, não o objetivo do bundling.",
+      premissa:"Confundir o objetivo do bundling com a característica de custo marginal quase zero dos bens de informação."},
+    {letra:"b", texto:"Aumentar a interoperabilidade entre ecossistemas concorrentes, como Apple, Google e Microsoft entre si.", correta:false,
+      feedback:"Incorreto: essa questão é discutida no material na seção sobre competição entre ecossistemas, não como objetivo do bundling.",
+      premissa:"Confundir o objetivo do bundling com a discussão sobre competição entre ecossistemas."},
+    {letra:"c", texto:"Padronizar formatos técnicos entre concorrentes do mercado, como ocorreu com o USB-C.", correta:false,
+      feedback:"Incorreto: essa descrição corresponde à padronização/guerra de padrões no material, não ao bundling.",
+      premissa:"Confundir o objetivo do bundling com o conceito de padronização."},
+    {letra:"d", texto:"Eliminar switching costs, facilitando a troca de fornecedor pelo próprio cliente.", correta:false,
+      feedback:"Incorreto: o material não relaciona o bundling à eliminação de switching costs; pelo contrário, vender produtos em pacote tende a aumentar a permanência do cliente no ecossistema do fornecedor.",
+      premissa:"Atribuir ao bundling o objetivo de eliminar switching costs, quando o material não faz essa relação."},
+    {letra:"e", texto:"Aumentar o valor percebido, reduzir a comparação de preços e elevar a receita média por cliente (ex.: Microsoft 365).", correta:true,
+      feedback:"Correto: essa é exatamente a explicação do objetivo do bundling apresentada no material."}
+  ]
+}
+
+];
+
+// ===================== MOTOR DO EXERCÍCIO =====================
+let atual = 0;
+let respostas = []; // {aula, tema, pergunta, letra, correta, premissa, referencia}
+
+const elIntro = document.getElementById('intro');
+const elQuiz = document.getElementById('quiz');
+const elFinal = document.getElementById('final');
+const elMeta = document.getElementById('q-meta');
+const elText = document.getElementById('q-text');
+const elOptions = document.getElementById('q-options');
+const elFeedback = document.getElementById('q-feedback');
+const elProgressLabel = document.getElementById('progress-label');
+const elProgressFill = document.getElementById('progress-fill');
+const btnNext = document.getElementById('btn-next');
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  atual = 0;
+  respostas = [];
+  showScreen('quiz');
+  renderPergunta();
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+  atual = 0;
+  respostas = [];
+  showScreen('quiz');
+  renderPergunta();
+});
+
+btnNext.addEventListener('click', () => {
+  atual++;
+  if (atual >= perguntas.length) {
+    renderFinal();
+    showScreen('final');
+  } else {
+    renderPergunta();
+  }
+});
+
+function showScreen(id){
+  [elIntro, elQuiz, elFinal].forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderPergunta(){
+  const p = perguntas[atual];
+  elMeta.textContent = p.aula + " · " + p.tema;
+  elText.textContent = p.pergunta;
+  elOptions.innerHTML = '';
+  elOptions.dataset.locked = 'false';
+  elFeedback.className = 'feedback';
+  elFeedback.innerHTML = '';
+  btnNext.disabled = true;
+  btnNext.textContent = (atual === perguntas.length - 1) ? 'Ver mapa final' : 'Avançar';
+
+  elProgressLabel.textContent = "Pergunta " + (atual+1) + " de " + perguntas.length;
+  elProgressFill.style.width = (((atual) / perguntas.length) * 100) + "%";
+
+  p.alternativas.forEach(alt => {
+    const div = document.createElement('div');
+    div.className = 'opt';
+    div.innerHTML = '<span class="letra">' + alt.letra + '</span><span class="texto">' + alt.texto + '</span>';
+    div.addEventListener('click', () => escolher(p, alt, div));
+    elOptions.appendChild(div);
+  });
+}
+
+function escolher(pergunta, alternativaEscolhida, divEscolhida){
+  if (elOptions.dataset.locked === 'true') return;
+  elOptions.dataset.locked = 'true';
+
+  const opts = elOptions.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('locked'));
+
+  opts.forEach((o, i) => {
+    const alt = pergunta.alternativas[i];
+    if (alt.letra === alternativaEscolhida.letra) {
+      o.classList.add(alt.correta ? 'selected-correct' : 'selected-wrong');
+    } else if (!alt.correta) {
+      o.classList.add('dim');
+    }
+  });
+
+  elFeedback.className = 'feedback show ' + (alternativaEscolhida.correta ? 'ok' : 'bad');
+  elFeedback.innerHTML = '<span class="tag">' + (alternativaEscolhida.correta ? 'Resposta correta' : 'Premissa quebrada') + '</span>' + alternativaEscolhida.feedback;
+
+  respostas.push({
+    aula: pergunta.aula,
+    tema: pergunta.tema,
+    pergunta: pergunta.pergunta,
+    letra: alternativaEscolhida.letra,
+    texto: alternativaEscolhida.texto,
+    correta: alternativaEscolhida.correta,
+    premissa: alternativaEscolhida.premissa || null,
+    referencia: pergunta.referencia || null
+  });
+
+  btnNext.disabled = false;
+  elProgressFill.style.width = (((atual+1) / perguntas.length) * 100) + "%";
+}
+
+function renderFinal(){
+  const container = document.getElementById('final-content');
+  container.innerHTML = '';
+
+  const quebradas = respostas.filter(r => !r.correta);
+
+  if (quebradas.length === 0) {
+    container.innerHTML = '<div class="sem-quebra">Nenhuma premissa foi quebrada nesta rodada: em todas as perguntas, a justificativa escolhida esteve alinhada ao material. Ainda assim, vale revisar os temas das cinco aulas para consolidar os conceitos.</div>';
+    return;
+  }
+
+  const porAula = {};
+  quebradas.forEach(r => {
+    if (!porAula[r.aula]) porAula[r.aula] = [];
+    porAula[r.aula].push(r);
+  });
+
+  Object.keys(porAula).sort().forEach(aula => {
+    const grupo = document.createElement('div');
+    grupo.className = 'grupo-aula';
+    const h3 = document.createElement('h3');
+    h3.textContent = aula;
+    grupo.appendChild(h3);
+
+    porAula[aula].forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'item-premissa';
+      const refTexto = r.referencia ? r.referencia : (aula + ' — seção "' + r.tema + '"');
+      item.innerHTML = '<span class="qtag">' + r.tema + '</span>' +
+        '<strong>Pergunta:</strong> ' + r.pergunta + '<br>' +
+        '<strong>Premissa quebrada:</strong> ' + r.premissa +
+        '<span class="releitura">Releia: ' + refTexto + '.</span>';
+      grupo.appendChild(item);
+    });
+
+    container.appendChild(grupo);
+  });
+}
+</script>
+</body>
+</html>
