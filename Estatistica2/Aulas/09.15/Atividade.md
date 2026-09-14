@@ -376,3 +376,90 @@ ok entendi
 > 2. Porque μ representa o desvio-padrão da amostra, não a média
 > 3. Porque a média amostral sempre precisa ser igual ao valor de referência
 > 4. Porque H0 deve sempre usar o menor valor disponível nos dados
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 1. Porque H0 fala do parâmetro populacional, não do valor observado na amostra
+> Correct answer: 1
+>
+> H0 é uma afirmação sobre o parâmetro populacional: aqui, a média verdadeira μ da rede. A média amostral já foi observada e vale 45,696; ela é usada como evidência para avaliar se μ = 50 continua plausível.
+
+
+> [!abstract] PI
+
+Boa. Esse nó está sólido.
+
+## Nó 2 — H0 é o “mundo de referência”
+
+### 1. Motivo
+
+Agora vem a pergunta natural:
+
+> Como decidir se 45,696 é “suficientemente diferente” de 50?
+
+Porque só olhar a diferença bruta não basta.
+
+Diferença observada:
+
+> 45,696 - 50 = -4,304
+
+Mas essa diferença pode ser:
+
+- uma oscilação normal da amostra;
+- ou evidência real de que o NPS médio da rede está abaixo de 50.
+
+Para separar essas duas possibilidades, criamos um mundo hipotético.
+
+---
+
+### 2. Verdade fundamental
+
+**A hipótese nula H0 é o mundo de referência que fingimos ser verdadeiro para medir se a amostra ficou estranha demais.**
+
+No teste do NPS:
+
+> H0: μ = 50
+
+Tradução:
+
+> “Vamos supor que a média verdadeira da rede seja 50.”
+
+Aí perguntamos:
+
+> Se μ fosse mesmo 50, seria comum observar uma média amostral tão baixa quanto 45,696?
+
+Se fosse comum, não rejeitamos H0.  
+Se fosse raro demais, rejeitamos H0.
+
+---
+
+### 3. Conexão
+
+Esse é o caminho para o valor-p.
+
+A lógica é:
+
+1. Assumo H0 como referência.
+2. Vejo o resultado da amostra.
+3. Meço quão estranho esse resultado seria nesse mundo.
+4. Se for estranho demais, rejeito H0.
+
+No seu caso:
+
+- média de referência: 50
+- média observada: 45,696
+- erro-padrão: 1,210
+- estatística t: -3,558
+- valor-p: 0,00045
+
+A estatística t = -3,558 quer dizer, em linguagem simples:
+
+> A média observada ficou 3,558 erros-padrão abaixo do valor esperado sob H0.
+
+Isso é bem longe. Por isso o valor-p é pequeno.
+
+Frase oral segura:
+
+> “A hipótese nula funciona como referência: eu assumo μ = 50 e verifico se a média amostral observada seria plausível nesse cenário.”
+
+Agora fixa isso.
