@@ -362,3 +362,17 @@ Frase oral segura:
 > “A amostra apresentou NPS médio de 45,696, mas o teste avalia se há evidência suficiente para concluir que a média populacional difere de 50.”
 
 Agora vamos confirmar se esse primeiro nó ficou sólido.
+
+
+> [!quote] YOU
+
+ok entendi
+
+
+> [!question] Quiz
+> No teste t do NPS, por que H0 é μ = 50, e não média amostral = 50?
+>
+> 1. Porque H0 fala do parâmetro populacional, não do valor observado na amostra
+> 2. Porque μ representa o desvio-padrão da amostra, não a média
+> 3. Porque a média amostral sempre precisa ser igual ao valor de referência
+> 4. Porque H0 deve sempre usar o menor valor disponível nos dados
