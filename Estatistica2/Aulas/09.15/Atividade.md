@@ -1515,3 +1515,161 @@ ok
 > 2. O canal de atendimento determina obrigatoriamente o porte da corretora
 > 3. O porte causa diretamente a escolha do canal de atendimento
 > 4. Existe associação entre porte e canal, mas o teste não prova causalidade
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 4. Existe associação entre porte e canal, mas o teste não prova causalidade
+> Correct answer: 4
+>
+> Rejeitar H0 no qui-quadrado de independência indica que as variáveis não se comportam como independentes: há associação estatística. Mas o teste não estabelece mecanismo causal nem direção causal.
+
+
+> [!abstract] PI
+
+Perfeito. Agora vamos para a **Análise 4: regressão linear simples**.
+
+## Nó 7 — Regressão é uma reta para prever Y usando X
+
+### 1. Motivo
+
+Agora a pergunta de negócio é:
+
+> “Corretoras com maior taxa de renovação tendem a ter NPS maior?”
+
+Temos duas variáveis quantitativas:
+
+- **Y:** NPS
+- **X:** taxa de renovação
+
+A regressão linear simples tenta resumir essa relação com uma reta.
+
+---
+
+## 2. Verdade fundamental
+
+**Regressão linear simples ajusta uma reta para prever uma variável Y a partir de uma variável X.**
+
+A forma geral é:
+
+> Y previsto = intercepto + coeficiente angular × X
+
+No seu caso:
+
+> NPS previsto = -86,856 + 1,686 × taxa de renovação
+
+---
+
+## 3. O que é o coeficiente angular?
+
+O coeficiente angular é:
+
+> 1,686
+
+Ele responde:
+
+> “Quando X aumenta 1 unidade, quanto o Y previsto muda?”
+
+Aqui:
+
+> cada aumento de 1 ponto percentual na taxa de renovação está associado a aumento de aproximadamente 1,686 ponto no NPS previsto.
+
+Exemplo:
+
+Se duas corretoras diferem em 10 pontos percentuais de renovação, o modelo prevê diferença média de:
+
+> 10 × 1,686 = 16,86 pontos de NPS
+
+Frase oral:
+
+> “O coeficiente angular positivo indica que maior taxa de renovação está associada a maior NPS.”
+
+---
+
+## 4. O que é o intercepto?
+
+O intercepto é:
+
+> -86,856
+
+Ele é o valor previsto de Y quando X = 0.
+
+Aqui seria:
+
+> NPS previsto = -86,856 quando taxa de renovação = 0
+
+Mas cuidado: talvez taxa de renovação 0% nem seja um cenário relevante na base.
+
+Então diga:
+
+> “O intercepto compõe a equação da reta, mas pode não ter interpretação prática relevante se X = 0 estiver fora da faixa observada.”
+
+---
+
+## 5. Teste da regressão
+
+Na regressão, o teste principal é sobre o coeficiente angular.
+
+H0:
+
+> β1 = 0
+
+Tradução:
+
+> “Não há relação linear entre taxa de renovação e NPS.”
+
+H1:
+
+> β1 ≠ 0
+
+Tradução:
+
+> “Há relação linear entre taxa de renovação e NPS.”
+
+Resultado:
+
+> t = 25,289  
+> valor-p ≈ 2,22 × 10^-69
+
+Esse valor-p é praticamente zero.
+
+Então rejeitamos H0.
+
+Conclusão:
+
+> “A inclinação é estatisticamente significativa. Há evidência de relação linear positiva entre taxa de renovação e NPS.”
+
+---
+
+## 6. Correlação e R²
+
+Correlação:
+
+> r = 0,854
+
+Interpretação:
+
+> relação linear positiva e forte.
+
+R²:
+
+> 72,88%
+
+Interpretação:
+
+> o modelo explica 72,88% da variação observada do NPS.
+
+Frase oral:
+
+> “A correlação de 0,854 indica associação linear positiva forte. O R² de 72,88% indica que a taxa de renovação explica cerca de 72,88% da variação observada do NPS no modelo linear.”
+
+Cuidado final:
+
+> associação não prova causalidade.
+
+Não diga:
+
+> “Renovação causa NPS.”
+
+Diga:
+
+> “Renovação está fortemente associada ao NPS.”
