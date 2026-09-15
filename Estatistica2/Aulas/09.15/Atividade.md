@@ -842,3 +842,161 @@ Conclusão oral:
 > “Embora a proporção amostral de certificadas seja 44,17%, ligeiramente abaixo da meta de 45%, essa diferença é muito pequena em termos estatísticos. Como o valor-p unilateral é 0,398, maior que 5%, não há evidência suficiente para concluir que a proporção verdadeira esteja abaixo da meta.”
 
 Essa frase é excelente para a banca.
+
+
+> [!quote] YOU
+
+como chegou no p unilateral e no zscore?
+
+
+> [!abstract] PI
+
+Boa. É exatamente o mesmo raciocínio do teste t, só trocando “média” por “proporção”.
+
+Queremos testar:
+
+> H0: p = 0,45  
+> H1: p < 0,45
+
+Ou seja:
+
+> “A proporção verdadeira de certificadas está abaixo de 45%?”
+
+---
+
+## 1. Primeiro: proporção amostral
+
+Temos:
+
+> 106 certificadas em 240 corretoras
+
+Então:
+
+> p̂ = 106 / 240  
+> p̂ = 0,4417
+
+Em porcentagem:
+
+> 44,17%
+
+A diferença em relação à meta é:
+
+> 0,4417 - 0,45 = -0,0083
+
+Ou seja, a amostra ficou **0,83 ponto percentual abaixo** da meta.
+
+Mas precisamos saber se isso é muito ou pouco.
+
+---
+
+## 2. Erro-padrão da proporção
+
+No teste de hipótese para proporção, o erro-padrão é calculado usando a proporção da H0, não a proporção amostral.
+
+Fórmula:
+
+> erro-padrão = raiz de [p0 × (1 - p0) / n]
+
+Aqui:
+
+> p0 = 0,45  
+> n = 240
+
+Então:
+
+> erro-padrão = raiz de [0,45 × 0,55 / 240]
+
+Calculando:
+
+> 0,45 × 0,55 = 0,2475
+
+> 0,2475 / 240 = 0,00103125
+
+> raiz de 0,00103125 ≈ 0,0321
+
+Então:
+
+> erro-padrão ≈ 0,0321
+
+Interpretação:
+
+> “Se a proporção verdadeira fosse 45%, seria normal a proporção amostral variar em torno de 0,032, ou 3,21 pontos percentuais.”
+
+---
+
+## 3. Estatística z
+
+Agora padronizamos a diferença:
+
+> z = (proporção amostral - proporção da H0) / erro-padrão
+
+Então:
+
+> z = (0,4417 - 0,45) / 0,0321
+
+> z = -0,0083 / 0,0321
+
+> z ≈ -0,259
+
+Interpretação:
+
+> “A proporção amostral ficou só 0,259 erro-padrão abaixo da meta.”
+
+Isso é muito perto de zero. Logo, a amostra quase não se afastou da meta.
+
+---
+
+## 4. Valor-p unilateral
+
+Como a hipótese alternativa é:
+
+> H1: p < 0,45
+
+o teste é **unilateral à esquerda**.
+
+Então o valor-p pergunta:
+
+> “Se a proporção verdadeira fosse 45%, qual a chance de observar uma proporção amostral tão baixa quanto 44,17% ou ainda menor?”
+
+Em termos do z:
+
+> valor-p = P(Z ≤ -0,259)
+
+Consultando tabela normal ou software:
+
+> P(Z ≤ -0,259) ≈ 0,398
+
+Então:
+
+> valor-p unilateral ≈ 0,398
+
+Interpretação simples:
+
+> “Se a proporção verdadeira fosse mesmo 45%, haveria cerca de 39,8% de chance de obter uma amostra tão baixa quanto essa ou menor.”
+
+Isso não é raro. Portanto, não é evidência forte contra H0.
+
+---
+
+## 5. Por que não rejeita?
+
+Com α = 5%:
+
+> valor-p = 0,398  
+> α = 0,05
+
+Como:
+
+> 0,398 > 0,05
+
+decisão:
+
+> não rejeitar H0.
+
+Conclusão:
+
+> “Apesar de a amostra estar numericamente abaixo da meta, a diferença é pequena demais para concluir estatisticamente que a proporção verdadeira esteja abaixo de 45%.”
+
+Frase oral boa:
+
+> “O z de -0,259 mostra que a proporção amostral está apenas 0,259 erro-padrão abaixo da meta. Como a cauda esquerda associada a esse z é 0,398, maior que 5%, não rejeitamos H0.”
