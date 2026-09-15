@@ -1000,3 +1000,310 @@ Conclusão:
 Frase oral boa:
 
 > “O z de -0,259 mostra que a proporção amostral está apenas 0,259 erro-padrão abaixo da meta. Como a cauda esquerda associada a esse z é 0,398, maior que 5%, não rejeitamos H0.”
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> No teste da proporção certificada, o que significa z = -0,259?
+>
+> 1. O número de certificadas ficou 0,259 abaixo de 106
+> 2. A probabilidade de H0 ser verdadeira é 25,9%
+> 3. A proporção amostral ficou 25,9 pontos percentuais abaixo de 45%
+> 4. A proporção amostral ficou 0,259 erro-padrão abaixo de 45%
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 4. A proporção amostral ficou 0,259 erro-padrão abaixo de 45%
+> Correct answer: 4
+>
+> O z padroniza a diferença entre a proporção amostral e a proporção de referência usando o erro-padrão. Como z = -0,259, a amostra ficou abaixo da meta, mas só 0,259 erro-padrão abaixo — uma distância muito pequena.
+
+
+> [!abstract] PI
+
+Boa.
+
+Agora vamos fechar a parte que a banca pode perguntar: **o que mudaria no teste bicaudal?**
+
+## Nó 5 — Unilateral vs bicaudal
+
+### 1. Motivo
+
+O seu enunciado original pergunta:
+
+> “A proporção está abaixo da meta de 45%?”
+
+A palavra **abaixo** já define uma direção.
+
+Mas a banca pode perguntar:
+
+> “E se o teste fosse bicaudal?”
+
+Aí a pergunta mudaria.
+
+---
+
+## 2. Teste unilateral
+
+No seu teste atual:
+
+> H0: p = 0,45  
+> H1: p < 0,45
+
+A hipótese alternativa só se importa com um lado:
+
+> abaixo de 45%.
+
+Por isso o valor-p olha só a cauda esquerda.
+
+Como:
+
+> z = -0,259
+
+O valor-p unilateral é:
+
+> P(Z ≤ -0,259) ≈ 0,398
+
+---
+
+## 3. Teste bicaudal
+
+No teste bicaudal, a pergunta seria:
+
+> “A proporção verdadeira é diferente de 45%?”
+
+Não importa se é abaixo ou acima.
+
+As hipóteses seriam:
+
+> H0: p = 0,45  
+> H1: p ≠ 0,45
+
+Agora o teste olha os dois lados:
+
+- proporção muito abaixo de 45%;
+- proporção muito acima de 45%.
+
+Por isso, com o mesmo z = -0,259, o valor-p bicaudal fica aproximadamente:
+
+> 2 × 0,398 = 0,796
+
+No seu gabarito:
+
+> valor-p bicaudal ≈ 0,795
+
+---
+
+## 4. O que muda e o que não muda?
+
+Não muda:
+
+- n = 240;
+- certificadas = 106;
+- proporção amostral = 44,17%;
+- z = -0,259.
+
+Muda:
+
+- a hipótese alternativa;
+- a cauda considerada;
+- o valor-p.
+
+Resumo:
+
+> unilateral: H1: p < 0,45 → valor-p ≈ 0,398  
+> bicaudal: H1: p ≠ 0,45 → valor-p ≈ 0,795
+
+Nos dois casos:
+
+> valor-p > 0,05
+
+Então a decisão continua:
+
+> não rejeitar H0.
+
+Frase oral segura:
+
+> “No teste bicaudal, a hipótese alternativa deixaria de ser p < 0,45 e passaria a ser p ≠ 0,45. O z observado continuaria -0,259, mas o valor-p passaria a considerar as duas caudas, ficando aproximadamente 0,795. A conclusão continuaria sendo não rejeitar H0.”
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Se a banca perguntar “o que mudaria se o teste da proporção fosse bicaudal?”, qual resposta está correta?
+>
+> 1. A proporção amostral mudaria para 45% e o z viraria zero
+> 2. A H1 continuaria p < 0,45 e o valor-p ficaria aproximadamente 0,199
+> 3. A H1 viraria p ≠ 0,45 e o valor-p ficaria aproximadamente 0,795
+> 4. O número de certificadas mudaria de 106 para 108
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 3. A H1 viraria p ≠ 0,45 e o valor-p ficaria aproximadamente 0,795
+> Correct answer: 3
+>
+> No teste bicaudal, a pergunta passa a ser se a proporção verdadeira é diferente de 45%, então H1: p ≠ 0,45. A amostra e o z não mudam; muda apenas a cauda considerada. Com z = -0,259, o valor-p bicaudal fica aproximadamente 0,795.
+
+
+> [!abstract] PI
+
+Perfeito. Agora vamos para a **Análise 3: qui-quadrado de independência**.
+
+## Nó 6 — Qui-quadrado testa associação entre categorias
+
+### 1. Motivo
+
+Aqui a pergunta é diferente.
+
+Não estamos testando média.  
+Não estamos testando proporção.
+
+Agora temos duas variáveis categóricas:
+
+1. **Porte da corretora**
+   - Grande
+   - Média
+   - Pequena
+
+2. **Canal de atendimento**
+   - Digital
+   - Híbrido
+   - Presencial
+
+A pergunta é:
+
+> “O canal de atendimento está associado ao porte da corretora?”
+
+Em linguagem de negócio:
+
+> “Corretoras grandes, médias e pequenas usam canais em proporções diferentes?”
+
+---
+
+## 2. Verdade fundamental
+
+**O teste qui-quadrado de independência compara o que foi observado com o que seria esperado se não houvesse associação.**
+
+H0:
+
+> porte e canal são independentes.
+
+Tradução:
+
+> “O padrão de canal seria o mesmo para grandes, médias e pequenas.”
+
+H1:
+
+> porte e canal estão associados.
+
+Tradução:
+
+> “O padrão de canal muda conforme o porte da corretora.”
+
+---
+
+## 3. Tabela observada
+
+Você observou:
+
+| Porte | Digital | Híbrido | Presencial |
+|---|---:|---:|---:|
+| Grandes | 41 | 24 | 15 |
+| Médias | 22 | 35 | 23 |
+| Pequenas | 15 | 15 | 50 |
+
+O padrão visual já sugere algo:
+
+- Grandes: mais digitais.
+- Médias: mais híbridas.
+- Pequenas: mais presenciais.
+
+Mas a estatística pergunta:
+
+> “Esse padrão é forte o suficiente para rejeitar independência?”
+
+---
+
+## 4. Como o qui-quadrado pensa
+
+Ele cria uma tabela “ideal” esperada sob H0:
+
+> “Se porte e canal fossem independentes, quantas corretoras eu esperaria em cada célula?”
+
+A fórmula da frequência esperada é:
+
+> esperado = total da linha × total da coluna / total geral
+
+Depois compara:
+
+> observado vs esperado
+
+A estatística é:
+
+> χ² = soma de (observado - esperado)² / esperado
+
+Intuição:
+
+- se observado e esperado forem parecidos, χ² fica pequeno;
+- se forem muito diferentes, χ² fica grande.
+
+No seu caso:
+
+> χ² = 44,990
+
+Isso é grande.
+
+---
+
+## 5. Graus de liberdade
+
+A tabela é 3 × 3.
+
+Fórmula:
+
+> gl = (número de linhas - 1) × (número de colunas - 1)
+
+Então:
+
+> gl = (3 - 1) × (3 - 1)  
+> gl = 2 × 2  
+> gl = 4
+
+---
+
+## 6. Valor-p e decisão
+
+Resultado:
+
+> valor-p ≈ 0,000000004
+
+Isso é muito menor que:
+
+> α = 0,05
+
+Então:
+
+> rejeitamos H0.
+
+Conclusão oral:
+
+> “Há evidência estatística de associação entre porte da corretora e canal de atendimento. O padrão observado indica que grandes corretoras tendem a usar mais o canal digital, médias o híbrido e pequenas o presencial.”
+
+Cuidado importante:
+
+> associação não prova causalidade.
+
+Não diga:
+
+> “O porte causa o canal.”
+
+Diga:
+
+> “Existe associação entre porte e canal.”
