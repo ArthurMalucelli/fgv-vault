@@ -615,3 +615,103 @@ Com seus números:
 Frase perfeita para arguição:
 
 > “Primeiro calculamos o erro-padrão dividindo o desvio-padrão pela raiz do tamanho da amostra. Depois calculamos a estatística t, que mede quantos erros-padrão a média observada está distante de 50. Como t = -3,558 gerou valor-p bicaudal de 0,00045, menor que 5%, rejeitamos H0 e concluímos que o NPS médio difere de 50, estando abaixo do patamar de referência.”
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> No teste t do NPS, qual é a interpretação correta de t = -3,558?
+>
+> 1. A média amostral ficou 3,558 erros-padrão abaixo de 50
+> 2. O NPS médio ficou 3,558 pontos percentuais abaixo de 50
+> 3. O desvio-padrão da amostra é 3,558
+> 4. A chance de H0 ser verdadeira é 3,558%
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 1. A média amostral ficou 3,558 erros-padrão abaixo de 50
+> Correct answer: 1
+>
+> A estatística t padroniza a diferença entre média observada e média hipotética usando o erro-padrão. Como t é negativo, a média observada está abaixo de 50; como o módulo é 3,558, ela está 3,558 erros-padrão distante do valor de referência.
+
+
+> [!abstract] PI
+
+Boa. Isso está entendido.
+
+Próximo nó: **valor-p e decisão**.
+
+## Nó 3 — Valor-p não é “chance de H0 ser verdadeira”
+
+### 1. Motivo
+
+Na arguição, uma pergunta muito provável é:
+
+> “O que significa esse valor-p de 0,00045?”
+
+Aqui muita gente erra dizendo:
+
+> “Há 0,045% de chance de H0 ser verdadeira.”
+
+Isso está errado.
+
+---
+
+### 2. Ideia correta
+
+O valor-p sempre começa com uma suposição:
+
+> “Supondo que H0 seja verdadeira...”
+
+No teste do NPS:
+
+> “Supondo que a média verdadeira fosse 50...”
+
+Aí o valor-p pergunta:
+
+> “Qual seria a chance de observar um resultado tão extremo quanto o que observei?”
+
+No seu caso:
+
+> valor-p = 0,00045
+
+Tradução:
+
+> “Se o NPS médio verdadeiro fosse 50, seria muito raro observar uma média amostral tão distante de 50 quanto 45,696.”
+
+Mais precisamente:
+
+> “A probabilidade seria aproximadamente 0,045%.”
+
+---
+
+### 3. Decisão com α = 5%
+
+O nível de significância é:
+
+> α = 0,05
+
+Regra:
+
+> se valor-p < α, rejeito H0.
+
+Aqui:
+
+> 0,00045 < 0,05
+
+Então:
+
+> rejeitamos H0.
+
+Conclusão no contexto:
+
+> “Há evidência estatística de que o NPS médio da rede difere de 50. Como a média amostral foi 45,696, a evidência aponta que ele está abaixo do patamar de referência.”
+
+Resposta oral curta:
+
+> “O valor-p de 0,00045 indica que, se a média verdadeira fosse 50, seria extremamente improvável observar uma média tão distante quanto a obtida. Como esse valor-p é menor que 5%, rejeitamos H0.”
+
+Isso fecha a primeira análise.
