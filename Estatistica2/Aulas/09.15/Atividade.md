@@ -1307,3 +1307,118 @@ Não diga:
 Diga:
 
 > “Existe associação entre porte e canal.”
+
+
+> [!quote] YOU
+
+como chegou no valor-p?
+
+
+> [!abstract] PI
+
+No qui-quadrado, o valor-p vem de uma pergunta parecida com os outros testes:
+
+> Se H0 fosse verdadeira — ou seja, se porte e canal fossem independentes — qual seria a chance de observar uma diferença entre “observado” e “esperado” tão grande quanto a que vimos?
+
+---
+
+## 1. Primeiro: montamos o “esperado” sob H0
+
+Tabela observada:
+
+| Porte | Digital | Híbrido | Presencial | Total |
+|---|---:|---:|---:|---:|
+| Grandes | 41 | 24 | 15 | 80 |
+| Médias | 22 | 35 | 23 | 80 |
+| Pequenas | 15 | 15 | 50 | 80 |
+| Total | 78 | 74 | 88 | 240 |
+
+Se porte e canal fossem independentes, o esperado seria:
+
+> esperado = total da linha × total da coluna / total geral
+
+Exemplo para **Grandes + Digital**:
+
+> esperado = 80 × 78 / 240 = 26
+
+Ou seja: se não houvesse associação, esperaríamos 26 grandes no digital. Mas observamos 41.
+
+Como todas as linhas têm total 80, os esperados ficam iguais em cada linha:
+
+| Porte | Digital | Híbrido | Presencial |
+|---|---:|---:|---:|
+| Grandes | 26,00 | 24,67 | 29,33 |
+| Médias | 26,00 | 24,67 | 29,33 |
+| Pequenas | 26,00 | 24,67 | 29,33 |
+
+---
+
+## 2. Depois calculamos o qui-quadrado
+
+A fórmula é:
+
+> χ² = soma de (observado - esperado)² / esperado
+
+Exemplo em **Grandes + Digital**:
+
+> observado = 41  
+> esperado = 26
+
+Contribuição dessa célula:
+
+> (41 - 26)² / 26  
+> = 225 / 26  
+> ≈ 8,65
+
+Fazendo isso para as 9 células e somando, chegamos a:
+
+> χ² = 44,990
+
+Intuição:
+
+> Quanto maior o χ², maior a distância entre a tabela observada e a tabela que esperaríamos se não houvesse associação.
+
+---
+
+## 3. Graus de liberdade
+
+Tabela 3 × 3:
+
+> gl = (3 - 1) × (3 - 1) = 4
+
+Então agora perguntamos à distribuição qui-quadrado:
+
+> Qual é a chance de obter χ² ≥ 44,990 com 4 graus de liberdade?
+
+Essa chance é o valor-p.
+
+---
+
+## 4. Valor-p
+
+Usando tabela ou software:
+
+> P(χ² com 4 gl ≥ 44,990) ≈ 0,000000004
+
+Ou seja:
+
+> valor-p ≈ 4 × 10⁻⁹
+
+Isso é praticamente zero.
+
+Como:
+
+> 0,000000004 < 0,05
+
+rejeitamos H0.
+
+---
+
+## Frase oral perfeita
+
+> “O valor-p vem da distribuição qui-quadrado com 4 graus de liberdade. Primeiro calculamos as frequências esperadas sob a hipótese de independência, depois somamos as diferenças padronizadas entre observado e esperado, chegando a χ² = 44,990. A probabilidade de obter um valor tão alto ou maior se as variáveis fossem independentes é aproximadamente 0,000000004, por isso rejeitamos H0.”
+
+
+> [!quote] YOU
+
+ok entendi
