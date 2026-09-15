@@ -2141,3 +2141,17 @@ Resposta curta que você deve guardar:
 > “O qui-quadrado compara as frequências observadas com as frequências esperadas sob independência. Como a diferença foi grande e o valor-p foi praticamente zero, rejeitamos H0 e concluímos que há associação entre porte e canal.”
 
 Próxima pergunta da banca.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Simulado oral 6. A banca pergunta: “Na regressão, o que significa o coeficiente angular 1,686?”
+>
+> 1. Cada 1 ponto percentual a mais na renovação se associa a cerca de 1,686 ponto a mais no NPS previsto
+> 2. Quando a renovação é zero, o NPS previsto é 1,686
+> 3. A correlação entre renovação e NPS é 1,686
+> 4. A regressão explica 1,686% da variação do NPS
