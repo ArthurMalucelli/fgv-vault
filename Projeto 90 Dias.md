@@ -87,6 +87,46 @@ Responder no formato:
 - Solicitados dados separados dos dois dias sobre sono, proteína, treino previsto (quarta: cardio leve ou descanso; quinta: tênis), estudo profundo, recuperação ativa em até 24h das aulas, leitura de *Make It Stick* com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
 - Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido.
 
+### 29/08/2026 às 20h — cobrança enviada
+- Janela avaliada: 28–29/08/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (sexta: musculação de superiores; sábado: musculação de inferiores), estudo profundo, recuperação ativa em até 24h das aulas, leitura de *Make It Stick* com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido.
+
+### 31/08/2026 às 20h — cobrança enviada
+- Janela avaliada: 30–31/08/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (domingo: caminhada/cardio leve e revisão semanal; segunda: musculação de superiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura de *Make It Stick* com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido.
+
+### 01/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 31/08–01/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (segunda: musculação de superiores; terça: musculação de inferiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura de *Make It Stick* com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido.
+
+### 03/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 02–03/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (quarta: cardio leve de 30–40 min ou descanso; quinta: tênis), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 05/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 04–05/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (sexta: musculação de superiores; sábado: musculação de inferiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 07/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 06–07/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (domingo: caminhada/cardio leve e revisão semanal; segunda: musculação de superiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 09/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 08–09/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (terça: musculação de inferiores; quarta: cardio leve de 30–40 min ou descanso), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 11/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 10–11/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (quinta: tênis; sexta: musculação de superiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
 ## Início
 - 23/08/2026: iniciou *Make It Stick* e terminou o capítulo 1.
 - Primeiro check-in automático: 25/08/2026 às 20h.
@@ -117,3 +157,13 @@ Responder no formato:
 **Nota 3–2–1 concluída:** três ideias recuperadas; conexões feitas com o método de estudo já usado na FGV e com seu problema de consistência; ação convertida em protocolo mensurável.
 
 **Percepção ao terminar:** Arthur gostou da leitura e conseguiu conectar as ideias com experiências próprias. Isso indica elaboração e relevância pessoal, mas será validado por uma tentativa de recuperação espaçada no dia seguinte, sem reler as notas primeiro.
+
+### 13/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 12–13/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (sábado: musculação de inferiores; domingo: caminhada/cardio leve e revisão semanal), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 15/09/2026 às 20h — cobrança enviada
+- Janela avaliada: 14–15/09/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (segunda: musculação de superiores; terça: musculação de inferiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
