@@ -1997,3 +1997,147 @@ Resposta oral ideal:
 > “Porque a média amostral pode variar por acaso. O teste verifica se a distância entre 45,696 e 50 é grande em relação ao erro-padrão. Como o valor-p foi 0,00045, menor que 5%, aí sim rejeitamos H0 e concluímos que há evidência de diferença.”
 
 Próxima.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Simulado oral 3. A banca pergunta: “Na proporção de certificadas, por que a conclusão foi não rejeitar H0 se 44,17% é menor que 45%?”
+>
+> 1. Porque 44,17% é matematicamente maior que 45% quando n = 240
+> 2. Porque o teste bicaudal sempre transforma diferenças pequenas em significativas
+> 3. Porque todo resultado abaixo da meta obriga aceitar H0 como verdadeira
+> 4. Porque a diferença é pequena frente à variabilidade amostral e o valor-p 0,398 é maior que 5%
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 4. Porque a diferença é pequena frente à variabilidade amostral e o valor-p 0,398 é maior que 5%
+> Correct answer: 4
+>
+> A amostra está numericamente abaixo da meta, mas a diferença é só 0,83 ponto percentual. O z = -0,259 mostra que essa distância é pequena em termos de erro-padrão, gerando valor-p 0,398. Como 0,398 > 0,05, não há evidência estatística suficiente para concluir que a proporção verdadeira esteja abaixo da meta.
+
+
+> [!abstract] PI
+
+Muito bom.
+
+Resposta oral ideal:
+
+> “Embora 44,17% esteja numericamente abaixo de 45%, a diferença é muito pequena em relação à variabilidade amostral. O z foi -0,259 e o valor-p unilateral foi 0,398, maior que 5%. Então não rejeitamos H0; não há evidência suficiente de que a proporção verdadeira esteja abaixo da meta.”
+
+Próxima.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Simulado oral 4. A banca pergunta: “Qual é a diferença entre o teste unilateral e o bicaudal na análise da proporção?”
+>
+> 1. O unilateral sempre rejeita H0; o bicaudal sempre não rejeita H0
+> 2. O unilateral testa uma direção específica; o bicaudal testa qualquer diferença em relação a 45%
+> 3. O unilateral muda a amostra; o bicaudal muda o número de certificadas
+> 4. O unilateral usa a média do NPS; o bicaudal usa a taxa de renovação
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 2. O unilateral testa uma direção específica; o bicaudal testa qualquer diferença em relação a 45%
+> Correct answer: 2
+>
+> No unilateral da atividade, H1 é p < 0,45: a pergunta é se está abaixo da meta. No bicaudal, H1 seria p ≠ 0,45: a pergunta é se está diferente da meta, tanto abaixo quanto acima. A amostra e o z não mudam; muda a hipótese alternativa e o valor-p.
+
+
+> [!abstract] PI
+
+Excelente.
+
+Resposta oral ideal:
+
+> “No unilateral, a hipótese alternativa tem direção: no caso, p < 0,45, porque queremos saber se está abaixo da meta. No bicaudal, a hipótese seria p ≠ 0,45, então qualquer diferença importaria, tanto abaixo quanto acima. A amostra e o z continuariam os mesmos, mas o valor-p passaria de aproximadamente 0,398 para aproximadamente 0,795.”
+
+Próxima.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Simulado oral 5. A banca pergunta: “O que significa rejeitar H0 no teste qui-quadrado de independência?”
+>
+> 1. Significa que há associação estatística entre porte e canal
+> 2. Significa que todas as frequências observadas são iguais
+> 3. Significa que o NPS médio difere de 50
+> 4. Significa que o porte causa obrigatoriamente o canal
+
+
+> [!failure] Quiz — incorrect ✗
+> Your answer: 2. Significa que todas as frequências observadas são iguais
+> Correct answer: 1
+>
+> No teste qui-quadrado de independência, H0 afirma independência entre as variáveis. Rejeitar H0 significa evidência de que elas não são independentes, isto é, há associação estatística. O teste não prova causalidade.
+
+
+> [!abstract] PI
+
+Esse erro mostra um ponto específico: **qui-quadrado não quer que as frequências sejam todas iguais**.
+
+Ele compara:
+
+> frequências observadas  
+> contra  
+> frequências esperadas se as variáveis fossem independentes
+
+Essas frequências esperadas **não precisam ser iguais em todas as células**. Elas dependem dos totais das linhas e colunas.
+
+No seu caso, rejeitar H0 significa:
+
+> o padrão observado de canais muda conforme o porte da corretora.
+
+Ou seja:
+
+- grandes aparecem mais no digital;
+- médias aparecem mais no híbrido;
+- pequenas aparecem mais no presencial.
+
+A resposta oral segura é:
+
+> “Rejeitar H0 no qui-quadrado indica que porte e canal não são independentes. Portanto, existe associação estatística entre eles. Isso não significa causalidade, apenas que a distribuição dos canais varia conforme o porte.”
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Vamos fixar o qui-quadrado. Sob H0, o que o teste calcula para cada célula da tabela?
+>
+> 1. A frequência que tornaria todas as células iguais
+> 2. A correlação entre porte e taxa de renovação
+> 3. A frequência esperada se porte e canal fossem independentes
+> 4. A média do NPS dentro de cada canal
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 3. A frequência esperada se porte e canal fossem independentes
+> Correct answer: 3
+>
+> No qui-quadrado de independência, a frequência esperada de cada célula é calculada assumindo H0: independência entre as variáveis. Depois comparamos observado contra esperado. O objetivo não é forçar todas as células a serem iguais.
+
+
+> [!abstract] PI
+
+Boa. Agora sim o ponto encaixou.
+
+Resposta curta que você deve guardar:
+
+> “O qui-quadrado compara as frequências observadas com as frequências esperadas sob independência. Como a diferença foi grande e o valor-p foi praticamente zero, rejeitamos H0 e concluímos que há associação entre porte e canal.”
+
+Próxima pergunta da banca.
