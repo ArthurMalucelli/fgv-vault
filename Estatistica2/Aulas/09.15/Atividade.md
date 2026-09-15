@@ -715,3 +715,130 @@ Resposta oral curta:
 > “O valor-p de 0,00045 indica que, se a média verdadeira fosse 50, seria extremamente improvável observar uma média tão distante quanto a obtida. Como esse valor-p é menor que 5%, rejeitamos H0.”
 
 Isso fecha a primeira análise.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Se a banca perguntar “o que significa valor-p = 0,00045 no teste do NPS?”, qual resposta é correta?
+>
+> 1. O erro-padrão do teste é igual a 0,00045
+> 2. Existe 0,045% de chance de a hipótese nula ser verdadeira
+> 3. Existe 0,045% de chance de a média amostral ser exatamente 50
+> 4. Se μ fosse 50, seria muito raro observar uma média tão extrema quanto a obtida
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 4. Se μ fosse 50, seria muito raro observar uma média tão extrema quanto a obtida
+> Correct answer: 4
+>
+> O valor-p é calculado condicionando em H0: ele mede quão raro seria obter um resultado tão extremo quanto o observado se μ = 50 fosse verdade. Ele não dá a probabilidade de H0 ser verdadeira.
+
+
+> [!abstract] PI
+
+Ótimo. Vamos para a **Análise 2: teste para uma proporção**.
+
+## Nó 4 — Proporção é média de “sim/não”
+
+### 1. Motivo
+
+Agora a pergunta não é sobre NPS médio. É sobre certificação:
+
+> “A proporção de corretoras certificadas está abaixo da meta de 45%?”
+
+Aqui cada corretora só pode entrar como:
+
+- certificada: sim;
+- não certificada: não.
+
+Então não estamos testando uma média quantitativa como NPS. Estamos testando uma **proporção**.
+
+---
+
+### 2. Verdade fundamental
+
+**Uma proporção é a fração de casos com uma característica.**
+
+No seu caso:
+
+> 106 certificadas em 240 corretoras
+
+Então:
+
+> proporção amostral = 106 / 240 = 0,4417
+
+Em porcentagem:
+
+> 44,17%
+
+A meta é:
+
+> 45% = 0,45
+
+Então, numericamente, a amostra ficou abaixo da meta:
+
+> 44,17% < 45%
+
+Mas a pergunta estatística é:
+
+> essa diferença é grande o suficiente para concluir que a proporção verdadeira está abaixo de 45%?
+
+---
+
+### 3. Hipóteses
+
+Como o enunciado diz **“abaixo da meta”**, a hipótese alternativa é unilateral à esquerda:
+
+> H0: p = 0,45  
+> H1: p < 0,45
+
+Onde:
+
+- p é a proporção verdadeira de corretoras certificadas na população/rede;
+- 0,45 é a meta.
+
+Atenção: H0 fala da proporção populacional, não da proporção amostral.
+
+---
+
+### 4. Estatística z
+
+A lógica é igual ao teste t:
+
+> estatística = distância entre observado e referência / erro-padrão
+
+Aqui:
+
+> z = -0,259
+
+Interpretação:
+
+> “A proporção amostral ficou apenas 0,259 erro-padrão abaixo da meta de 45%.”
+
+Isso é muito pouco. Está praticamente colado na meta.
+
+Por isso o valor-p unilateral é alto:
+
+> valor-p ≈ 0,398
+
+---
+
+### 5. Decisão
+
+Com α = 5%:
+
+> 0,398 > 0,05
+
+Então:
+
+> não rejeitamos H0.
+
+Conclusão oral:
+
+> “Embora a proporção amostral de certificadas seja 44,17%, ligeiramente abaixo da meta de 45%, essa diferença é muito pequena em termos estatísticos. Como o valor-p unilateral é 0,398, maior que 5%, não há evidência suficiente para concluir que a proporção verdadeira esteja abaixo da meta.”
+
+Essa frase é excelente para a banca.
