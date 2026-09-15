@@ -463,3 +463,155 @@ Frase oral segura:
 > “A hipótese nula funciona como referência: eu assumo μ = 50 e verifico se a média amostral observada seria plausível nesse cenário.”
 
 Agora fixa isso.
+
+
+> [!quote] YOU
+
+como a gnt chega no valorp, erropadr e estat t?
+
+
+> [!abstract] PI
+
+Ótima pergunta. Esse é o núcleo do teste t.
+
+Queremos responder:
+
+> Se a média verdadeira fosse 50, quão longe a média observada 45,696 ficou?
+
+Para isso precisamos de 3 peças:
+
+1. **erro-padrão**
+2. **estatística t**
+3. **valor-p**
+
+---
+
+## 1. Erro-padrão
+
+A amostra tem desvio-padrão:
+
+> s = 18,743
+
+Esse número mede a dispersão dos NPS individuais das corretoras.
+
+Mas a pergunta do teste não é:
+
+> “quanto varia o NPS de uma corretora para outra?”
+
+A pergunta é:
+
+> “quanto a média amostral costuma variar de uma amostra para outra?”
+
+Essa variação da média chama **erro-padrão**.
+
+Fórmula:
+
+> erro-padrão = desvio-padrão / raiz de n
+
+No seu caso:
+
+> erro-padrão = 18,743 / raiz de 240
+
+Como raiz de 240 ≈ 15,492:
+
+> erro-padrão ≈ 18,743 / 15,492  
+> erro-padrão ≈ 1,210
+
+Interpretação oral:
+
+> “O erro-padrão mostra a variação esperada da média amostral. Como temos 240 observações, a média fica bem mais estável do que os dados individuais.”
+
+---
+
+## 2. Estatística t
+
+Agora comparamos a média observada com a média de referência.
+
+Média observada:
+
+> 45,696
+
+Média de referência sob H0:
+
+> 50
+
+Diferença:
+
+> 45,696 - 50 = -4,304
+
+Mas uma diferença de -4,304 é grande ou pequena?
+
+Depende do erro-padrão.
+
+Por isso padronizamos:
+
+> t = diferença / erro-padrão
+
+Então:
+
+> t = (45,696 - 50) / 1,210  
+> t = -4,304 / 1,210  
+> t ≈ -3,558
+
+Interpretação oral:
+
+> “A média amostral ficou cerca de 3,56 erros-padrão abaixo do valor 50.”
+
+O sinal negativo só indica direção:
+
+> a amostra ficou abaixo de 50.
+
+---
+
+## 3. Valor-p
+
+Agora vem a ideia mais importante.
+
+O valor-p pergunta:
+
+> Se H0 fosse verdadeira, ou seja, se a média real fosse 50, qual seria a chance de observar uma diferença tão extrema quanto essa?
+
+Como o teste é bicaudal, porque a pergunta é “difere de 50”, olhamos os dois lados:
+
+- muito abaixo de 50;
+- ou muito acima de 50.
+
+Com:
+
+> t = -3,558  
+> gl = 239
+
+A tabela/software da distribuição t dá:
+
+> valor-p bicaudal = 0,00045
+
+Interpretação:
+
+> “Se a média verdadeira fosse 50, a chance de observar uma média tão distante de 50 quanto essa seria de aproximadamente 0,045%.”
+
+Como:
+
+> 0,00045 < 0,05
+
+Rejeitamos H0.
+
+---
+
+## Resumo em cadeia
+
+A lógica é:
+
+> dispersão dos dados → erro-padrão → estatística t → valor-p → decisão
+
+Com seus números:
+
+> s = 18,743  
+> n = 240  
+> erro-padrão = 18,743 / raiz(240) = 1,210  
+> t = (45,696 - 50) / 1,210 = -3,558  
+> valor-p = 0,00045  
+> decisão: rejeitar H0
+
+Frase perfeita para arguição:
+
+> “Primeiro calculamos o erro-padrão dividindo o desvio-padrão pela raiz do tamanho da amostra. Depois calculamos a estatística t, que mede quantos erros-padrão a média observada está distante de 50. Como t = -3,558 gerou valor-p bicaudal de 0,00045, menor que 5%, rejeitamos H0 e concluímos que o NPS médio difere de 50, estando abaixo do patamar de referência.”
