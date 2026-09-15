@@ -1673,3 +1673,183 @@ Não diga:
 Diga:
 
 > “Renovação está fortemente associada ao NPS.”
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Na equação NPS previsto = -86,856 + 1,686 × taxa de renovação, qual é a interpretação correta de 1,686?
+>
+> 1. A cada 1 ponto percentual a mais na renovação, o NPS previsto aumenta cerca de 1,686 ponto
+> 2. O modelo explica 1,686% da variação do NPS
+> 3. Quando a renovação é zero, o NPS previsto é 1,686
+> 4. A correlação entre renovação e NPS é 1,686
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 1. A cada 1 ponto percentual a mais na renovação, o NPS previsto aumenta cerca de 1,686 ponto
+> Correct answer: 1
+>
+> O número 1,686 é o coeficiente angular da reta. Ele indica a variação prevista em Y quando X aumenta uma unidade. Como X está em pontos percentuais de renovação, +1 ponto percentual em renovação se associa a +1,686 ponto no NPS previsto.
+
+
+> [!abstract] PI
+
+Boa. Agora precisamos fixar a parte que costuma embolar: **t, F, correlação e R²**.
+
+## Nó 8 — O teste t/F na regressão pergunta se a reta realmente tem inclinação
+
+### 1. Motivo
+
+A reta estimada foi:
+
+> NPS previsto = -86,856 + 1,686 × taxa de renovação
+
+Mas alguém poderia perguntar:
+
+> “Essa inclinação positiva é real ou apareceu por acaso na amostra?”
+
+É isso que o teste estatístico da regressão responde.
+
+---
+
+## 2. Hipóteses da inclinação
+
+A inclinação populacional é chamada de β1.
+
+H0:
+
+> β1 = 0
+
+Tradução:
+
+> “Na população, a inclinação é zero. A taxa de renovação não tem relação linear com o NPS.”
+
+H1:
+
+> β1 ≠ 0
+
+Tradução:
+
+> “Na população, a inclinação é diferente de zero. Existe relação linear.”
+
+No seu resultado:
+
+> t do coeficiente angular = 25,289  
+> valor-p ≈ 2,22 × 10^-69
+
+Esse t é gigantesco.
+
+Interpretação:
+
+> “A inclinação estimada está 25,289 erros-padrão distante de zero.”
+
+Então o valor-p fica praticamente zero.
+
+Decisão:
+
+> rejeitamos H0.
+
+Conclusão:
+
+> “A taxa de renovação tem relação linear estatisticamente significativa com o NPS.”
+
+---
+
+## 3. E o teste F?
+
+Na regressão linear simples, com apenas uma variável X, o teste F e o teste t da inclinação testam a mesma coisa:
+
+> H0: β1 = 0
+
+Resultado:
+
+> F = 639,528  
+> gl = 1 e 238  
+> valor-p ≈ 2,22 × 10^-69
+
+Aqui:
+
+> F ≈ t²
+
+Vamos conferir:
+
+> 25,289² ≈ 639,5
+
+Bate com:
+
+> F = 639,528
+
+Então na sua análise:
+
+- t testa se o coeficiente angular é diferente de zero;
+- F testa se o modelo com X explica mais do que um modelo sem X;
+- com uma única variável explicativa, os dois levam à mesma conclusão.
+
+Frase oral segura:
+
+> “Como é regressão simples, o teste F global e o teste t da inclinação são equivalentes em termos de conclusão; ambos indicam que a taxa de renovação é estatisticamente significativa para explicar o NPS.”
+
+---
+
+## 4. Correlação r
+
+A correlação foi:
+
+> r = 0,854
+
+Ela mede:
+
+- direção da relação linear;
+- força da relação linear.
+
+Como é positiva:
+
+> quando renovação aumenta, NPS tende a aumentar.
+
+Como está perto de 1:
+
+> relação linear forte.
+
+Frase oral:
+
+> “A correlação de 0,854 indica uma associação linear positiva forte entre taxa de renovação e NPS.”
+
+---
+
+## 5. R²
+
+O R² foi:
+
+> 72,88%
+
+Ele responde:
+
+> “Quanto da variação observada do NPS é explicada pela reta usando taxa de renovação?”
+
+Resposta:
+
+> 72,88%
+
+Então:
+
+> o modelo explica 72,88% da variação observada do NPS.
+
+Atenção:
+
+Não significa:
+
+> “72,88% do NPS de cada corretora é causado pela renovação.”
+
+Significa:
+
+> “72,88% da variabilidade do NPS na amostra é explicada pelo modelo linear.”
+
+Frase oral perfeita:
+
+> “O R² de 72,88% mostra que a taxa de renovação, no modelo linear simples, explica cerca de 72,88% da variação observada do NPS. É um poder explicativo alto, mas não prova causalidade.”
+
+Isso fecha regressão.
