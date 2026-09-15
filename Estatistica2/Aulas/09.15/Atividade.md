@@ -1853,3 +1853,147 @@ Frase oral perfeita:
 > “O R² de 72,88% mostra que a taxa de renovação, no modelo linear simples, explica cerca de 72,88% da variação observada do NPS. É um poder explicativo alto, mas não prova causalidade.”
 
 Isso fecha regressão.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Na regressão simples, o que significa R² = 72,88%?
+>
+> 1. A chance de H0 ser verdadeira é 72,88%
+> 2. O NPS aumenta 72,88 pontos quando a renovação aumenta 1 ponto
+> 3. O modelo linear explica cerca de 72,88% da variação observada do NPS
+> 4. A renovação causa exatamente 72,88% do NPS de cada corretora
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 3. O modelo linear explica cerca de 72,88% da variação observada do NPS
+> Correct answer: 3
+>
+> R² mede a proporção da variação observada de Y explicada pelo modelo. Aqui, o modelo linear com taxa de renovação explica cerca de 72,88% da variação observada do NPS. Isso não é causalidade individual nem coeficiente angular.
+
+
+> [!abstract] PI
+
+Excelente. Agora você já tem a estrutura das quatro análises.
+
+Vamos fazer uma **cola oral enxuta** para você responder na arguição.
+
+## 1. Teste t para média do NPS
+
+Pergunta:
+
+> O NPS médio difere de 50?
+
+Resposta:
+
+> “Foi usado um teste t para uma média, porque a variável NPS é quantitativa e estamos comparando a média populacional com o valor de referência 50. As hipóteses são H0: μ = 50 e H1: μ ≠ 50. A média amostral foi 45,696, com erro-padrão 1,210, gerando t = -3,558 e valor-p bicaudal de 0,00045. Como o valor-p é menor que 5%, rejeitamos H0. Portanto, há evidência de que o NPS médio difere de 50, estando abaixo do patamar de referência.”
+
+---
+
+## 2. Teste para proporção de certificadas
+
+Pergunta:
+
+> A proporção de certificadas está abaixo de 45%?
+
+Resposta:
+
+> “Foi usado um teste para uma proporção, porque a variável certificação é binária: certificada ou não certificada. As hipóteses são H0: p = 0,45 e H1: p < 0,45. A proporção amostral foi 106/240, ou 44,17%. O z foi -0,259 e o valor-p unilateral foi aproximadamente 0,398. Como esse valor-p é maior que 5%, não rejeitamos H0. Apesar de a proporção amostral estar numericamente abaixo da meta, não há evidência estatística suficiente para afirmar que a proporção verdadeira esteja abaixo de 45%.”
+
+Se perguntarem sobre bicaudal:
+
+> “No bicaudal, a hipótese alternativa seria p ≠ 0,45. O z continuaria -0,259, mas o valor-p consideraria as duas caudas, ficando aproximadamente 0,795. A conclusão continuaria sendo não rejeitar H0.”
+
+---
+
+## 3. Qui-quadrado de independência
+
+Pergunta:
+
+> Porte e canal estão associados?
+
+Resposta:
+
+> “Foi usado o teste qui-quadrado de independência, porque temos duas variáveis categóricas: porte e canal de atendimento. A hipótese nula é que as variáveis são independentes; a alternativa é que existe associação. A tabela é 3 por 3, então os graus de liberdade são (3 - 1)(3 - 1) = 4. O qui-quadrado foi 44,990, com valor-p aproximadamente 0,000000004. Como o valor-p é menor que 5%, rejeitamos H0. Portanto, existe associação entre porte e canal. O padrão observado sugere que grandes são mais digitais, médias mais híbridas e pequenas mais presenciais. Isso indica associação, não causalidade.”
+
+---
+
+## 4. Regressão linear simples
+
+Pergunta:
+
+> Como a taxa de renovação explica o NPS?
+
+Resposta:
+
+> “Foi ajustada uma regressão linear simples com NPS como variável dependente Y e taxa de renovação como variável explicativa X. A equação estimada foi: NPS previsto = -86,856 + 1,686 × taxa de renovação. O coeficiente angular 1,686 indica que cada aumento de 1 ponto percentual na renovação está associado a aumento médio previsto de aproximadamente 1,69 ponto no NPS. A correlação foi 0,854, indicando relação linear positiva forte. O R² foi 72,88%, ou seja, o modelo explica cerca de 72,88% da variação observada do NPS. O teste da inclinação teve t = 25,289 e valor-p praticamente zero, então a relação é estatisticamente significativa. Mas associação não prova causalidade.”
+
+Agora podemos fazer o **simulado oral**: eu faço perguntas como banca, você responde, e eu corrijo.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Simulado oral 1. A banca pergunta: “Por que você usou teste t na análise do NPS médio?” Qual resposta é mais adequada?
+>
+> 1. Porque o NPS é categórico e a análise compara frequências observadas
+> 2. Porque regressão sempre exige testar médias com qui-quadrado
+> 3. Porque certificação é binária e a análise compara uma proporção
+> 4. Porque o NPS é quantitativo e a análise compara uma média populacional com 50
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 4. Porque o NPS é quantitativo e a análise compara uma média populacional com 50
+> Correct answer: 4
+>
+> O teste t para uma média é adequado porque o NPS é uma variável quantitativa e a pergunta é se a média populacional difere de um valor de referência, 50. Como o desvio-padrão populacional não é conhecido, usa-se a distribuição t.
+
+
+> [!abstract] PI
+
+Boa.
+
+Resposta oral ideal:
+
+> “Usei teste t para uma média porque o NPS é uma variável quantitativa e o objetivo era comparar a média populacional com o valor de referência 50. Como o desvio-padrão populacional não é conhecido, usamos a distribuição t.”
+
+Próxima pergunta da banca.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Simulado oral 2. A banca pergunta: “A média amostral foi 45,696. Por que você não conclui automaticamente que a média verdadeira é menor que 50?”
+>
+> 1. Porque a diferença amostral pode ocorrer por variabilidade aleatória, então precisamos testar se ela é estatisticamente relevante
+> 2. Porque qualquer média amostral abaixo de 50 prova que a média populacional é exatamente 45,696
+> 3. Porque o valor-p deve ser ignorado quando a amostra tem 240 observações
+> 4. Porque o teste t só pode ser usado quando a média amostral é maior que o valor de referência
+
+
+> [!success] Quiz — correct ✓
+> Your answer: 1. Porque a diferença amostral pode ocorrer por variabilidade aleatória, então precisamos testar se ela é estatisticamente relevante
+> Correct answer: 1
+>
+> A amostra é uma evidência sobre a população, mas pode variar por acaso. O teste avalia se a diferença observada entre 45,696 e 50 é grande em relação ao erro-padrão. No caso, foi grande o suficiente para rejeitar H0, mas isso vem do teste, não apenas da comparação visual das médias.
+
+
+> [!abstract] PI
+
+Perfeito.
+
+Resposta oral ideal:
+
+> “Porque a média amostral pode variar por acaso. O teste verifica se a distância entre 45,696 e 50 é grande em relação ao erro-padrão. Como o valor-p foi 0,00045, menor que 5%, aí sim rejeitamos H0 e concluímos que há evidência de diferença.”
+
+Próxima.
