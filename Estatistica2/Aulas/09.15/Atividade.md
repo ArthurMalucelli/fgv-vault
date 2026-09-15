@@ -1422,3 +1422,96 @@ rejeitamos H0.
 > [!quote] YOU
 
 ok entendi
+
+
+> [!question] Quiz
+> No teste qui-quadrado, o valor-p ≈ 0,000000004 responde a qual pergunta?
+>
+> 1. Se porte e canal fossem independentes, qual a chance de obter χ² tão alto ou maior
+> 2. Qual a chance de o porte causar diretamente o canal de atendimento
+> 3. Qual a chance de a tabela ter exatamente 4 graus de liberdade
+> 4. Qual a chance de todas as células observadas serem iguais às esperadas
+
+
+> [!failure] Quiz — incorrect ✗
+> Your answer: 2. Qual a chance de o porte causar diretamente o canal de atendimento
+> Correct answer: 1
+>
+> O valor-p é calculado assumindo H0 verdadeira. No qui-quadrado, H0 diz independência entre porte e canal. Então o valor-p mede a chance de observar uma discrepância tão grande ou maior entre observado e esperado se as variáveis fossem independentes.
+
+
+> [!abstract] PI
+
+Boa — esse erro é importante, porque é exatamente uma pegadinha de arguição.
+
+## Correção do ponto
+
+O teste qui-quadrado **não mede causalidade**.
+
+Ele não responde:
+
+> “O porte causa o canal?”
+
+Ele responde:
+
+> “O padrão de canal muda conforme o porte?”
+
+Ou seja, ele testa **associação**, não causa.
+
+---
+
+## Como pensar
+
+Imagine estes dois mundos:
+
+### Mundo H0: independência
+
+Se porte e canal fossem independentes, a distribuição de canais seria parecida para todos os portes.
+
+Grandes, médias e pequenas teriam proporções parecidas de:
+
+- Digital;
+- Híbrido;
+- Presencial.
+
+### Mundo observado
+
+Mas na tabela real vemos:
+
+- Grandes: 41 Digital, 15 Presencial;
+- Médias: 35 Híbrido;
+- Pequenas: 50 Presencial.
+
+Isso é bem diferente do padrão esperado sob independência.
+
+Então o valor-p pergunta:
+
+> “Se não houvesse associação nenhuma, seria comum observar uma diferença tão grande entre observado e esperado?”
+
+Resposta:
+
+> Não. Seria extremamente raro: valor-p ≈ 0,000000004.
+
+Por isso rejeitamos H0.
+
+---
+
+## Frase segura para não errar
+
+> “O teste mostra associação estatística entre porte e canal, mas não permite afirmar que o porte causa a escolha do canal.”
+
+Vamos fixar essa distinção.
+
+
+> [!quote] YOU
+
+ok
+
+
+> [!question] Quiz
+> Depois do qui-quadrado rejeitar H0, qual conclusão é mais segura para a arguição?
+>
+> 1. As variáveis são independentes porque o teste foi significativo
+> 2. O canal de atendimento determina obrigatoriamente o porte da corretora
+> 3. O porte causa diretamente a escolha do canal de atendimento
+> 4. Existe associação entre porte e canal, mas o teste não prova causalidade
