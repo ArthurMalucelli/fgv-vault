@@ -222,3 +222,18 @@ Responder no formato:
 - Janela avaliada: 08–09/10/2026.
 - Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (quinta: tênis; sexta: musculação de superiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
 - Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 11/10/2026 às 20h — cobrança enviada
+- Janela avaliada: 10–11/10/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (sábado: musculação de inferiores; domingo: caminhada/cardio leve e revisão semanal), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 13/10/2026 às 20h — cobrança enviada
+- Janela avaliada: 12–13/10/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (segunda: musculação de superiores; terça: musculação de inferiores), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
+
+### 15/10/2026 às 20h — cobrança enviada
+- Janela avaliada: 14–15/10/2026.
+- Solicitados dados separados dos dois dias sobre sono e regularidade, proteína, treino previsto (quarta: cardio leve de 30–40 min ou descanso; quinta: tênis), estudo profundo, criação ou revisão de perguntas/flashcards em até 24h após as aulas, leitura do livro do tema mensal com notas 3–2–1, prática do idioma, ações sociais desconfortáveis e maior desperdício de tempo.
+- Aguardando resposta do Arthur; intenção não será contabilizada como execução e nenhum dado foi presumido. As notas 3–2–1 serão acrescentadas ao diário após a resposta.
